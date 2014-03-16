@@ -100,8 +100,6 @@
 
     "validateQuoteMarks": "'",
 
-    "validateIndentation": 4,
-
     "disallowMixedSpacesAndTabs": true,
 
     "disallowTrailingWhitespace": true,
@@ -112,8 +110,6 @@
 
     "maximumLineLength": 80,
 
-    "requireCapitalizedConstructors": true,
-
     "requireDotNotation": true,
 
     "validateJSDoc": {
@@ -122,5 +118,9 @@
         "requireParamTypes": true
     },
 
-    "excludeFiles": ["node_modules/**"]
+    "excludeFiles": [
+        "coverage/*",
+        "node_modules/*",
+        "test/harmony/*"
+    ]
 }
