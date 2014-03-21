@@ -1,8 +1,5 @@
 /coverage
-/githooks
 /node_modules
 /test
-/tools
-/Makefile
 .log
 .*
