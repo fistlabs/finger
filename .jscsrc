@@ -120,7 +120,6 @@
 
     "excludeFiles": [
         "coverage/*",
-        "node_modules/*",
-        "test/harmony/*"
+        "node_modules/*"
     ]
 }
