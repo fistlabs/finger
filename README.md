@@ -1,7 +1,7 @@
 finger [![Build Status](https://travis-ci.org/golyshevd/finger.svg?branch=master)](https://travis-ci.org/golyshevd/finger)
 =========
 
-Среверный роутер для http-запросов. 
+Серверный роутер для http-запросов.
 
 #[finger/Router](Router.js)
 ##```Router([params])```
