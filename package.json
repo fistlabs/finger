@@ -13,7 +13,7 @@
         "fist.lang.id": "~0.0.1",
         "lodash-node": "~2.4.1",
         "fist.lang.regesc": "~0.0.2",
-        "fist.lang.class": "~0.0.3"
+        "parent": "~0.0.1"
     },
     "description": "request routing",
     "devDependencies": {
