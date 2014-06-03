@@ -29,7 +29,8 @@ var escape = require('fist.lang.regesc');
  * */
 var flag2ParamMap = {
     s: 'doNotMatchStart',
-    e: 'doNotMatchEnd'
+    e: 'doNotMatchEnd',
+    i: 'ignoreCase'
 };
 
 /**

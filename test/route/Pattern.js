@@ -12,11 +12,10 @@ module.exports = {
             });
 
             test.deepEqual(p.params, {
-                ignoreCase: false,
+                ignoreCase: true,
                 doNotMatchStart: true,
                 doNotMatchEnd: true,
                 z: true,
-                i: true,
                 test: true
             });
 
