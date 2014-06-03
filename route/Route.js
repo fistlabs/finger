@@ -147,8 +147,7 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
             return encodeURIComponent(v);
         }
 
-        if ( 'boolean' === typeof v ||
-            ( 'number' === typeof v && isFinite(v) ) ) {
+        if ( 'boolean' === typeof v || 'number' === typeof v && isFinite(v) ) {
 
             return String(v);
         }
