@@ -4,26 +4,33 @@
         "email": "golyshev.dmitry@yandex.ru"
     },
     "bugs": {
-        "url": "https://github.com/golyshevd/module/issues"
+        "url": "https://github.com/golyshevd/finger/issues"
     },
     "contributors": [
         "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>"
     ],
-    "dependencies": {},
-    "description": "",
+    "dependencies": {
+        "fist.lang.id": "~0.0.1",
+        "lodash-node": "~2.4.1",
+        "fist.lang.regesc": "~0.0.2",
+        "fist.lang.class": "~0.0.3"
+    },
+    "description": "request routing",
     "devDependencies": {
         "jscs": "~1.4.5",
         "eslint": "~0.6.2",
         "nodeunit": "~0.9.0",
         "istanbul": "~0.2.10",
-        "glob": "~4.0.0"
+        "glob": "~4.0.0",
+        "benchmark": "~1.0.0",
+        "susanin": "~0.1.11"
     },
     "license": "MIT",
-    "main": "",
-    "name": "",
+    "main": "Router",
+    "name": "finger",
     "repository": {
         "type": "git",
-        "url": "git://github.com/golyshevd/module.git"
+        "url": "git://github.com/golyshevd/finger.git"
     },
     "scripts": {
         "jscs": "jscs .",
@@ -31,7 +38,8 @@
         "lint": "npm run jscs && npm run eslint",
         "unit": "node --harmony test/runner",
         "test": "npm run lint && npm run unit",
-        "cover": "istanbul cover test/runner"
+        "cover": "istanbul cover test/runner",
+        "benchmark": "benchmark/runner"
     },
-    "version": "0.0.0"
+    "version": "0.0.1-pre0"
 }
