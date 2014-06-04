@@ -18,7 +18,7 @@ var R_PATTERN = /^\s*([\s\S]*?)(?:\s+(\w+))?\s*$/;
  * @memberOf Pattern
  * @method
  * */
-var escape = require('fist.lang.regesc');
+var escape = require('regesc');
 
 /**
  * @private
