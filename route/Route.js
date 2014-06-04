@@ -5,6 +5,7 @@ var Pattern = /** @type Pattern */ require('./Pattern');
 
 var _ = require('lodash-node');
 var hasProperty = Object.prototype.hasOwnProperty;
+var uniqueId = require('unique-id');
 
 /**
  * @class Route
@@ -18,10 +19,12 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
      * @method
      *
      * @constructs
+     *
      * @param {String} pattern
      * @param {Object} [params]
+     * @param {Object} [data]
      * */
-    constructor: function (pattern, params) {
+    constructor: function (pattern, params, data) {
 
         var match = R_PATTERN.exec(pattern);
 
@@ -51,6 +54,14 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
          * @type {Array<String>}
          * */
         this.allow = _.keys(this._verbs);
+
+        /**
+         * @public
+         * @memberOf {Route}
+         * @property
+         * @type {Object}
+         * */
+        this.data = _.extend({name: uniqueId()}, data);
     },
 
     /**

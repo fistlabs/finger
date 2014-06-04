@@ -4,7 +4,6 @@ var Class = /** @type Class */ require('parent/Class');
 var Route = /** @type Route */ require('./route/Route');
 
 var _ = /** @type _*/ require('lodash-node');
-var uniqueId = require('unique-id');
 
 /**
  * @class Router
@@ -60,42 +59,22 @@ var Router = Class.extend(/** @lends Router.prototype */ {
      * */
     addRoute: function (pattern, data) {
 
-        var route;
+        var route = this._createRoute(pattern, this.params, data);
 
-        data = _.extend({name: uniqueId()}, data);
-        route = _.findIndex(this._routes, {data: {name: data.name}});
+        _.remove(this._routes, function (existingRoute) {
 
-        if ( -1 !== route ) {
-            delete this._index[data.name];
+            if ( existingRoute.data.name === route.data.name ) {
+                this._reduceVerbs(existingRoute.allow);
 
-            _.forEach(this._routes[route].allow, function (verb) {
-                this._verbs[verb] -= 1;
-
-                if ( 0 === this._verbs[verb] ) {
-
-                    delete this._verbs[verb];
-                }
-
-            }, this);
-            this._routes.splice(route, 1);
-        }
-
-        route = new Route(pattern, this.params);
-        route.data = data;
-        this._index[data.name] = route;
-
-        _.forEach(route.allow, function (verb) {
-
-            if ( verb in this._verbs ) {
-                this._verbs[verb] += 1;
-
-                return;
+                return true;
             }
 
-            this._verbs[verb] = 1;
+            return false;
         }, this);
 
+        this._increaseVerbs(route.allow);
         this._routes.push(route);
+        this._index[route.data.name] = route;
 
         return route;
     },
@@ -148,6 +127,22 @@ var Router = Class.extend(/** @lends Router.prototype */ {
     },
 
     /**
+     * @protected
+     * @memberOf {Router}
+     * @method
+     *
+     * @param {String} pattern
+     * @param {Object} params
+     * @param {Object} data
+     *
+     * @returns {Route}
+     * */
+    _createRoute: function (pattern, params, data) {
+
+        return new Route(pattern, params, data);
+    },
+
+    /**
      * @private
      * @memberOf {Router}
      * @method
@@ -191,6 +186,61 @@ var Router = Class.extend(/** @lends Router.prototype */ {
         }
 
         return _.uniq(allow);
+    },
+
+    /**
+     * @private
+     * @memberOf {Router}
+     * @method
+     *
+     * @param {String} verb
+     * */
+    _increaseVerb: function (verb) {
+
+        if ( verb in this._verbs ) {
+            this._verbs[verb] += 1;
+
+            return;
+        }
+
+        this._verbs[verb] = 1;
+    },
+
+    /**
+     * @private
+     * @memberOf {Router}
+     * @method
+     *
+     * @param {Array<String>} verbs
+     * */
+    _increaseVerbs: function (verbs) {
+        _.forEach(verbs, this._increaseVerb, this);
+    },
+
+    /**
+     * @private
+     * @memberOf {Router}
+     * @method
+     *
+     * @param {String} verb
+     * */
+    _reduceVerb: function (verb) {
+        this._verbs[verb] -= 1;
+
+        if ( 0 === this._verbs[verb] ) {
+            delete this._verbs[verb];
+        }
+    },
+
+    /**
+     * @private
+     * @memberOf {Router}
+     * @method
+     *
+     * @param {Array<String>} verbs
+     * */
+    _reduceVerbs: function (verbs) {
+        _.forEach(verbs, this._reduceVerb, this);
     }
 
 });
