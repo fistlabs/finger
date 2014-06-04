@@ -10,7 +10,7 @@
         "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>"
     ],
     "dependencies": {
-        "fist.lang.id": "~0.0.1",
+        "unique-id": "~0.0.1",
         "lodash-node": "~2.4.1",
         "regesc": "~0.0.1",
         "parent": "~0.0.1"

@@ -4,7 +4,7 @@ var Class = /** @type Class */ require('parent/Class');
 var Route = /** @type Route */ require('./route/Route');
 
 var _ = /** @type _*/ require('lodash-node');
-var uniqueId = require('fist.lang.id');
+var uniqueId = require('unique-id');
 
 /**
  * @class Router
