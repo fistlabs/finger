@@ -163,5 +163,28 @@ module.exports = {
 
             test.done();
         }
+    ],
+    'Pattern.prototype.toString': [
+        function (test) {
+            var pattern = new Pattern(' /a/b/c   iEs ');
+
+            test.strictEqual(pattern.toString(), '/a/b/c iEs');
+
+            test.done();
+        },
+        function (test) {
+            var pattern = new Pattern(' /a/b/c   iEsz ');
+
+            test.strictEqual(pattern.toString(), '/a/b/c iEs');
+
+            test.done();
+        },
+        function (test) {
+            var pattern = new Pattern(' /a/b/c  baz ');
+
+            test.strictEqual(pattern.toString(), '/a/b/c');
+
+            test.done();
+        }
     ]
 };

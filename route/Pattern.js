@@ -34,6 +34,15 @@ var flag2ParamMap = {
 };
 
 /**
+ * @private
+ * @static
+ * @memberOf Pattern
+ * @property
+ * @type {Object}
+ * */
+var param2FlagMap = _.invert(flag2ParamMap);
+
+/**
  * @class Pattern
  * @extends Parser
  * */
@@ -197,6 +206,52 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
         }
 
         return result;
+    },
+
+    /**
+     * @public
+     * @memberOf {Pattern}
+     * @method
+     *
+     * @returns {String}
+     * */
+    toString: function () {
+
+        var pattern = Pattern.parent.toString.call(this);
+        var flags = _.reduce(this.params, this._reduceParam2Flag, '', this);
+
+        if ( '' === flags ) {
+
+            return pattern;
+        }
+
+        return pattern + ' ' + flags;
+    },
+
+    /**
+     * @public
+     * @memberOf {Pattern}
+     * @method
+     *
+     * @param {String} flags
+     * @param {Boolean} value
+     * @param {String} name
+     *
+     * @returns {String}
+     * */
+    _reduceParam2Flag: function (flags, value, name) {
+
+        if ( _.has(param2FlagMap, name) ) {
+
+            if ( value ) {
+                flags += param2FlagMap[name].toLowerCase();
+
+            } else {
+                flags += param2FlagMap[name].toUpperCase();
+            }
+        }
+
+        return flags;
     },
 
     /**
