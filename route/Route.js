@@ -1,6 +1,6 @@
 'use strict';
 
-var R_PATTERN = /^\s*(?:((?:[^,\s]+)(?:\s*,\s*(?:[^,\s]+))*)\s+)?([\s\S]*)$/;
+var R_PATTERN = /^\s*(?:((?:\w+)(?:\s*,\s*(?:\w+))*)\s+)?([\s\S]*)$/;
 var Pattern = /** @type Pattern */ require('./Pattern');
 
 var _ = require('lodash-node');
@@ -100,6 +100,18 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
         }
 
         return pathname + '?' + this._stringifyQuery(query);
+    },
+
+    /**
+     * @public
+     * @memberOf {Route}
+     * @method
+     *
+     * @returns {String}
+     * */
+    toString: function () {
+
+        return this.allow.join(',') + ' ' + Route.parent.toString.call(this);
     },
 
     /**

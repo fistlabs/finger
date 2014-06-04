@@ -55,5 +55,23 @@ module.exports = {
             test.deepEqual(r.match('POST', '/INDEX.PHP'), [true, {}]);
             test.done();
         }
+    ],
+    'Route.prototype.toString': [
+        function (test) {
+
+            var r = new Route(' PUT, POST /index.xml', {
+                ignoreCase: true
+            });
+
+            test.strictEqual(r.toString(), 'PUT,POST /index.xml i');
+            test.done();
+        },
+        function (test) {
+
+            var r = new Route('/index.xml i');
+
+            test.strictEqual(r.toString(), 'GET,HEAD /index.xml i');
+            test.done();
+        }
     ]
 };
