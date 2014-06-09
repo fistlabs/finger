@@ -4,6 +4,7 @@ var R_PATTERN = /^\s*(?:((?:\w+)(?:\s*,\s*(?:\w+))*)\s+)?([\s\S]*)$/;
 var Pattern = /** @type Pattern */ require('./Pattern');
 
 var _ = require('lodash-node');
+var inherit = require('inherit');
 var hasProperty = Object.prototype.hasOwnProperty;
 var uniqueId = require('unique-id');
 
@@ -11,10 +12,10 @@ var uniqueId = require('unique-id');
  * @class Route
  * @extends Pattern
  * */
-var Route = Pattern.extend(/** @lends Route.prototype */ {
+var Route = inherit(Pattern, /** @lends Route.prototype */ {
 
     /**
-     * @protected
+     * @private
      * @memberOf {Route}
      * @method
      *
@@ -24,11 +25,11 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
      * @param {Object} [params]
      * @param {Object} [data]
      * */
-    constructor: function (pattern, params, data) {
+    __constructor: function (pattern, params, data) {
 
         var match = R_PATTERN.exec(pattern);
 
-        Route.Parent.call(this, match[2], params);
+        this.__base(match[2], params);
 
         /**
          * @private
@@ -36,15 +37,15 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
          * @property
          * @type {Object}
          * */
-        this._verbs = Object.create(null);
-        this._verbs.GET = true;
+        this.__verbs = Object.create(null);
+        this.__verbs.GET = true;
 
         if ( match[1] ) {
-            this._verbs = reduceMethods(match[1], Object.create(null));
+            this.__verbs = reduceMethods(match[1], Object.create(null));
         }
 
-        if ( _.has(this._verbs, 'GET') ) {
-            this._verbs.HEAD = true;
+        if ( _.has(this.__verbs, 'GET') ) {
+            this.__verbs.HEAD = true;
         }
 
         /**
@@ -53,7 +54,7 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
          * @property
          * @type {Array<String>}
          * */
-        this.allow = _.keys(this._verbs);
+        this.allow = _.keys(this.__verbs);
 
         /**
          * @public
@@ -77,7 +78,7 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
 
         var isQueryEmpty = true;
         var name;
-        var pathname = Route.parent.build.call(this, opts);
+        var pathname = this.__base(opts);
         var query = {};
 
         for ( name in opts ) {
@@ -99,7 +100,7 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
             return pathname;
         }
 
-        return pathname + '?' + this._stringifyQuery(query);
+        return pathname + '?' + this.__stringifyQuery(query);
     },
 
     /**
@@ -111,7 +112,7 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
      * */
     toString: function () {
 
-        return this.allow.join(',') + ' ' + Route.parent.toString.call(this);
+        return this.allow.join(',') + ' ' + this.__base();
     },
 
     /**
@@ -123,7 +124,7 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
      *
      * @returns {String}
      * */
-    _stringifyQuery: function (query) {
+    __stringifyQuery: function (query) {
 
         var result = [];
         var i;
@@ -139,15 +140,15 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
                 if ( _.isArray(v) ) {
 
                     for ( i = 0, l = v.length; i < l; i += 1 ) {
-                        result[result.length] = this._stringifyPrimitive(k) +
-                            '=' + this._stringifyPrimitive(v[i]);
+                        result[result.length] = this.__stringifyPrimitive(k) +
+                            '=' + this.__stringifyPrimitive(v[i]);
                     }
 
                     continue;
                 }
 
-                result[result.length] = this._stringifyPrimitive(k) +
-                    '=' + this._stringifyPrimitive(v);
+                result[result.length] = this.__stringifyPrimitive(k) +
+                    '=' + this.__stringifyPrimitive(v);
             }
         }
 
@@ -163,7 +164,7 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
      *
      * @returns {String}
      * */
-    _stringifyPrimitive: function (v) {
+    __stringifyPrimitive: function (v) {
 
         if ( 'string' === typeof v ) {
 
@@ -190,7 +191,7 @@ var Route = Pattern.extend(/** @lends Route.prototype */ {
      * */
     match: function (verb, pathname) {
 
-        return [verb in this._verbs, Route.parent.match.call(this, pathname)];
+        return [verb in this.__verbs, this.__base(pathname)];
     }
 
 });

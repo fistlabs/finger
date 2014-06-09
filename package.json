@@ -13,7 +13,7 @@
         "unique-id": "~0.0.1",
         "lodash-node": "~2.4.1",
         "regesc": "~0.0.1",
-        "parent": "~0.0.1"
+        "inherit": "~2.2.2"
     },
     "description": "request routing",
     "devDependencies": {
@@ -41,5 +41,5 @@
         "cover": "istanbul cover test/runner",
         "benchmark": "benchmark/runner"
     },
-    "version": "0.0.1-pre1"
+    "version": "0.0.1"
 }

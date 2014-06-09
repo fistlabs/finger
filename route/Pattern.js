@@ -1,7 +1,9 @@
 'use strict';
 
 var Parser = /** @type Parser */ require('./Parser');
+
 var _ = require('lodash-node');
+var inherit = require('inherit');
 
 /**
  * @private
@@ -46,10 +48,10 @@ var param2FlagMap = _.invert(flag2ParamMap);
  * @class Pattern
  * @extends Parser
  * */
-var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
+var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
     /**
-     * @protected
+     * @private
      * @memberOf {Pattern}
      * @method
      *
@@ -58,11 +60,11 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
      * @param {String} pattern
      * @param {Object} [params]
      * */
-    constructor: function (pattern, params) {
+    __constructor: function (pattern, params) {
 
         var match = R_PATTERN.exec(pattern);
 
-        Pattern.Parent.call(this, match[1], params);
+        this.__base(match[1], params);
 
         /**
          * @public
@@ -83,15 +85,6 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
         this._subst = [];
 
         /**
-         * @private
-         * @memberOf {Pattern}
-         * @property
-         *
-         * @type {RegExp}
-         * */
-        this._regexp = this._compileRegExp();
-
-        /**
          * @protected
          * @memberOf {Pattern}
          * @property
@@ -99,6 +92,15 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
          * @type {Object}
          * */
         this._usesOpt = {};
+
+        /**
+         * @private
+         * @memberOf {Pattern}
+         * @property
+         *
+         * @type {RegExp}
+         * */
+        this.__regexp = this.__compileRegExp();
 
         _.forEach(this._subst, function (part) {
             this._usesOpt[part.body] = true;
@@ -132,7 +134,7 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
 
                 case Parser.PART_PARAM:
 
-                    return buildParamPart(part.body);
+                    return buildParamPart.call(this, part.body);
 
                 default:
 
@@ -167,7 +169,7 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
                 return '';
             }
 
-            if ( Parser.isFalsy(value) ) {
+            if ( this.__self.isFalsy(value) ) {
 
                 return '';
             }
@@ -191,7 +193,7 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
 
         var i;
         var l;
-        var match = this._regexp.exec(pathname);
+        var match = this.__regexp.exec(pathname);
         var result = null;
 
         if ( null === match ) {
@@ -217,8 +219,8 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
      * */
     toString: function () {
 
-        var pattern = Pattern.parent.toString.call(this);
-        var flags = _.reduce(this.params, this._reduceParam2Flag, '', this);
+        var pattern = this.__base();
+        var flags = _.reduce(this.params, this.__reduceParam2Flag, '', this);
 
         if ( '' === flags ) {
 
@@ -229,7 +231,7 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
     },
 
     /**
-     * @public
+     * @private
      * @memberOf {Pattern}
      * @method
      *
@@ -239,7 +241,7 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
      *
      * @returns {String}
      * */
-    _reduceParam2Flag: function (flags, value, name) {
+    __reduceParam2Flag: function (flags, value, name) {
 
         if ( _.has(param2FlagMap, name) ) {
 
@@ -255,15 +257,15 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
     },
 
     /**
-     * @protected
+     * @private
      * @memberOf {Pattern}
      * @method
      *
      * @returns {RegExp}
      * */
-    _compileRegExp: function () {
+    __compileRegExp: function () {
 
-        var source = this.compile(this._compileRegExpPart);
+        var source = this.compile(this.__compileRegExpPart);
 
         if ( !this.params.doNotMatchStart ) {
             source = '^' + source;
@@ -286,7 +288,7 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
      *
      * @returns {String}
      * */
-    _compileRegExpPart: function (part, isBubbling) {
+    __compileRegExpPart: function (part, isBubbling) {
 
         switch (part.type) {
 
@@ -296,7 +298,7 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
 
             case Parser.PART_STATIC:
 
-                return this._compileStaticPart(part);
+                return this.__compileStaticPart(part);
 
             case Parser.PART_PARAM:
                 this._subst.push(part);
@@ -307,7 +309,7 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
                 }
 
                 return '(' + _.map(part.parts,
-                    this._compileStaticPart, this).join('|') + ')';
+                    this.__compileStaticPart, this).join('|') + ')';
 
             default:
 
@@ -329,10 +331,10 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
      *
      * @returns {String}
      * */
-    _compileStaticPart: function (part) {
+    __compileStaticPart: function (part) {
         part = decodeURIComponent(part.body);
 
-        return _.reduce(part, this._reduceChar, '', this);
+        return _.reduce(part, this.__reduceChar, '', this);
     },
 
     /**
@@ -345,7 +347,7 @@ var Pattern = Parser.extend(/** @lends Pattern.prototype */ {
      *
      * @returns {String}
      * */
-    _reduceChar: function (result, char) {
+    __reduceChar: function (result, char) {
 
         if ( char === encodeURIComponent(char) ) {
 

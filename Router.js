@@ -1,25 +1,33 @@
 'use strict';
 
-var Class = /** @type Class */ require('parent/Class');
 var Route = /** @type Route */ require('./route/Route');
 
 var _ = /** @type _*/ require('lodash-node');
+var inherit = require('inherit');
 
 /**
  * @class Router
- * @extends Class
  * */
-var Router = Class.extend(/** @lends Router.prototype */ {
+var Router = inherit(/** @lends Router.prototype */ {
 
     /**
-     * @protected
+     * @private
      * @memberOf {Router}
      * @method
      *
+     * @param {Object} [params]
+     *
      * @constructs
      * */
-    constructor: function () {
-        Router.Parent.apply(this, arguments);
+    __constructor: function (params) {
+
+        /**
+         * @public
+         * @memberOf {Router}
+         * @property
+         * @type {Object}
+         * */
+        this.params = _.extend({}, this.params, params);
 
         /**
          * @private
@@ -27,7 +35,7 @@ var Router = Class.extend(/** @lends Router.prototype */ {
          * @property
          * @type {Array<Route>}
          * */
-        this._routes = [];
+        this.__routes = [];
 
         /**
          * @private
@@ -35,7 +43,7 @@ var Router = Class.extend(/** @lends Router.prototype */ {
          * @property
          * @type {Object}
          * */
-        this._index = {};
+        this.__index = {};
 
         /**
          * @private
@@ -43,7 +51,7 @@ var Router = Class.extend(/** @lends Router.prototype */ {
          * @property
          * @type {Object}
          * */
-        this._verbs = Object.create(null);
+        this.__verbs = {};
     },
 
     /**
@@ -61,10 +69,10 @@ var Router = Class.extend(/** @lends Router.prototype */ {
 
         var route = this._createRoute(pattern, this.params, data);
 
-        _.remove(this._routes, function (existingRoute) {
+        _.remove(this.__routes, function (existingRoute) {
 
             if ( existingRoute.data.name === route.data.name ) {
-                this._reduceVerbs(existingRoute.allow);
+                this.__reduceVerbs(existingRoute.allow);
 
                 return true;
             }
@@ -72,9 +80,9 @@ var Router = Class.extend(/** @lends Router.prototype */ {
             return false;
         }, this);
 
-        this._increaseVerbs(route.allow);
-        this._routes.push(route);
-        this._index[route.data.name] = route;
+        this.__increaseVerbs(route.allow);
+        this.__routes.push(route);
+        this.__index[route.data.name] = route;
 
         return route;
     },
@@ -92,24 +100,24 @@ var Router = Class.extend(/** @lends Router.prototype */ {
      * */
     find: function (verb, pathname, route) {
 
-        if ( false === verb in this._verbs ) {
+        if ( !_.has(this.__verbs, verb) ) {
 
             return [];
         }
 
         if ( void 0 === route || null === route ) {
 
-            return this._find(verb, pathname, 0);
+            return this.__find(verb, pathname, 0);
         }
 
-        route = _.findIndex(this._routes, {data: {name: route}});
+        route = _.findIndex(this.__routes, {data: {name: route}});
 
         if ( -1 === route ) {
 
             return null;
         }
 
-        return this._find(verb, pathname, route + 1);
+        return this.__find(verb, pathname, route + 1);
     },
 
     /**
@@ -123,7 +131,7 @@ var Router = Class.extend(/** @lends Router.prototype */ {
      * */
     getRoute: function (name) {
 
-        return this._index[name] || null;
+        return this.__index[name] || null;
     },
 
     /**
@@ -153,15 +161,15 @@ var Router = Class.extend(/** @lends Router.prototype */ {
      *
      * @returns {*}
      * */
-    _find: function (verb, pathname, index) {
+    __find: function (verb, pathname, index) {
 
         var l;
         var match;
         var route;
         var allow = [];
 
-        for ( l = this._routes.length; index < l; index += 1 ) {
-            route = this._routes[index];
+        for ( l = this.__routes.length; index < l; index += 1 ) {
+            route = this.__routes[index];
             match = route.match(verb, pathname);
 
             if ( null === match[1] ) {
@@ -195,15 +203,15 @@ var Router = Class.extend(/** @lends Router.prototype */ {
      *
      * @param {String} verb
      * */
-    _increaseVerb: function (verb) {
+    __increaseVerb: function (verb) {
 
-        if ( verb in this._verbs ) {
-            this._verbs[verb] += 1;
+        if ( _.has(this.__verbs, verb) ) {
+            this.__verbs[verb] += 1;
 
             return;
         }
 
-        this._verbs[verb] = 1;
+        this.__verbs[verb] = 1;
     },
 
     /**
@@ -213,8 +221,8 @@ var Router = Class.extend(/** @lends Router.prototype */ {
      *
      * @param {Array<String>} verbs
      * */
-    _increaseVerbs: function (verbs) {
-        _.forEach(verbs, this._increaseVerb, this);
+    __increaseVerbs: function (verbs) {
+        _.forEach(verbs, this.__increaseVerb, this);
     },
 
     /**
@@ -224,11 +232,11 @@ var Router = Class.extend(/** @lends Router.prototype */ {
      *
      * @param {String} verb
      * */
-    _reduceVerb: function (verb) {
-        this._verbs[verb] -= 1;
+    __reduceVerb: function (verb) {
+        this.__verbs[verb] -= 1;
 
-        if ( 0 === this._verbs[verb] ) {
-            delete this._verbs[verb];
+        if ( 0 === this.__verbs[verb] ) {
+            delete this.__verbs[verb];
         }
     },
 
@@ -239,8 +247,8 @@ var Router = Class.extend(/** @lends Router.prototype */ {
      *
      * @param {Array<String>} verbs
      * */
-    _reduceVerbs: function (verbs) {
-        _.forEach(verbs, this._reduceVerb, this);
+    __reduceVerbs: function (verbs) {
+        _.forEach(verbs, this.__reduceVerb, this);
     }
 
 });

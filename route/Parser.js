@@ -1,18 +1,17 @@
 'use strict';
 
 var R_SYNTAX_CHARS = /[\\\(\)<>,=*\/]/g;
-var Class = /** @type Class */ require('parent/Class');
 
 var _ = require('lodash-node');
+var inherit = require('inherit');
 
 /**
  * @class Parser
- * @extends Class
  * */
-var Parser = Class.extend(/** @lends Parser.prototype */ {
+var Parser = inherit(/** @lends Parser.prototype */ {
 
     /**
-     * @protected
+     * @private
      * @memberOf {Parser}
      * @method
      *
@@ -21,21 +20,27 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      * @param {String} pattern
      * @param {Object} [params]
      * */
-    constructor: function (pattern, params) {
+    __constructor: function (pattern, params) {
 
         var matchers = [
-            this._guessReverseSolidus,
-            this._guessEscaped,
-            this._guessSolidus,
-            this._guessLeftParenthesis,
-            this._guessRightParenthesis,
-            this._guessLessThan,
-            this._guessGreaterThan,
-            this._guessEquals,
-            this._guessComma
+            this.__guessReverseSolidus,
+            this.__guessEscaped,
+            this.__guessSolidus,
+            this.__guessLeftParenthesis,
+            this.__guessRightParenthesis,
+            this.__guessLessThan,
+            this.__guessGreaterThan,
+            this.__guessEquals,
+            this.__guessComma
         ];
 
-        Parser.Parent.call(this, params);
+        /**
+         * @public
+         * @memberOf {Parser}
+         * @property
+         * @type {Object}
+         * */
+        this.params = _.extend({}, this.params, params);
 
         /**
          * @private
@@ -43,7 +48,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
          * @property
          * @type {Array}
          * */
-        this._buf = [];
+        this.__buf = [];
 
         /**
          * @private
@@ -51,7 +56,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
          * @property
          * @type {String}
          * */
-        this._chunk = '';
+        this.__chunk = '';
 
         /**
          * @private
@@ -59,7 +64,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
          * @property
          * @type {String}
          * */
-        this._src = pattern;
+        this.__src = pattern;
 
         /**
          * @private
@@ -67,7 +72,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
          * @property
          * @type {Number}
          * */
-        this._isEscape = false;
+        this.__isEscape = false;
 
         /**
          * @private
@@ -75,7 +80,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
          * @property
          * @type {Number}
          * */
-        this._isParam = false;
+        this.__isParam = false;
 
         /**
          * @private
@@ -83,7 +88,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
          * @property
          * @type {Number}
          * */
-        this._isValue = false;
+        this.__isValue = false;
 
         /**
          * @private
@@ -91,7 +96,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
          * @property
          * @type {Number}
          * */
-        this._nesting = 0;
+        this.__nesting = 0;
 
         /**
          * @private
@@ -99,7 +104,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
          * @property
          * @type {Number}
          * */
-        this._next = 0;
+        this.__next = 0;
 
         /**
          * @private
@@ -107,31 +112,32 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
          * @property
          * @type {Array}
          * */
-        this._stack = [];
+        this.__stack = [];
 
         /*eslint no-cond-assign: 0*/
-        while ( this._cur = this._charAt(this._next) ) {
-            this._next += 1;
+        while ( this._cur = this.__charAt(this.__next) ) {
+            this.__next += 1;
 
-            if ( _.some(matchers, this._applyMatcher, this) ) {
+            if ( _.some(matchers, this.__applyMatcher, this) ) {
 
                 continue;
             }
 
-            this._chunk += this._cur;
+            this.__chunk += this._cur;
         }
 
-        if ( this._nesting + this._isEscape + this._isParam + this._isValue ) {
+        if ( this.__nesting + this.__isEscape +
+            this.__isParam + this.__isValue ) {
 
-            throw this._getError();
+            throw this.__getError();
         }
 
-        if ( this._chunk ) {
-            this._addPartStatic();
+        if ( this.__chunk ) {
+            this.__addPartStatic();
 
-        } else if ( _.isEmpty(this._buf) ) {
+        } else if ( _.isEmpty(this.__buf) ) {
 
-            throw this._getError();
+            throw this.__getError();
         }
 
         /**
@@ -140,7 +146,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
          * @property
          * @type {Array}
          * */
-        this.parts = this._buf;
+        this.parts = this.__buf;
     },
 
     /**
@@ -209,7 +215,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
             value = func.call(this, part, isBubbling);
 
             if ( Parser.PART_PARAM === part.type &&
-                stack.length && Parser.isFalsy(value) ) {
+                stack.length && this.__self.isFalsy(value) ) {
                 amend = 1;
                 chunk = '';
                 index = parts.length;
@@ -241,16 +247,16 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      * @memberOf {Parser}
      * @method
      * */
-    _addPartStatic: function () {
+    __addPartStatic: function () {
 
-        var chunk = decodeURIComponent(this._chunk);
+        var chunk = decodeURIComponent(this.__chunk);
 
-        this._buf.push({
+        this.__buf.push({
             type: Parser.PART_STATIC,
             body: chunk,
             encoded: encodeURIComponent(chunk)
         });
-        this._chunk = '';
+        this.__chunk = '';
     },
 
     /**
@@ -262,7 +268,7 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {Boolean}
      * */
-    _applyMatcher: function (matcher) {
+    __applyMatcher: function (matcher) {
 
         return matcher.call(this);
     },
@@ -276,9 +282,9 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {String}
      * */
-    _charAt: function (index) {
+    __charAt: function (index) {
 
-        return this._src.charAt(index);
+        return this.__src.charAt(index);
     },
 
     /**
@@ -288,9 +294,9 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {SyntaxError}
      * */
-    _getError: function () {
+    __getError: function () {
 
-        return new SyntaxError(this._src);
+        return new SyntaxError(this.__src);
     },
 
     /**
@@ -300,16 +306,16 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {Boolean}
      * */
-    _guessComma: function () {
+    __guessComma: function () {
 
         if ( ',' === this._cur ) {
 
-            if ( !this._chunk || !this._isValue ) {
+            if ( !this.__chunk || !this.__isValue ) {
 
-                throw this._getError();
+                throw this.__getError();
             }
 
-            this._addPartStatic();
+            this.__addPartStatic();
 
             return true;
         }
@@ -324,24 +330,24 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {Boolean}
      * */
-    _guessEquals: function () {
+    __guessEquals: function () {
 
         if ( '=' === this._cur ) {
 
             //  пустой параметр или не параметр вообще или уже значение
-            if ( !this._chunk || !this._isParam || this._isValue ) {
+            if ( !this.__chunk || !this.__isParam || this.__isValue ) {
 
-                throw this._getError();
+                throw this.__getError();
             }
 
-            this._isValue = true;
-            this._stack.push(this._buf);
-            this._buf.push({
+            this.__isValue = true;
+            this.__stack.push(this.__buf);
+            this.__buf.push({
                 type: Parser.PART_PARAM,
-                body: this._chunk,
-                parts: this._buf = []
+                body: this.__chunk,
+                parts: this.__buf = []
             });
-            this._chunk = '';
+            this.__chunk = '';
 
             return true;
         }
@@ -356,11 +362,11 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {Boolean}
      * */
-    _guessEscaped: function () {
+    __guessEscaped: function () {
 
-        if ( this._isEscape ) {
-            this._chunk += this._cur;
-            this._isEscape = false;
+        if ( this.__isEscape ) {
+            this.__chunk += this._cur;
+            this.__isEscape = false;
 
             return true;
         }
@@ -375,30 +381,30 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {Boolean}
      * */
-    _guessGreaterThan: function () {
+    __guessGreaterThan: function () {
 
         if ( '>' === this._cur ) {
 
-            if ( !this._isParam || !this._chunk ) {
+            if ( !this.__isParam || !this.__chunk ) {
 
-                throw this._getError();
+                throw this.__getError();
             }
 
-            if ( this._isValue ) {
-                this._addPartStatic();
-                this._buf = this._stack.pop();
-                this._isValue = false;
+            if ( this.__isValue ) {
+                this.__addPartStatic();
+                this.__buf = this.__stack.pop();
+                this.__isValue = false;
 
             } else {
-                this._buf.push({
+                this.__buf.push({
                     type: Parser.PART_PARAM,
-                    body: this._chunk,
+                    body: this.__chunk,
                     parts: []
                 });
-                this._chunk = '';
+                this.__chunk = '';
             }
 
-            this._isParam = false;
+            this.__isParam = false;
 
             return true;
         }
@@ -413,25 +419,25 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {Boolean}
      * */
-    _guessLeftParenthesis: function () {
+    __guessLeftParenthesis: function () {
 
         if ( '(' === this._cur ) {
 
-            if ( this._isParam ) {
+            if ( this.__isParam ) {
 
-                throw this._getError();
+                throw this.__getError();
             }
 
-            if ( this._chunk ) {
-                this._addPartStatic();
+            if ( this.__chunk ) {
+                this.__addPartStatic();
             }
 
-            this._stack.push(this._buf);
-            this._buf.push({
+            this.__stack.push(this.__buf);
+            this.__buf.push({
                 type: Parser.PART_OPTION,
-                parts: this._buf = []
+                parts: this.__buf = []
             });
-            this._nesting += 1;
+            this.__nesting += 1;
 
             return true;
         }
@@ -446,20 +452,20 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {Boolean}
      * */
-    _guessLessThan: function () {
+    __guessLessThan: function () {
 
         if ( '<' === this._cur ) {
 
-            if ( this._isParam ) {
+            if ( this.__isParam ) {
 
-                throw this._getError();
+                throw this.__getError();
             }
 
-            if ( this._chunk ) {
-                this._addPartStatic();
+            if ( this.__chunk ) {
+                this.__addPartStatic();
             }
 
-            this._isParam = true;
+            this.__isParam = true;
 
             return true;
         }
@@ -474,10 +480,10 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {Boolean}
      * */
-    _guessReverseSolidus: function () {
+    __guessReverseSolidus: function () {
 
-        if ( '\\' === this._cur && !this._isEscape ) {
-            this._isEscape = true;
+        if ( '\\' === this._cur && !this.__isEscape ) {
+            this.__isEscape = true;
 
             return true;
         }
@@ -492,25 +498,25 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {Boolean}
      * */
-    _guessRightParenthesis: function () {
+    __guessRightParenthesis: function () {
 
         if ( ')' === this._cur ) {
 
-            if ( 0 === this._nesting ) {
+            if ( 0 === this.__nesting ) {
 
-                throw this._getError();
+                throw this.__getError();
             }
 
-            if ( this._chunk ) {
-                this._addPartStatic();
+            if ( this.__chunk ) {
+                this.__addPartStatic();
 
-            } else if ( _.isEmpty(this._buf) ) {
+            } else if ( _.isEmpty(this.__buf) ) {
 
-                throw this._getError();
+                throw this.__getError();
             }
 
-            this._buf = this._stack.pop();
-            this._nesting -= 1;
+            this.__buf = this.__stack.pop();
+            this.__nesting -= 1;
 
             return true;
         }
@@ -525,20 +531,20 @@ var Parser = Class.extend(/** @lends Parser.prototype */ {
      *
      * @returns {Boolean}
      * */
-    _guessSolidus: function () {
+    __guessSolidus: function () {
 
         if ( '/' === this._cur ) {
 
-            if ( this._isParam ) {
+            if ( this.__isParam ) {
 
-                throw this._getError();
+                throw this.__getError();
             }
 
-            if ( this._chunk ) {
-                this._addPartStatic();
+            if ( this.__chunk ) {
+                this.__addPartStatic();
             }
 
-            this._buf.push({
+            this.__buf.push({
                 type: Parser.PART_DELIM
             });
 
