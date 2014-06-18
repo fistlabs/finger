@@ -162,9 +162,99 @@ module.exports = {
                 encodeURIComponent('цэ') + '/');
 
             test.done();
+        },
+        function (test) {
+
+            var p = new Pattern('/(<ns>/)disc/(<wat>-x/)');
+
+            test.strictEqual(p.build({
+                wat: 'c',
+                ns: '1'
+            }), '/1/disc/c-x/');
+
+            test.strictEqual(p.build({
+                ns: '1'
+            }), '/1/disc/');
+
+            test.strictEqual(p.build({
+                wat: 'c'
+            }), '/disc/c-x/');
+
+            test.strictEqual(p.build(), '/disc/');
+
+            test.done();
+        },
+        function (test) {
+            var p = new Pattern('/(<a>/)-/(<b>/)-/(<c>/)');
+
+            test.strictEqual(p.build({
+                c: 'c'
+            }), '/-/-/c/');
+
+            test.strictEqual(p.build({
+                b: 'b',
+                c: 'c'
+            }), '/-/b/-/c/');
+
+            test.strictEqual(p.build({
+                a: 'a',
+                b: 'b',
+                c: 'c'
+            }), '/a/-/b/-/c/');
+
+            test.strictEqual(p.build({
+                b: 'b'
+            }), '/-/b/-/');
+
+            test.strictEqual(p.build({
+                a: 'a',
+                b: 'b'
+            }), '/a/-/b/-/');
+
+            test.strictEqual(p.build({
+                a: 'a'
+            }), '/a/-/-/');
+
+            test.done();
+        },
+        function (test) {
+            var p = new Pattern('/hi/(st/(<a>/))b/');
+            test.strictEqual(p.build(), '/hi/st/b/');
+            test.strictEqual(p.build({
+                a: '5'
+            }), '/hi/st/5/b/');
+            test.done();
+        },
+        function (test) {
+            var p = new Pattern('/hi/(<a>foo<a1>bar/)');
+            test.strictEqual(p.build(), '/hi/');
+            test.strictEqual(p.build({
+                a: 0
+            }), '/hi/');
+            test.strictEqual(p.build({
+                a: 0,
+                a1: 1
+            }), '/hi/0foo1bar/');
+            test.done();
+        },
+        function (test) {
+            var p = new Pattern('/<x>/param/');
+            test.strictEqual(p.build(), '//param/');
+            test.done();
+        },
+        function (test) {
+            var p = new Pattern('/param/<x>/');
+            test.strictEqual(p.build(), '/param//');
+            test.done();
         }
     ],
     'Pattern.prototype.toString': [
+        function (test) {
+            var src = '/(<ns>/)disc/(<wat>/)';
+            var p = new Pattern('/(<ns>/)disc/(<wat>/)');
+            test.strictEqual(p.toString(), src);
+            test.done();
+        },
         function (test) {
             var pattern = new Pattern(' /a/b/c   iEs ');
 

@@ -150,6 +150,56 @@ var Parser = inherit(/** @lends Parser.prototype */ {
     },
 
     /**
+     * @private
+     * @memberOf {Parser}
+     * @method
+     *
+     * @param {Array} parts
+     * @param {Function} func
+     * @param {Number} n
+     *
+     * @returns {String}
+     * */
+    __compileParts: function (parts, func, n) {
+
+        var chunk;
+        var index;
+        var length;
+        var part;
+        var result = '';
+
+        for ( index = 0, length = parts.length; index < length; index += 1 ) {
+            part = parts[index];
+
+            if ( Parser.PART_OPTION === part.type ) {
+                chunk = this.__compileParts(part.parts, func, n + 1);
+
+                if ( Parser.isFalsy(chunk) ) {
+
+                    continue;
+                }
+
+                result += func.call(this, part, false) +
+                    chunk + func.call(this, part, true);
+
+                continue;
+            }
+
+            chunk = func.call(this, part, false);
+
+            if ( Parser.PART_PARAM === part.type &&
+                Parser.isFalsy(chunk) && n ) {
+
+                return '';
+            }
+
+            result += chunk;
+        }
+
+        return result;
+    },
+
+    /**
      * @public
      * @memberOf {Parser}
      * @method
@@ -160,74 +210,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     compile: function (func) {
 
-        var amend = 0;
-        var chunk = '';
-        var index = 0;
-        var parts = this.parts;
-        var isBubbling = false;
-        var stack = [];
-        var value;
-        var part;
-        var nesting = -1;
-
-        while ( true ) {
-
-            if ( index === parts.length ) {
-
-                if ( -1 === nesting  ) {
-
-                    break;
-                }
-
-                parts = stack[nesting];
-                nesting -= 1;
-                index = parts.index + amend;
-                amend = 0;
-                chunk = parts.chunk + chunk;
-                parts = parts.parts;
-                isBubbling = true;
-
-                continue;
-            }
-
-            part = parts[index];
-
-            if ( Parser.PART_OPTION === part.type ) {
-
-                if ( isBubbling ) {
-                    chunk += func.call(this, part, true);
-                    index += 1;
-                    isBubbling = false;
-
-                    continue;
-                }
-
-                nesting += 1;
-                stack[nesting] = {chunk: chunk, parts: parts, index: index};
-                chunk = func.call(this, part, false);
-                index = 0;
-                parts = part.parts;
-                part = parts[index];
-
-                continue;
-            }
-
-            value = func.call(this, part, isBubbling);
-
-            if ( Parser.PART_PARAM === part.type &&
-                stack.length && this.__self.isFalsy(value) ) {
-                amend = 1;
-                chunk = '';
-                index = parts.length;
-
-                continue;
-            }
-
-            chunk += value;
-            index += 1;
-        }
-
-        return chunk;
+        return this.__compileParts(this.parts, func, 0);
     },
 
     /**

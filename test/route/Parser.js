@@ -3,6 +3,7 @@
 var Parser = require('../../route/Parser');
 
 module.exports = {
+
     Parser: [
         function (test) {
 
@@ -280,15 +281,15 @@ module.exports = {
     ],
     'Parser.prototype.compile': [
         function (test) {
-            var parser = new Parser('a<b>(<c>d)');
+            var parser = new Parser('a<b>(<c>d)x');
 
-            var result = parser.compile(function (part, bubble) {
+            var result = parser.compile(function (part, isBubbling) {
 
                 test.strictEqual(this, parser);
 
                 if ( Parser.PART_OPTION === part.type ) {
 
-                    if ( bubble ) {
+                    if ( isBubbling ) {
 
                         return ')';
                     }
@@ -309,7 +310,7 @@ module.exports = {
                 return '<' + part.body + '>';
             });
 
-            test.strictEqual(result, 'a<b>');
+            test.strictEqual(result, 'a<b>x');
             test.done();
         },
         function (test) {
@@ -344,6 +345,33 @@ module.exports = {
 
             test.strictEqual(result, 'a');
             test.done();
+        },
+        function (test) {
+
+            var spy  = [];
+            var p = new Parser('/(<ns>/)disc/(<wat>/)');
+
+            p.compile(function (part, isBubbling) {
+                spy.push([part.type, isBubbling]);
+                return true;
+            });
+
+            test.deepEqual(spy, [
+                [Parser.PART_DELIM, false],
+                [Parser.PART_PARAM, false],
+                [Parser.PART_DELIM, false],
+                [Parser.PART_OPTION, false],
+                [Parser.PART_OPTION, true],
+                [Parser.PART_STATIC, false],
+                [Parser.PART_DELIM, false],
+                [Parser.PART_PARAM, false],
+                [Parser.PART_DELIM, false],
+                [Parser.PART_OPTION, false],
+                [Parser.PART_OPTION, true]
+            ]);
+
+            test.done();
+
         }
     ],
     'Parser.prototype.toString': [
