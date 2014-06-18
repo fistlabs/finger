@@ -1,4 +1,37 @@
 {
+
+    "disallowMultipleVarDecl": true,
+
+    "disallowEmptyBlocks": true,
+
+    "disallowSpacesInsideObjectBrackets": true,
+
+    "disallowSpacesInsideArrayBrackets": true,
+
+    "disallowQuotedKeysInObjects": "allButReserved",
+
+    "disallowSpaceAfterObjectKeys": true,
+
+    "disallowSpaceBeforeBinaryOperators": [","],
+
+    "disallowSpaceAfterPrefixUnaryOperators": true,
+
+    "disallowSpaceBeforePostfixUnaryOperators": true,
+
+    "disallowKeywords": ["with"],
+
+    "disallowMultipleLineStrings": true,
+
+    "disallowMultipleLineBreaks": true,
+
+    "disallowMixedSpacesAndTabs": true,
+
+    "disallowTrailingWhitespace": true,
+
+    "disallowKeywordsOnNewLine": ["else", "catch"],
+
+    "requireYodaConditions": true,
+
     "requireCurlyBraces": [
         "if",
         "else",
@@ -28,18 +61,6 @@
         "beforeOpeningCurlyBrace": true
     },
 
-    "disallowMultipleVarDecl": true,
-
-    "disallowEmptyBlocks": true,
-
-    "disallowSpacesInsideObjectBrackets": true,
-
-    "disallowSpacesInsideArrayBrackets": true,
-
-    "disallowQuotedKeysInObjects": "allButReserved",
-
-    "disallowSpaceAfterObjectKeys": true,
-
     "requireCommaBeforeLineBreak": true,
 
     "requireOperatorBeforeLineBreak": [
@@ -59,50 +80,18 @@
         "<="
     ],
 
-    "requireRightStickedOperators": ["!"],
-
-    "requireLeftStickedOperators": [","],
-
     "requireSpaceBeforeBinaryOperators": [
-        "+",
-        "-",
-        "/",
-        "*",
-        "=",
-        "==",
-        "===",
-        "!=",
-        "!=="
+        "=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", ">>>=",
+        "&=", "|=", "^=", "+=",
+
+        "+", "-", "*", "/", "%", "<<", ">>", ">>>", "&",
+        "|", "^", "&&", "||", "===", "==", ">=",
+        "<=", "<", ">", "!=", "!=="
     ],
 
-    "requireSpaceAfterBinaryOperators": [
-        "+",
-        "-",
-        "/",
-        "*",
-        "=",
-        "==",
-        "===",
-        "!=",
-        "!=="
-    ],
-
-    "disallowSpaceAfterPrefixUnaryOperators": ["++", "--", "+", "-", "~", "!"],
-    "disallowSpaceBeforePostfixUnaryOperators": ["++", "--"],
-
-    "disallowKeywords": ["with"],
-
-    "disallowMultipleLineStrings": true,
-
-    "disallowMultipleLineBreaks": true,
+    "requireSpaceAfterBinaryOperators": true,
 
     "validateQuoteMarks": "'",
-
-    "disallowMixedSpacesAndTabs": true,
-
-    "disallowTrailingWhitespace": true,
-
-    "disallowKeywordsOnNewLine": ["else"],
 
     "requireLineFeedAtFileEnd": true,
 
@@ -117,7 +106,7 @@
     },
 
     "excludeFiles": [
-        "coverage/*",
-        "node_modules/*"
+        "coverage/**",
+        "node_modules/**"
     ]
 }
