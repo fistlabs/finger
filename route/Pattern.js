@@ -105,7 +105,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
         this.__regexp = this.__compileRegExp();
 
         _.forEach(this._subst, function (part) {
-            this._usesOpt[part.body] = true;
+            this._usesOpt[part] = true;
         }, this);
     },
 
@@ -206,7 +206,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
         result = {};
 
         for ( i = 0, l = this._subst.length; i < l; i += 1 ) {
-            push2Result(result, this._subst[i].body, match[i + 1]);
+            push2Result(result, this._subst[i], match[i + 1]);
         }
 
         return result;
@@ -303,7 +303,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
                 return this.__compileStaticPart(part);
 
             case Parser.PART_PARAM:
-                this._subst.push(part);
+                this._subst.push(part.body);
 
                 if ( _.isEmpty(part.parts) ) {
 
