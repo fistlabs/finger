@@ -18,9 +18,8 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * @constructs
      *
      * @param {String} pattern
-     * @param {Object} [params]
      * */
-    __constructor: function (pattern, params) {
+    __constructor: function (pattern) {
 
         var matchers = [
             this.__guessReverseSolidus,
@@ -33,14 +32,6 @@ var Parser = inherit(/** @lends Parser.prototype */ {
             this.__guessEquals,
             this.__guessComma
         ];
-
-        /**
-         * @public
-         * @memberOf {Parser}
-         * @property
-         * @type {Object}
-         * */
-        this.params = _.extend({}, this.params, params);
 
         /**
          * @private

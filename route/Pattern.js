@@ -64,7 +64,9 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         var match = R_PATTERN.exec(pattern);
 
-        this.__base(match[1], params);
+        this.__base(match[1]);
+
+        params = _.extend({}, this.params, params);
 
         /**
          * @public
@@ -73,7 +75,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
          *
          * @type {Object}
          * */
-        this.params = _.reduce(match[2], reduceFlag, this.params);
+        this.params = _.reduce(match[2], reduceFlag, params);
 
         /**
          * @protected
