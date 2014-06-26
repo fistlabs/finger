@@ -301,69 +301,95 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
     _build: function (parser, opts) {
 
         var using = {};
-        var parts = parser.parts;
 
-        function buildPart (part) {
+        return Parser._compileParts(parser.parts, function (part) {
 
-            var type = part.type;
-
-            if ( Parser.PART_DELIM === type ) {
-
-                return '/';
-            }
-
-            if ( Parser.PART_STATIC === type ) {
-
-                return part.encoded;
-            }
-
-            if ( Parser.PART_PARAM === type ) {
-
-                return buildParamPart(part.body);
-            }
-
-            return '';
-        }
-
-        function buildParamPart (name) {
-
-            var num;
-            var value;
-
-            if ( !_.has(opts, name) ) {
-
-                return '';
-            }
-
-            value = opts[name];
-
-            if ( using.hasOwnProperty(name) ) {
-                num = using[name] += 1;
-
-            } else {
-                num = using[name] = 0;
-            }
-
-            if ( _.isArray(value) ) {
-                value = value[num];
-
-            } else if ( num ) {
-
-                return '';
-            }
-
-            if ( Parser._isFalsy(value) ) {
-
-                return '';
-            }
-
-            return encodeURIComponent(value);
-        }
-
-        return Parser._compileParts(parts, buildPart, 0);
+            return buildPart(part, opts, using);
+        }, 0);
     }
 
 });
+
+/**
+ * @private
+ * @static
+ * @memberOf Pattern
+ * @method
+ *
+ * @param {Object} part
+ * @param {Object} opts
+ * @param {Object} using
+ *
+ * @returns {String}
+ * */
+function buildPart (part, opts, using) {
+
+    var type = part.type;
+
+    if ( Parser.PART_DELIM === type ) {
+
+        return '/';
+    }
+
+    if ( Parser.PART_STATIC === type ) {
+
+        return part.encoded;
+    }
+
+    if ( Parser.PART_PARAM === type ) {
+
+        return buildParamPart(part.body, opts, using);
+    }
+
+    return '';
+}
+
+/**
+ * @private
+ * @static
+ * @memberOf Pattern
+ * @method
+ *
+ * @param {String} name
+ * @param {Object} opts
+ * @param {Object} using
+ *
+ * @returns {String}
+ * */
+function buildParamPart (name, opts, using) {
+
+    var i;
+    var value;
+
+    if ( !_.has(opts, name) ) {
+
+        return '';
+    }
+
+    value = opts[name];
+
+    if ( using.hasOwnProperty(name) ) {
+        i = using[name] += 1;
+
+    } else {
+        i = using[name] = 0;
+    }
+
+    if ( _.isArray(value) ) {
+        value = value[i];
+
+    } else if ( i ) {
+
+        return '';
+    }
+
+    if ( Parser._isFalsy(value) ) {
+
+        return '';
+    }
+
+    return encodeURIComponent(value);
+}
 
 /**
  * @private
