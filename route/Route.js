@@ -80,12 +80,13 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         var name;
         var pathname = this.__base(opts);
         var query = {};
+        var using = this._regexpCompileResult.using;
 
         for ( name in opts ) {
 
             if ( hasProperty.call(opts, name) ) {
 
-                if ( this._usesOpt.hasOwnProperty(name) ) {
+                if ( using.hasOwnProperty(name) ) {
 
                     continue;
                 }

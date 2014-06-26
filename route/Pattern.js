@@ -82,31 +82,9 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
          * @memberOf {Pattern}
          * @property
          *
-         * @type {Array}
-         * */
-        this._subst = [];
-
-        /**
-         * @protected
-         * @memberOf {Pattern}
-         * @property
-         *
-         * @type {Object}
-         * */
-        this._usesOpt = {};
-
-        /**
-         * @private
-         * @memberOf {Pattern}
-         * @property
-         *
          * @type {RegExp}
          * */
-        this.__regexp = this.__compileRegExp();
-
-        _.forEach(this._subst, function (part) {
-            this._usesOpt[part] = true;
-        }, this);
+        this._regexpCompileResult = this.__compileRegExp();
     },
 
     /**
@@ -195,7 +173,8 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         var i;
         var l;
-        var match = this.__regexp.exec(pathname);
+        var match = this._regexpCompileResult.regex.exec(pathname);
+        var names = this._regexpCompileResult.names;
         var result = null;
 
         if ( null === match ) {
@@ -205,8 +184,8 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         result = {};
 
-        for ( i = 0, l = this._subst.length; i < l; i += 1 ) {
-            push2Result(result, this._subst[i], match[i + 1]);
+        for ( i = 0, l = names.length; i < l; i += 1 ) {
+            push2Result(result, names[i], match[i + 1]);
         }
 
         return result;
@@ -263,11 +242,46 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * @memberOf {Pattern}
      * @method
      *
-     * @returns {RegExp}
+     * @returns {Object}
      * */
     __compileRegExp: function () {
 
-        var source = this.compile(this.__compileRegExpPart);
+        var names = [];
+        var using = {};
+        var source = this.compile(function (part, isBubbling) {
+
+            var type = part.type;
+
+            if ( Parser.PART_DELIM === type ) {
+
+                return escape('/');
+            }
+
+            if ( Parser.PART_STATIC === type ) {
+
+                return this.__compileStaticPart(part);
+            }
+
+            if ( Parser.PART_PARAM === type ) {
+                names.push(part.body);
+                using[part.body] = true;
+
+                if ( _.isEmpty(part.parts) ) {
+
+                    return '([^/]+?)';
+                }
+
+                return '(' + _.map(part.parts,
+                    this.__compileStaticPart, this).join('|') + ')';
+            }
+
+            if ( isBubbling ) {
+
+                return ')?';
+            }
+
+            return '(?:';
+        });
 
         if ( !this.params.doNotMatchStart ) {
             source = '^' + source;
@@ -277,52 +291,11 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
             source += '$';
         }
 
-        return new RegExp(source, this.params.ignoreCase ? 'i' : '');
-    },
-
-    /**
-     * @private
-     * @memberOf {Pattern}
-     * @method
-     *
-     * @param {Object} part
-     * @param {Boolean} isBubbling
-     *
-     * @returns {String}
-     * */
-    __compileRegExpPart: function (part, isBubbling) {
-
-        var type = part.type;
-
-        if ( Parser.PART_DELIM === type ) {
-
-            return escape('/');
-        }
-
-        if ( Parser.PART_STATIC === type ) {
-
-            return this.__compileStaticPart(part);
-        }
-
-        if ( Parser.PART_PARAM === type ) {
-            //  сайд-эффект!!!
-            this._subst.push(part.body);
-
-            if ( _.isEmpty(part.parts) ) {
-
-                return '([^/]+?)';
-            }
-
-            return '(' + _.map(part.parts,
-                this.__compileStaticPart, this).join('|') + ')';
-        }
-
-        if ( isBubbling ) {
-
-            return ')?';
-        }
-
-        return '(?:';
+        return {
+            regex: new RegExp(source, this.params.ignoreCase ? 'i' : ''),
+            names: names,
+            using: using
+        };
     },
 
     /**
