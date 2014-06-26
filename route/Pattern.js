@@ -78,13 +78,13 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
         this.params = _.reduce(match[2], reduceFlag, params);
 
         /**
-         * @protected
+         * @private
          * @memberOf {Pattern}
          * @property
          *
          * @type {RegExp}
          * */
-        this._regexpCompileResult = this.__compileRegExp();
+        this.__regexp = this.__compileRegExp();
     },
 
     /**
@@ -98,66 +98,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * */
     build: function (opts) {
 
-        var using = {};
-
-        function buildPart (part) {
-
-            var type = part.type;
-
-            if ( Parser.PART_DELIM === type ) {
-
-                return '/';
-            }
-
-            if ( Parser.PART_STATIC === type ) {
-
-                return part.encoded;
-            }
-
-            if ( Parser.PART_PARAM === type ) {
-
-                return buildParamPart.call(this, part.body);
-            }
-
-            return '';
-        }
-
-        function buildParamPart (name) {
-
-            var num;
-            var value;
-
-            if ( !_.has(opts, name) ) {
-
-                return '';
-            }
-
-            value = opts[name];
-
-            if ( using.hasOwnProperty(name) ) {
-                num = using[name] += 1;
-
-            } else {
-                num = using[name] = 0;
-            }
-
-            if ( _.isArray(value) ) {
-                value = value[num];
-
-            } else if ( num ) {
-
-                return '';
-            }
-
-            if ( this.__self.isFalsy(value) ) {
-
-                return '';
-            }
-
-            return encodeURIComponent(value);
-        }
-
-        return this.compile(buildPart);
+        return Pattern._build(this, opts);
     },
 
     /**
@@ -173,8 +114,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         var i;
         var l;
-        var match = this._regexpCompileResult.regex.exec(pathname);
-        var names = this._regexpCompileResult.names;
+        var match = this.__regexp.exec(pathname);
         var result = null;
 
         if ( null === match ) {
@@ -184,8 +124,8 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         result = {};
 
-        for ( i = 0, l = names.length; i < l; i += 1 ) {
-            push2Result(result, names[i], match[i + 1]);
+        for ( i = 0, l = this.names.length; i < l; i += 1 ) {
+            push2Result(result, this.names[i], match[i + 1]);
         }
 
         return result;
@@ -246,42 +186,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * */
     __compileRegExp: function () {
 
-        var names = [];
-        var using = {};
-        var source = this.compile(function (part, isBubbling) {
-
-            var type = part.type;
-
-            if ( Parser.PART_DELIM === type ) {
-
-                return escape('/');
-            }
-
-            if ( Parser.PART_STATIC === type ) {
-
-                return this.__compileStaticPart(part);
-            }
-
-            if ( Parser.PART_PARAM === type ) {
-                names.push(part.body);
-                using[part.body] = true;
-
-                if ( _.isEmpty(part.parts) ) {
-
-                    return '([^/]+?)';
-                }
-
-                return '(' + _.map(part.parts,
-                    this.__compileStaticPart, this).join('|') + ')';
-            }
-
-            if ( isBubbling ) {
-
-                return ')?';
-            }
-
-            return '(?:';
-        });
+        var source = this.compile(this.__compileRegExpPart);
 
         if ( !this.params.doNotMatchStart ) {
             source = '^' + source;
@@ -291,11 +196,50 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
             source += '$';
         }
 
-        return {
-            regex: new RegExp(source, this.params.ignoreCase ? 'i' : ''),
-            names: names,
-            using: using
-        };
+        return new RegExp(source, this.params.ignoreCase ? 'i' : '');
+    },
+
+    /**
+     * @private
+     * @memberOf {Pattern}
+     * @method
+     *
+     * @param {Object} part
+     * @param {Boolean} isBubbling
+     *
+     * @returns {Object}
+     * */
+    __compileRegExpPart: function (part, isBubbling) {
+
+        var type = part.type;
+
+        if ( Parser.PART_DELIM === type ) {
+
+            return escape('/');
+        }
+
+        if ( Parser.PART_STATIC === type ) {
+
+            return this.__compileStaticPart(part);
+        }
+
+        if ( Parser.PART_PARAM === type ) {
+
+            if ( _.isEmpty(part.parts) ) {
+
+                return '([^/]+?)';
+            }
+
+            return '(' + _.map(part.parts,
+                this.__compileStaticPart, this).join('|') + ')';
+        }
+
+        if ( isBubbling ) {
+
+            return ')?';
+        }
+
+        return '(?:';
     },
 
     /**
@@ -339,6 +283,84 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         return result + '(?:' + escape(char) + '|' +
                   encodeURIComponent(char) + ')';
+    }
+
+}, {
+
+    /**
+     * @protected
+     * @static
+     * @memberOf Pattern
+     * @method
+     *
+     * @param {Parser} parser
+     * @param {Object} opts
+     *
+     * @returns {String}
+     * */
+    _build: function (parser, opts) {
+
+        var using = {};
+        var parts = parser.parts;
+
+        function buildPart (part) {
+
+            var type = part.type;
+
+            if ( Parser.PART_DELIM === type ) {
+
+                return '/';
+            }
+
+            if ( Parser.PART_STATIC === type ) {
+
+                return part.encoded;
+            }
+
+            if ( Parser.PART_PARAM === type ) {
+
+                return buildParamPart(part.body);
+            }
+
+            return '';
+        }
+
+        function buildParamPart (name) {
+
+            var num;
+            var value;
+
+            if ( !_.has(opts, name) ) {
+
+                return '';
+            }
+
+            value = opts[name];
+
+            if ( using.hasOwnProperty(name) ) {
+                num = using[name] += 1;
+
+            } else {
+                num = using[name] = 0;
+            }
+
+            if ( _.isArray(value) ) {
+                value = value[num];
+
+            } else if ( num ) {
+
+                return '';
+            }
+
+            if ( Parser._isFalsy(value) ) {
+
+                return '';
+            }
+
+            return encodeURIComponent(value);
+        }
+
+        return Parser._compileParts(parts, buildPart, 0);
     }
 
 });

@@ -1,6 +1,7 @@
 'use strict';
 
 var R_PATTERN = /^\s*(?:((?:\w+)(?:\s*,\s*(?:\w+))*)\s+)?([\s\S]*)$/;
+var Parser = /** @type Parser */ require('./Parser');
 var Pattern = /** @type Pattern */ require('./Pattern');
 
 var _ = require('lodash-node');
@@ -76,11 +77,56 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * */
     build: function (opts) {
 
+        return Route._build(this, opts);
+    },
+
+    /**
+     * @public
+     * @memberOf {Route}
+     * @method
+     *
+     * @returns {String}
+     * */
+    toString: function () {
+
+        return this.allow.join(',') + ' ' + this.__base();
+    },
+
+    /**
+     * @public
+     * @memberOf {Route}
+     * @method
+     *
+     * @param {String} verb
+     * @param {String} pathname
+     *
+     * @returns {Array}
+     * */
+    match: function (verb, pathname) {
+
+        return [verb in this.__verbs, this.__base(pathname)];
+    }
+
+}, {
+
+    /**
+     * @protected
+     * @static
+     * @memberOf Route
+     * @method
+     *
+     * @param {Parser} parser
+     * @param {Object} opts
+     *
+     * @returns {String}
+     * */
+    _build: function (parser, opts) {
+
         var isQueryEmpty = true;
         var name;
-        var pathname = this.__base(opts);
+        var pathname = Pattern._build(parser, opts);
         var query = {};
-        var using = this._regexpCompileResult.using;
+        var using = parser.using;
 
         for ( name in opts ) {
 
@@ -101,101 +147,92 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
             return pathname;
         }
 
-        return pathname + '?' + this.__stringifyQuery(query);
+        return pathname + '?' + stringifyQuery(query);
     },
 
     /**
      * @public
-     * @memberOf {Route}
+     * @static
+     * @memberOf Route
      * @method
+     *
+     * @param {String} pattern
+     * @param {Object} [opts]
      *
      * @returns {String}
      * */
-    toString: function () {
+    buildUrl: function (pattern, opts) {
 
-        return this.allow.join(',') + ' ' + this.__base();
-    },
-
-    /**
-     * @private
-     * @memberOf {Route}
-     * @method
-     *
-     * @param {Object} query
-     *
-     * @returns {String}
-     * */
-    __stringifyQuery: function (query) {
-
-        var result = [];
-        var i;
-        var k;
-        var l;
-        var v;
-
-        for ( k in query ) {
-
-            if ( query.hasOwnProperty(k) ) {
-                v = query[k];
-
-                if ( _.isArray(v) ) {
-
-                    for ( i = 0, l = v.length; i < l; i += 1 ) {
-                        result[result.length] = this.__stringifyPrimitive(k) +
-                            '=' + this.__stringifyPrimitive(v[i]);
-                    }
-
-                    continue;
-                }
-
-                result[result.length] = this.__stringifyPrimitive(k) +
-                    '=' + this.__stringifyPrimitive(v);
-            }
-        }
-
-        return result.join('&');
-    },
-
-    /**
-     * @private
-     * @memberOf {Route}
-     * @method
-     *
-     * @param {*} v
-     *
-     * @returns {String}
-     * */
-    __stringifyPrimitive: function (v) {
-
-        if ( 'string' === typeof v ) {
-
-            return encodeURIComponent(v);
-        }
-
-        if ( 'boolean' === typeof v || 'number' === typeof v && isFinite(v) ) {
-
-            return String(v);
-        }
-
-        return '';
-    },
-
-    /**
-     * @public
-     * @memberOf {Route}
-     * @method
-     *
-     * @param {String} verb
-     * @param {String} pathname
-     *
-     * @returns {Array}
-     * */
-    match: function (verb, pathname) {
-
-        return [verb in this.__verbs, this.__base(pathname)];
+        return Route._build(Parser.create(pattern), opts);
     }
 
 });
+
+/**
+ * @private
+ * @static
+ * @memberOf Route
+ * @method
+ *
+ * @param {Object} query
+ *
+ * @returns {String}
+ * */
+function stringifyQuery (query) {
+
+    var i;
+    var k;
+    var l;
+    var q = [];
+    var v;
+
+    for ( k in query ) {
+
+        if ( query.hasOwnProperty(k) ) {
+            v = query[k];
+
+            if ( _.isArray(v) ) {
+
+                for ( i = 0, l = v.length; i < l; i += 1 ) {
+                    q[q.length] = stringifyPrimitive(k) +
+                        '=' + stringifyPrimitive(v[i]);
+                }
+
+                continue;
+            }
+
+            q[q.length] = stringifyPrimitive(k) +
+                '=' + stringifyPrimitive(v);
+        }
+    }
+
+    return q.join('&');
+}
+
+/**
+ * @private
+ * @static
+ * @memberOf Route
+ * @method
+ *
+ * @param {*} v
+ *
+ * @returns {String}
+ * */
+function stringifyPrimitive (v) {
+
+    if ( 'string' === typeof v ) {
+
+        return encodeURIComponent(v);
+    }
+
+    if ( 'boolean' === typeof v || 'number' === typeof v && isFinite(v) ) {
+
+        return String(v);
+    }
+
+    return '';
+}
 
 /**
  * @private

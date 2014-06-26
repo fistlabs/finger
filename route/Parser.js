@@ -4,6 +4,7 @@ var R_SYNTAX_CHARS = /[\\\(\)<>,=*\/]/g;
 
 var _ = require('lodash-node');
 var inherit = require('inherit');
+var parsers = Object.create(null);
 
 /**
  * @class Parser
@@ -105,6 +106,14 @@ var Parser = inherit(/** @lends Parser.prototype */ {
          * */
         this.__stack = [];
 
+        /**
+         * @public
+         * @memberOf {Parser}
+         * @property
+         * @type {Array}
+         * */
+        this.names = [];
+
         /*eslint no-cond-assign: 0*/
         while ( this._cur = this.__charAt(this.__next) ) {
             this.__next += 1;
@@ -138,56 +147,18 @@ var Parser = inherit(/** @lends Parser.prototype */ {
          * @type {Array}
          * */
         this.parts = this.__buf;
-    },
 
-    /**
-     * @private
-     * @memberOf {Parser}
-     * @method
-     *
-     * @param {Array} parts
-     * @param {Function} func
-     * @param {Number} n
-     *
-     * @returns {String}
-     * */
-    __compileParts: function (parts, func, n) {
+        /**
+         * @public
+         * @memberOf {Parser}
+         * @property
+         * @type {Object}
+         * */
+        this.using = {};
 
-        var chunk;
-        var index;
-        var length;
-        var part;
-        var result = '';
-
-        for ( index = 0, length = parts.length; index < length; index += 1 ) {
-            part = parts[index];
-
-            if ( Parser.PART_OPTION === part.type ) {
-                chunk = this.__compileParts(part.parts, func, n + 1);
-
-                if ( Parser.isFalsy(chunk) ) {
-
-                    continue;
-                }
-
-                result += func.call(this, part, false) +
-                    chunk + func.call(this, part, true);
-
-                continue;
-            }
-
-            chunk = func.call(this, part, false);
-
-            if ( Parser.PART_PARAM === part.type &&
-                Parser.isFalsy(chunk) && n ) {
-
-                return '';
-            }
-
-            result += chunk;
-        }
-
-        return result;
+        _.forEach(this.names, function (name) {
+            this.using[name] = true;
+        }, this);
     },
 
     /**
@@ -201,7 +172,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     compile: function (func) {
 
-        return this.__compileParts(this.parts, func, 0);
+        return Parser._compileParts(this.parts, func, 0, this);
     },
 
     /**
@@ -318,7 +289,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
             this.__stack.push(this.__buf);
             this.__buf.push({
                 type: Parser.PART_PARAM,
-                body: this.__chunk,
+                body: this.names[this.names.length] = this.__chunk,
                 parts: this.__buf = []
             });
             this.__chunk = '';
@@ -372,7 +343,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
             } else {
                 this.__buf.push({
                     type: Parser.PART_PARAM,
-                    body: this.__chunk,
+                    body: this.names[this.names.length] = this.__chunk,
                     parts: []
                 });
                 this.__chunk = '';
@@ -563,17 +534,86 @@ var Parser = inherit(/** @lends Parser.prototype */ {
     PART_DELIM: 3,
 
     /**
-     * @public
+     * @protected
      * @static
      * @memberOf Parser
+     * @method
      *
      * @param {String} value
      *
      * @returns {Boolean}
      * */
-    isFalsy: function (value) {
+    _isFalsy: function (value) {
 
         return null === value || void 0 === value || '' === value;
+    },
+
+    /**
+     * @protected
+     * @static
+     * @memberOf {Parser}
+     * @method
+     *
+     * @param {Array} parts
+     * @param {Function} func
+     * @param {Number} n
+     * @param {*} [ctx]
+     * */
+    _compileParts: function (parts, func, n, ctx) {
+
+        var chunk;
+        var index;
+        var length;
+        var part;
+        var result = '';
+
+        for ( index = 0, length = parts.length; index < length; index += 1 ) {
+            part = parts[index];
+
+            if ( Parser.PART_OPTION === part.type ) {
+                chunk = Parser._compileParts(part.parts, func, n + 1, ctx);
+
+                if ( Parser._isFalsy(chunk) ) {
+
+                    continue;
+                }
+
+                result += func.call(ctx, part, false) +
+                    chunk + func.call(ctx, part, true);
+
+                continue;
+            }
+
+            chunk = func.call(ctx, part, false);
+
+            if ( Parser.PART_PARAM === part.type &&
+                Parser._isFalsy(chunk) && n ) {
+
+                return '';
+            }
+
+            result += chunk;
+        }
+
+        return result;
+    },
+
+    /**
+     * @public
+     * @memberOf {Parser}
+     * @method
+     *
+     * @param {String} pattern
+     *
+     * @returns {Parser}
+     * */
+    create: function (pattern) {
+
+        if ( !(pattern in parsers) ) {
+            parsers[pattern] = new Parser(pattern);
+        }
+
+        return parsers[pattern];
     }
 
 });

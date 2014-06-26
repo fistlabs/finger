@@ -73,5 +73,26 @@ module.exports = {
             test.strictEqual(r.toString(), 'GET,HEAD /index.xml i');
             test.done();
         }
+    ],
+    'Route.buildUrl': [
+        function (test) {
+
+            test.strictEqual(Route.buildUrl('/', {
+                a: 42
+            }), '/?a=42');
+
+            test.strictEqual(Route.buildUrl('/<section>/<itemId>/', {
+                a: 42,
+                section: 'post',
+                itemId: '100500'
+            }), '/post/100500/?a=42');
+
+            test.strictEqual(Route.buildUrl('/<section>/(<itemId>/)', {
+                a: 42,
+                section: 'post'
+            }), '/post/?a=42');
+
+            test.done();
+        }
     ]
 };

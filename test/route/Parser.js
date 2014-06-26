@@ -387,5 +387,13 @@ module.exports = {
             test.strictEqual(p.toString(), pattern);
             test.done();
         }
+    ],
+    'Parser.create': [
+        function (test) {
+            var parser = Parser.create('/');
+
+            test.strictEqual(parser, Parser.create('/'));
+            test.done();
+        }
     ]
 };
