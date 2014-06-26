@@ -124,24 +124,24 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         function buildPart (part) {
 
-            switch ( part.type ) {
+            var type = part.type;
 
-                case Parser.PART_DELIM:
+            if ( Parser.PART_DELIM === type ) {
 
-                    return '/';
-
-                case Parser.PART_STATIC:
-
-                    return part.encoded;
-
-                case Parser.PART_PARAM:
-
-                    return buildParamPart.call(this, part.body);
-
-                default:
-
-                    return '';
+                return '/';
             }
+
+            if ( Parser.PART_STATIC === type ) {
+
+                return part.encoded;
+            }
+
+            if ( Parser.PART_PARAM === type ) {
+
+                return buildParamPart.call(this, part.body);
+            }
+
+            return '';
         }
 
         function buildParamPart (name) {
@@ -292,36 +292,37 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * */
     __compileRegExpPart: function (part, isBubbling) {
 
-        switch (part.type) {
+        var type = part.type;
 
-            case Parser.PART_DELIM:
+        if ( Parser.PART_DELIM === type ) {
 
-                return escape('/');
-
-            case Parser.PART_STATIC:
-
-                return this.__compileStaticPart(part);
-
-            case Parser.PART_PARAM:
-                this._subst.push(part.body);
-
-                if ( _.isEmpty(part.parts) ) {
-
-                    return '([^/]+?)';
-                }
-
-                return '(' + _.map(part.parts,
-                    this.__compileStaticPart, this).join('|') + ')';
-
-            default:
-
-                if ( isBubbling ) {
-
-                    return ')?';
-                }
-
-                return '(?:';
+            return escape('/');
         }
+
+        if ( Parser.PART_STATIC === type ) {
+
+            return this.__compileStaticPart(part);
+        }
+
+        if ( Parser.PART_PARAM === type ) {
+            //  сайд-эффект!!!
+            this._subst.push(part.body);
+
+            if ( _.isEmpty(part.parts) ) {
+
+                return '([^/]+?)';
+            }
+
+            return '(' + _.map(part.parts,
+                this.__compileStaticPart, this).join('|') + ')';
+        }
+
+        if ( isBubbling ) {
+
+            return ')?';
+        }
+
+        return '(?:';
     },
 
     /**
