@@ -76,3 +76,11 @@ router.getRoute('news').build({post: 'foo'}); // /news/foo/
 router.getRoute('news').build({post: 'foo', bar: 'baz'}); // /news/foo/?bar=baz
 router.getRoute('news').build({foo: 'bar', baz: 'zot'}); // /news/?foo=bar&baz=zot
 ```
+##```Route.buildUrl(pattern[, opts])```
+Создает из ```pattern``` ```url``` . Инстансы AST-ов кэшируются
+```js
+Route.buildUrl('/<page>/', {
+    page: 'about',
+    foo: 'bar'
+}); // -> /about/?foo=bar
+```
