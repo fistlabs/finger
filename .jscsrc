@@ -39,7 +39,9 @@
         "while",
         "do",
         "try",
-        "catch"
+        "catch",
+        "case",
+        "default"
     ],
 
     "requireSpaceAfterKeywords": [
