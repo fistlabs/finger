@@ -148,22 +148,6 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         }
 
         return pathname + '?' + stringifyQuery(query);
-    },
-
-    /**
-     * @public
-     * @static
-     * @memberOf Route
-     * @method
-     *
-     * @param {String} pattern
-     * @param {Object} [opts]
-     *
-     * @returns {String}
-     * */
-    buildUrl: function (pattern, opts) {
-
-        return Route._build(Parser.create(pattern), opts);
     }
 
 });

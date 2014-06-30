@@ -306,6 +306,22 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
             return buildPart(part, opts, using);
         }, 0);
+    },
+
+    /**
+     * @public
+     * @static
+     * @memberOf Pattern
+     * @method
+     *
+     * @param {String} pattern
+     * @param {Object} [opts]
+     *
+     * @returns {String}
+     * */
+    buildUrl: function (pattern, opts) {
+
+        return this._build(/** @type {Parser} */ Parser.create(pattern), opts);
     }
 
 });

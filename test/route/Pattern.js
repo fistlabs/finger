@@ -276,5 +276,14 @@ module.exports = {
 
             test.done();
         }
+    ],
+    'Pattern.buildUrl': [
+        function (test) {
+            test.strictEqual(Pattern.buildUrl('/<page>/', {
+                page: 'test',
+                x: 42
+            }), '/test/');
+            test.done();
+        }
     ]
 };
