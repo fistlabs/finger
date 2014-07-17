@@ -319,7 +319,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      *
      * @returns {String}
      * */
-    buildUrl: function (pattern, opts) {
+    buildPath: function (pattern, opts) {
 
         return this._build(/** @type {Parser} */ Parser.create(pattern), opts);
     }
