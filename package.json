@@ -4,7 +4,7 @@
         "email": "golyshev.dmitry@yandex.ru"
     },
     "bugs": {
-        "url": "https://github.com/golyshevd/finger/issues"
+        "url": "https://github.com/fistlabs/finger/issues"
     },
     "contributors": [
         "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>"
@@ -30,7 +30,7 @@
     "name": "finger",
     "repository": {
         "type": "git",
-        "url": "git://github.com/golyshevd/finger.git"
+        "url": "git://github.com/fistlabs/finger.git"
     },
     "scripts": {
         "jscs": "jscs .",
