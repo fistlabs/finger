@@ -133,12 +133,13 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         var pq = Route.splitPath(pattern);
 
         if ( pq[1] ) {
+            pq[1] = parseQuery(pq[1]);
 
             if ( _.isObject(opts) ) {
-                opts = _.extend(parseQuery(pq[1]), opts);
+                opts = _.extend(pq[1], opts);
 
             } else {
-                opts = parseQuery(pq[1]);
+                opts = pq[1];
             }
         }
 
