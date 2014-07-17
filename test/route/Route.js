@@ -54,6 +54,17 @@ module.exports = {
             test.deepEqual(r.match('HEAD', '/INDEX.PHP'), [true, {}]);
             test.deepEqual(r.match('POST', '/INDEX.PHP'), [true, {}]);
             test.done();
+        },
+        function (test) {
+
+            var r = new Route('/<page>/');
+
+            test.deepEqual(r.match('GET', '/test/?a=5&page=100500'), [true, {
+                page: 'test',
+                a: '5'
+            }]);
+
+            test.done();
         }
     ],
     'Route.prototype.toString': [
@@ -91,6 +102,15 @@ module.exports = {
                 a: 42,
                 section: 'post'
             }), '/post/?a=42');
+
+            test.done();
+        }
+    ],
+    'Route.splitPath': [
+        function (test) {
+            test.deepEqual(Route.splitPath('/'), ['/', '']);
+            test.deepEqual(Route.splitPath('/?a=5'), ['/', 'a=5']);
+            test.deepEqual(Route.splitPath('/?a=5?b=6'), ['/', 'a=5?b=6']);
 
             test.done();
         }

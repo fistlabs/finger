@@ -7,6 +7,7 @@ var Pattern = /** @type Pattern */ require('./Pattern');
 var _ = require('lodash-node');
 var inherit = require('inherit');
 var hasProperty = Object.prototype.hasOwnProperty;
+var querystring = require('querystring');
 var uniqueId = require('unique-id');
 
 /**
@@ -98,16 +99,45 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @method
      *
      * @param {String} verb
-     * @param {String} pathname
+     * @param {String} path
      *
      * @returns {Array}
      * */
-    match: function (verb, pathname) {
+    match: function (verb, path) {
 
-        return [verb in this.__verbs, this.__base(pathname)];
+        var pq = Route.splitPath(path);
+        var result = this.__base(pq[0]);
+
+        if ( result && pq[1] ) {
+            result = _.extend(parseQuery(pq[1]), result);
+        }
+
+        return [verb in this.__verbs, result];
     }
 
 }, {
+
+    /**
+     * @public
+     * @static
+     * @memberOf Route
+     * @method
+     *
+     * @param {String} path
+     *
+     * @returns {Array}
+     * */
+    splitPath: function (path) {
+
+        var i = path.indexOf('?');
+
+        if ( -1 === i ) {
+
+            return [path, ''];
+        }
+
+        return [path.slice(0, i), path.slice(i + 1)];
+    },
 
     /**
      * @protected
@@ -191,6 +221,11 @@ function stringifyQuery (query) {
     }
 
     return q.join('&');
+}
+
+function parseQuery (q) {
+
+    return querystring.parse(q);
 }
 
 /**
