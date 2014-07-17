@@ -1,4 +1,4 @@
-finger [![Build Status](https://travis-ci.org/golyshevd/finger.svg?branch=master)](https://travis-ci.org/golyshevd/finger)
+finger [![Build Status](https://travis-ci.org/fistlabs/finger.svg?branch=master)](https://travis-ci.org/fistlabs/finger)
 =========
 
 Серверный роутер для http-запросов.
