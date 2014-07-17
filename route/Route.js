@@ -128,7 +128,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      *
      * @returns {String}
      * */
-    buildUrl: function (pattern, opts) {
+    buildPath: function (pattern, opts) {
 
         var pq = Route.splitPath(pattern);
 

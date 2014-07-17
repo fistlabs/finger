@@ -85,20 +85,20 @@ module.exports = {
             test.done();
         }
     ],
-    'Route.buildUrl': [
+    'Route.buildPath': [
         function (test) {
 
-            test.strictEqual(Route.buildUrl('/', {
+            test.strictEqual(Route.buildPath('/', {
                 a: 42
             }), '/?a=42');
 
-            test.strictEqual(Route.buildUrl('/<section>/<itemId>/', {
+            test.strictEqual(Route.buildPath('/<section>/<itemId>/', {
                 a: 42,
                 section: 'post',
                 itemId: '100500'
             }), '/post/100500/?a=42');
 
-            test.strictEqual(Route.buildUrl('/<section>/(<itemId>/)', {
+            test.strictEqual(Route.buildPath('/<section>/(<itemId>/)', {
                 a: 42,
                 section: 'post'
             }), '/post/?a=42');
@@ -107,9 +107,9 @@ module.exports = {
         },
         function (test) {
 
-            test.strictEqual(Route.buildUrl('/?b=5'), '/?b=5');
+            test.strictEqual(Route.buildPath('/?b=5'), '/?b=5');
 
-            test.strictEqual(Route.buildUrl('/?b=5', {
+            test.strictEqual(Route.buildPath('/?b=5', {
                 a: 42
             }), '/?b=5&a=42');
 

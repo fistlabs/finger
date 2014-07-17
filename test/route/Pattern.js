@@ -279,7 +279,7 @@ module.exports = {
     ],
     'Pattern.buildUrl': [
         function (test) {
-            test.strictEqual(Pattern.buildUrl('/<page>/', {
+            test.strictEqual(Pattern.buildPath('/<page>/', {
                 page: 'test',
                 x: 42
             }), '/test/');
