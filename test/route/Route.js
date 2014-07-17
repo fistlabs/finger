@@ -104,6 +104,16 @@ module.exports = {
             }), '/post/?a=42');
 
             test.done();
+        },
+        function (test) {
+
+            test.strictEqual(Route.buildUrl('/?b=5'), '/?b=5');
+
+            test.strictEqual(Route.buildUrl('/?b=5', {
+                a: 42
+            }), '/?b=5&a=42');
+
+            test.done();
         }
     ],
     'Route.splitPath': [

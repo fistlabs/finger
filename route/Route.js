@@ -123,6 +123,34 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @memberOf Route
      * @method
      *
+     * @param {String} pattern
+     * @param {Object} [opts]
+     *
+     * @returns {String}
+     * */
+    buildUrl: function (pattern, opts) {
+
+        var pq = Route.splitPath(pattern);
+
+        if ( pq[1] ) {
+
+            if ( _.isObject(opts) ) {
+                opts = _.extend(parseQuery(pq[1]), opts);
+
+            } else {
+                opts = parseQuery(pq[1]);
+            }
+        }
+
+        return this.__base(pq[0], opts);
+    },
+
+    /**
+     * @public
+     * @static
+     * @memberOf Route
+     * @method
+     *
      * @param {String} path
      *
      * @returns {Array}
