@@ -50,7 +50,7 @@ router.addRoute('GET /downloads/');
 ##```Router.prototype.getRoute(name)```
 Возвращает объект маршрута по имени.
 ```js
-var router = new Router()
+var router = new Router();
 router.addRoute('GET /', {
     name: 'index'
 });
@@ -64,8 +64,13 @@ var indexRoute = router.getRoute('index');
 Если роутер вернул пустой массив, это значит что в роутере нет ни одного маршрута для заданного метода запроса (501).
 Если роутер вернул не пустой массив, то это значит что данный ресурс недоступен данным методом, но доступен одним из тех что в массиве. Из этого масива можно сформировать заголовок Allow для ответа 405.
 В остальных случаях роутер возвращает объект с двумя полями: ```route``` и ```match```. ```route``` - это сам объект маршрута, а ```match``` - результат матчинга ```uri``` на шаблон. Если в шаблоне были указаны параметры, то в этом объекте будут их значения.
+
 #[finger/route/Route](route/Route.js)
-Объект маршрута роутера. Маршуты можно создавать вручную для кастомного использования, но не рекомендуется. Интерес представляет метод ```Route.prototype.build```, с помощью которого можно из паттерна построить ```uri```, передав параметры.
+Объект маршрута роутера. Маршуты можно создавать вручную для кастомного использования.
+
+##```Route.prototype.build([opts])```
+Создает ```path``` из ```pattern```
+
 ```js
 var router = new Router();
 router.addRoute('GET /news/(<post>/)', {
@@ -77,10 +82,11 @@ router.getRoute('news').build({post: 'foo'}); // /news/foo/
 router.getRoute('news').build({post: 'foo', bar: 'baz'}); // /news/foo/?bar=baz
 router.getRoute('news').build({foo: 'bar', baz: 'zot'}); // /news/?foo=bar&baz=zot
 ```
-##```Route.buildUrl(pattern[, opts])```
+
+##```Route.buildPath(pattern[, opts])```
 Создает из ```pattern``` ```url``` . Инстансы AST-ов кэшируются
 ```js
-Route.buildUrl('/<page>/', {
+Route.buildPath('/<page>/', {
     page: 'about',
     foo: 'bar'
 }); // -> /about/?foo=bar
