@@ -115,10 +115,10 @@ var Parser = inherit(/** @lends Parser.prototype */ {
         this.names = [];
 
         /*eslint no-cond-assign: 0*/
-        while ( this._cur = this.__charAt(this.__next) ) {
+        while (this._cur = this.__charAt(this.__next)) {
             this.__next += 1;
 
-            if ( _.some(matchers, this.__applyMatcher, this) ) {
+            if (_.some(matchers, this.__applyMatcher, this)) {
 
                 continue;
             }
@@ -126,16 +126,16 @@ var Parser = inherit(/** @lends Parser.prototype */ {
             this.__chunk += this._cur;
         }
 
-        if ( this.__nesting + this.__isEscape +
-            this.__isParam + this.__isValue ) {
+        if (this.__nesting + this.__isEscape +
+            this.__isParam + this.__isValue) {
 
             throw this.__getError();
         }
 
-        if ( this.__chunk ) {
+        if (this.__chunk) {
             this.__addPartStatic();
 
-        } else if ( _.isEmpty(this.__buf) ) {
+        } else if (_.isEmpty(this.__buf)) {
 
             throw this.__getError();
         }
@@ -253,9 +253,9 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessComma: function () {
 
-        if ( ',' === this._cur ) {
+        if (this._cur === ',') {
 
-            if ( !this.__chunk || !this.__isValue ) {
+            if (!this.__chunk || !this.__isValue) {
 
                 throw this.__getError();
             }
@@ -277,10 +277,10 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessEquals: function () {
 
-        if ( '=' === this._cur ) {
+        if (this._cur === '=') {
 
             //  пустой параметр или не параметр вообще или уже значение
-            if ( !this.__chunk || !this.__isParam || this.__isValue ) {
+            if (!this.__chunk || !this.__isParam || this.__isValue) {
 
                 throw this.__getError();
             }
@@ -309,7 +309,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessEscaped: function () {
 
-        if ( this.__isEscape ) {
+        if (this.__isEscape) {
             this.__chunk += this._cur;
             this.__isEscape = false;
 
@@ -328,14 +328,14 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessGreaterThan: function () {
 
-        if ( '>' === this._cur ) {
+        if (this._cur === '>') {
 
-            if ( !this.__isParam || !this.__chunk ) {
+            if (!this.__isParam || !this.__chunk) {
 
                 throw this.__getError();
             }
 
-            if ( this.__isValue ) {
+            if (this.__isValue) {
                 this.__addPartStatic();
                 this.__buf = this.__stack.pop();
                 this.__isValue = false;
@@ -366,14 +366,14 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessLeftParenthesis: function () {
 
-        if ( '(' === this._cur ) {
+        if (this._cur === '(') {
 
-            if ( this.__isParam ) {
+            if (this.__isParam) {
 
                 throw this.__getError();
             }
 
-            if ( this.__chunk ) {
+            if (this.__chunk) {
                 this.__addPartStatic();
             }
 
@@ -399,14 +399,14 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessLessThan: function () {
 
-        if ( '<' === this._cur ) {
+        if (this._cur === '<') {
 
-            if ( this.__isParam ) {
+            if (this.__isParam) {
 
                 throw this.__getError();
             }
 
-            if ( this.__chunk ) {
+            if (this.__chunk) {
                 this.__addPartStatic();
             }
 
@@ -427,7 +427,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessReverseSolidus: function () {
 
-        if ( '\\' === this._cur && !this.__isEscape ) {
+        if (this._cur === '\\' && !this.__isEscape) {
             this.__isEscape = true;
 
             return true;
@@ -445,17 +445,17 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessRightParenthesis: function () {
 
-        if ( ')' === this._cur ) {
+        if (this._cur === ')') {
 
-            if ( 0 === this.__nesting ) {
+            if (this.__nesting === 0) {
 
                 throw this.__getError();
             }
 
-            if ( this.__chunk ) {
+            if (this.__chunk) {
                 this.__addPartStatic();
 
-            } else if ( _.isEmpty(this.__buf) ) {
+            } else if (_.isEmpty(this.__buf)) {
 
                 throw this.__getError();
             }
@@ -478,14 +478,14 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessSolidus: function () {
 
-        if ( '/' === this._cur ) {
+        if (this._cur === '/') {
 
-            if ( this.__isParam ) {
+            if (this.__isParam) {
 
                 throw this.__getError();
             }
 
-            if ( this.__chunk ) {
+            if (this.__chunk) {
                 this.__addPartStatic();
             }
 
@@ -545,7 +545,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     _isFalsy: function (value) {
 
-        return null === value || void 0 === value || '' === value;
+        return value === null || value === void 0 || value === '';
     },
 
     /**
@@ -567,27 +567,27 @@ var Parser = inherit(/** @lends Parser.prototype */ {
         var part;
         var result = '';
 
-        for ( index = 0, length = parts.length; index < length; index += 1 ) {
+        for (index = 0, length = parts.length; index < length; index += 1) {
             part = parts[index];
 
-            if ( Parser.PART_OPTION === part.type ) {
+            if (Parser.PART_OPTION === part.type) {
                 chunk = Parser._compileParts(part.parts, func, n + 1, ctx);
 
-                if ( Parser._isFalsy(chunk) ) {
+                if (Parser._isFalsy(chunk)) {
 
                     continue;
                 }
 
                 result += func.call(ctx, part, false) +
-                    chunk + func.call(ctx, part, true);
+                chunk + func.call(ctx, part, true);
 
                 continue;
             }
 
             chunk = func.call(ctx, part, false);
 
-            if ( Parser.PART_PARAM === part.type &&
-                Parser._isFalsy(chunk) && n ) {
+            if (Parser.PART_PARAM === part.type &&
+                Parser._isFalsy(chunk) && n) {
 
                 return '';
             }
@@ -609,7 +609,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     create: function (pattern) {
 
-        if ( !(pattern in parsers) ) {
+        if (!(pattern in parsers)) {
             parsers[pattern] = new Parser(pattern);
         }
 
@@ -628,7 +628,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
  *
  * @returns {String}
  * */
-function escapePart (part) {
+function escapePart(part) {
 
     return escape(part.body);
 }
@@ -643,7 +643,7 @@ function escapePart (part) {
  *
  * @returns {String}
  * */
-function escape (s) {
+function escape(s) {
 
     return s.replace(R_SYNTAX_CHARS, '\\$&');
 }
@@ -659,11 +659,11 @@ function escape (s) {
  *
  * @returns {String}
  * */
-function part2Pattern (part, isBubbling) {
+function part2Pattern(part, isBubbling) {
 
-    if ( Parser.PART_OPTION === part.type ) {
+    if (Parser.PART_OPTION === part.type) {
 
-        if ( isBubbling ) {
+        if (isBubbling) {
 
             return ')';
         }
@@ -671,18 +671,18 @@ function part2Pattern (part, isBubbling) {
         return '(';
     }
 
-    if ( Parser.PART_PARAM === part.type ) {
+    if (Parser.PART_PARAM === part.type) {
 
-        if ( _.isEmpty(part.parts) ) {
+        if (_.isEmpty(part.parts)) {
 
             return '<' + escape(part.body) + '>';
         }
 
         return '<' + escapePart(part) + '=' +
-            _.map(part.parts, escapePart).join(',') + '>';
+        _.map(part.parts, escapePart).join(',') + '>';
     }
 
-    if ( Parser.PART_DELIM === part.type ) {
+    if (Parser.PART_DELIM === part.type) {
 
         return '/';
     }

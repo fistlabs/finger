@@ -117,14 +117,14 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
         var match = this.__regexp.exec(pathname);
         var result = null;
 
-        if ( null === match ) {
+        if (match === null) {
 
             return result;
         }
 
         result = {};
 
-        for ( i = 0, l = this.names.length; i < l; i += 1 ) {
+        for (i = 0, l = this.names.length; i < l; i += 1) {
             push2Result(result, this.names[i], match[i + 1]);
         }
 
@@ -143,7 +143,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
         var pattern = this.__base();
         var flags = _.reduce(this.params, this.__reduceParam2Flag, '', this);
 
-        if ( '' === flags ) {
+        if (flags === '') {
 
             return pattern;
         }
@@ -164,9 +164,9 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * */
     __reduceParam2Flag: function (flags, value, name) {
 
-        if ( _.has(param2FlagMap, name) ) {
+        if (_.has(param2FlagMap, name)) {
 
-            if ( value ) {
+            if (value) {
                 flags += param2FlagMap[name].toLowerCase();
 
             } else {
@@ -188,11 +188,11 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         var source = this.compile(this.__compileRegExpPart);
 
-        if ( !this.params.doNotMatchStart ) {
+        if (!this.params.doNotMatchStart) {
             source = '^' + source;
         }
 
-        if ( !this.params.doNotMatchEnd ) {
+        if (!this.params.doNotMatchEnd) {
             source += '$';
         }
 
@@ -213,19 +213,19 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         var type = part.type;
 
-        if ( Parser.PART_DELIM === type ) {
+        if (Parser.PART_DELIM === type) {
 
             return escape('/');
         }
 
-        if ( Parser.PART_STATIC === type ) {
+        if (Parser.PART_STATIC === type) {
 
             return this.__compileStaticPart(part);
         }
 
-        if ( Parser.PART_PARAM === type ) {
+        if (Parser.PART_PARAM === type) {
 
-            if ( _.isEmpty(part.parts) ) {
+            if (_.isEmpty(part.parts)) {
 
                 return '([^/]+?)';
             }
@@ -234,7 +234,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
                 this.__compileStaticPart, this).join('|') + ')';
         }
 
-        if ( isBubbling ) {
+        if (isBubbling) {
 
             return ')?';
         }
@@ -269,20 +269,20 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * */
     __reduceChar: function (result, char) {
 
-        if ( char === encodeURIComponent(char) ) {
+        if (char === encodeURIComponent(char)) {
 
             return result + escape(char);
         }
 
-        if ( this.params.ignoreCase ) {
+        if (this.params.ignoreCase) {
 
             return result + '(?:' + escape(char) + '|' +
-                      encodeURIComponent(char.toLowerCase()) + '|' +
-                      encodeURIComponent(char.toUpperCase()) + ')';
+            encodeURIComponent(char.toLowerCase()) + '|' +
+            encodeURIComponent(char.toUpperCase()) + ')';
         }
 
         return result + '(?:' + escape(char) + '|' +
-                  encodeURIComponent(char) + ')';
+        encodeURIComponent(char) + ')';
     }
 
 }, {
@@ -338,21 +338,21 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
  *
  * @returns {String}
  * */
-function buildPart (part, opts, using) {
+function buildPart(part, opts, using) {
 
     var type = part.type;
 
-    if ( Parser.PART_DELIM === type ) {
+    if (Parser.PART_DELIM === type) {
 
         return '/';
     }
 
-    if ( Parser.PART_STATIC === type ) {
+    if (Parser.PART_STATIC === type) {
 
         return part.encoded;
     }
 
-    if ( Parser.PART_PARAM === type ) {
+    if (Parser.PART_PARAM === type) {
 
         return buildParamPart(part.body, opts, using);
     }
@@ -372,34 +372,34 @@ function buildPart (part, opts, using) {
  *
  * @returns {String}
  * */
-function buildParamPart (name, opts, using) {
+function buildParamPart(name, opts, using) {
 
     var i;
     var value;
 
-    if ( !_.has(opts, name) ) {
+    if (!_.has(opts, name)) {
 
         return '';
     }
 
     value = opts[name];
 
-    if ( using.hasOwnProperty(name) ) {
+    if (using.hasOwnProperty(name)) {
         i = using[name] += 1;
 
     } else {
         i = using[name] = 0;
     }
 
-    if ( _.isArray(value) ) {
+    if (_.isArray(value)) {
         value = value[i];
 
-    } else if ( i ) {
+    } else if (i) {
 
         return '';
     }
 
-    if ( Parser._isFalsy(value) ) {
+    if (Parser._isFalsy(value)) {
 
         return '';
     }
@@ -418,15 +418,15 @@ function buildParamPart (name, opts, using) {
  *
  * @returns {Object}
  * */
-function push2Result (result, name, value) {
+function push2Result(result, name, value) {
 
-    if ( 'string' === typeof value && -1 !== value.indexOf('%') ) {
+    if (typeof value === 'string' && -1 !== value.indexOf('%')) {
         value = decodeURIComponent(value);
     }
 
-    if ( result.hasOwnProperty(name) ) {
+    if (result.hasOwnProperty(name)) {
 
-        if ( _.isArray(result[name]) ) {
+        if (_.isArray(result[name])) {
             result[name].push(value);
 
             return result;
@@ -453,14 +453,14 @@ function push2Result (result, name, value) {
  *
  * @returns {Object}
  * */
-function reduceFlag (params, name) {
+function reduceFlag(params, name) {
 
     var lowerName = name.toLowerCase();
     var isLowerCased = name === lowerName;
 
     name = lowerName;
 
-    if ( _.has(flag2ParamMap, name) ) {
+    if (_.has(flag2ParamMap, name)) {
         name = flag2ParamMap[name];
     }
 

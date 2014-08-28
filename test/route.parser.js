@@ -306,9 +306,9 @@ describe('route/parser', function () {
 
             var result = parser.compile(function (part, isBubbling) {
 
-                if ( Parser.PART_OPTION === part.type ) {
+                if (Parser.PART_OPTION === part.type) {
 
-                    if ( isBubbling ) {
+                    if (isBubbling) {
 
                         return '';
                     }
@@ -316,7 +316,7 @@ describe('route/parser', function () {
                     return '';
                 }
 
-                if ( 'b' === part.body ) {
+                if (part.body === 'b') {
 
                     return '';
                 }

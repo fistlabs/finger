@@ -12,12 +12,12 @@ var lintPatterns = [
 ];
 var through2 = require('through2');
 
-function runJscs () {
+function runJscs() {
 
     return this.src(lintPatterns).pipe(gulpJscs());
 }
 
-function runEslint (done) {
+function runEslint(done) {
     var error;
     var noErrors = true;
 
@@ -25,8 +25,8 @@ function runEslint (done) {
         pipe(gulpEslint()).
         pipe(through2.obj(function (file, enc, cb) {
 
-            if ( file.eslint ) {
-                noErrors = true === noErrors &&
+            if (file.eslint) {
+                noErrors = noErrors &&
                            !_.find(file.eslint.messages, {
                                severity: 2
                            });
@@ -42,9 +42,9 @@ function runEslint (done) {
             });
         })).once('end', function () {
 
-            if ( noErrors ) {
+            if (noErrors) {
 
-                if ( error instanceof gutil.PluginError ) {
+                if (error instanceof gutil.PluginError) {
                     /*eslint no-console: 0*/
                     console.error(error.toString());
                 }
