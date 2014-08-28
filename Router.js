@@ -1,6 +1,6 @@
 'use strict';
 
-var Route = /** @type Route */ require('./route/Route');
+var Route = /** @type Route */ require('./route/route');
 
 var _ = /** @type _*/ require('lodash-node');
 var inherit = require('inherit');

@@ -9,7 +9,7 @@ module.exports = function () {
 
         var suite = new Suite();
 
-        var Finger = require('../../Router');
+        var Finger = require('../../router');
         var Susanin = require('susanin');
 
         var susanin = new Susanin();
