@@ -1,7 +1,7 @@
 'use strict';
 
 var R_PATTERN = /^\s*(?:((?:\w+)(?:\s*,\s*(?:\w+))*)\s+)?([\s\S]*)$/;
-var Pattern = /** @type Pattern */ require('./Pattern');
+var Pattern = /** @type Pattern */ require('./pattern');
 
 var _ = require('lodash-node');
 var inherit = require('inherit');

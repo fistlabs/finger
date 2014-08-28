@@ -4,7 +4,7 @@
 var assert = require('chai').assert;
 
 describe('router', function () {
-    var Router = require('../Router');
+    var Router = require('../router');
 
     it('Should correctly find routes', function () {
         var router = new Router();

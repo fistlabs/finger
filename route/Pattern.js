@@ -1,6 +1,6 @@
 'use strict';
 
-var Parser = /** @type Parser */ require('./Parser');
+var Parser = /** @type Parser */ require('./parser');
 
 var _ = require('lodash-node');
 var inherit = require('inherit');
