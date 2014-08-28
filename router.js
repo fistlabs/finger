@@ -71,7 +71,7 @@ var Router = inherit(/** @lends Router.prototype */ {
 
         _.remove(this.__routes, function (existingRoute) {
 
-            if ( existingRoute.data.name === route.data.name ) {
+            if (existingRoute.data.name === route.data.name) {
                 this.__reduceVerbs(existingRoute.allow);
 
                 return true;
@@ -100,19 +100,19 @@ var Router = inherit(/** @lends Router.prototype */ {
      * */
     find: function (verb, pathname, route) {
 
-        if ( !_.has(this.__verbs, verb) ) {
+        if (!_.has(this.__verbs, verb)) {
 
             return [];
         }
 
-        if ( void 0 === route || null === route ) {
+        if (route === void 0 || route === null) {
 
             return this.__find(verb, pathname, 0);
         }
 
         route = _.findIndex(this.__routes, {data: {name: route}});
 
-        if ( -1 === route ) {
+        if (-1 === route) {
 
             return null;
         }
@@ -168,16 +168,16 @@ var Router = inherit(/** @lends Router.prototype */ {
         var route;
         var allow = [];
 
-        for ( l = this.__routes.length; index < l; index += 1 ) {
+        for (l = this.__routes.length; index < l; index += 1) {
             route = this.__routes[index];
             match = route.match(verb, pathname);
 
-            if ( null === match[1] ) {
+            if (match[1] === null) {
 
                 continue;
             }
 
-            if ( match[0] ) {
+            if (match[0]) {
 
                 return {
                     route: route,
@@ -188,7 +188,7 @@ var Router = inherit(/** @lends Router.prototype */ {
             Array.prototype.push.apply(allow, route.allow);
         }
 
-        if ( 0 === allow.length ) {
+        if (allow.length === 0) {
 
             return null;
         }
@@ -205,7 +205,7 @@ var Router = inherit(/** @lends Router.prototype */ {
      * */
     __increaseVerb: function (verb) {
 
-        if ( _.has(this.__verbs, verb) ) {
+        if (_.has(this.__verbs, verb)) {
             this.__verbs[verb] += 1;
 
             return;
@@ -235,7 +235,7 @@ var Router = inherit(/** @lends Router.prototype */ {
     __reduceVerb: function (verb) {
         this.__verbs[verb] -= 1;
 
-        if ( 0 === this.__verbs[verb] ) {
+        if (this.__verbs[verb] === 0) {
             delete this.__verbs[verb];
         }
     },

@@ -11,12 +11,12 @@ var mochaPipe = gulpMocha({
     slow: Infinity
 });
 
-function runMocha () {
+function runMocha() {
 
     return this.src('test/*.js').pipe(mochaPipe);
 }
 
-function runCover (done) {
+function runCover(done) {
     var self = this;
 
     this.src([

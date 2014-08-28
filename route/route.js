@@ -41,11 +41,11 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         this.__verbs = Object.create(null);
         this.__verbs.GET = true;
 
-        if ( match[1] ) {
+        if (match[1]) {
             this.__verbs = reduceMethods(match[1], Object.create(null));
         }
 
-        if ( _.has(this.__verbs, 'GET') ) {
+        if (_.has(this.__verbs, 'GET')) {
             this.__verbs.HEAD = true;
         }
 
@@ -107,7 +107,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         var pq = Route.splitPath(path);
         var result = this.__base(pq[0]);
 
-        if ( result && pq[1] ) {
+        if (result && pq[1]) {
             result = _.extend(parseQuery(pq[1]), result);
         }
 
@@ -131,10 +131,10 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
 
         var pq = Route.splitPath(pattern);
 
-        if ( pq[1] ) {
+        if (pq[1]) {
             pq[1] = parseQuery(pq[1]);
 
-            if ( _.isObject(opts) ) {
+            if (_.isObject(opts)) {
                 opts = _.extend(pq[1], opts);
 
             } else {
@@ -159,7 +159,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
 
         var i = path.indexOf('?');
 
-        if ( -1 === i ) {
+        if (-1 === i) {
 
             return [path, ''];
         }
@@ -186,11 +186,11 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         var query = {};
         var using = parser.using;
 
-        for ( name in opts ) {
+        for (name in opts) {
 
-            if ( hasProperty.call(opts, name) ) {
+            if (hasProperty.call(opts, name)) {
 
-                if ( using.hasOwnProperty(name) ) {
+                if (using.hasOwnProperty(name)) {
 
                     continue;
                 }
@@ -200,7 +200,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
             }
         }
 
-        if ( isQueryEmpty ) {
+        if (isQueryEmpty) {
 
             return pathname;
         }
@@ -220,7 +220,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
  *
  * @returns {String}
  * */
-function stringifyQuery (query) {
+function stringifyQuery(query) {
 
     var i;
     var k;
@@ -228,30 +228,30 @@ function stringifyQuery (query) {
     var q = [];
     var v;
 
-    for ( k in query ) {
+    for (k in query) {
 
-        if ( query.hasOwnProperty(k) ) {
+        if (query.hasOwnProperty(k)) {
             v = query[k];
 
-            if ( _.isArray(v) ) {
+            if (_.isArray(v)) {
 
-                for ( i = 0, l = v.length; i < l; i += 1 ) {
+                for (i = 0, l = v.length; i < l; i += 1) {
                     q[q.length] = stringifyPrimitive(k) +
-                        '=' + stringifyPrimitive(v[i]);
+                    '=' + stringifyPrimitive(v[i]);
                 }
 
                 continue;
             }
 
             q[q.length] = stringifyPrimitive(k) +
-                '=' + stringifyPrimitive(v);
+            '=' + stringifyPrimitive(v);
         }
     }
 
     return q.join('&');
 }
 
-function parseQuery (q) {
+function parseQuery(q) {
 
     return querystring.parse(q);
 }
@@ -266,14 +266,14 @@ function parseQuery (q) {
  *
  * @returns {String}
  * */
-function stringifyPrimitive (v) {
+function stringifyPrimitive(v) {
 
-    if ( 'string' === typeof v ) {
+    if (typeof v === 'string') {
 
         return encodeURIComponent(v);
     }
 
-    if ( 'boolean' === typeof v || 'number' === typeof v && isFinite(v) ) {
+    if (typeof v === 'boolean' || typeof v === 'number' && isFinite(v)) {
 
         return String(v);
     }
@@ -291,7 +291,7 @@ function stringifyPrimitive (v) {
  *
  * @returns {Object}
  * */
-function reduceMethod (methods, m) {
+function reduceMethod(methods, m) {
     methods[m.trim().toUpperCase()] = true;
 
     return methods;
@@ -307,7 +307,7 @@ function reduceMethod (methods, m) {
  *
  * @returns {Object}
  * */
-function reduceMethods (methods, init) {
+function reduceMethods(methods, init) {
 
     return _.reduce(methods.split(','), reduceMethod, init);
 }
