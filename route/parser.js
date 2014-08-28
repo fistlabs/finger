@@ -21,7 +21,6 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * @param {String} pattern
      * */
     __constructor: function (pattern) {
-
         var matchers = [
             this.__guessReverseSolidus,
             this.__guessEscaped,
@@ -193,7 +192,6 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * @method
      * */
     __addPartStatic: function () {
-
         var chunk = decodeURIComponent(this.__chunk);
 
         this.__buf.push({
@@ -253,19 +251,19 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessComma: function () {
 
-        if (this._cur === ',') {
+        if (this._cur !== ',') {
 
-            if (!this.__chunk || !this.__isValue) {
-
-                throw this.__getError();
-            }
-
-            this.__addPartStatic();
-
-            return true;
+            return false;
         }
 
-        return false;
+        if (!this.__chunk || !this.__isValue) {
+
+            throw this.__getError();
+        }
+
+        this.__addPartStatic();
+
+        return true;
     },
 
     /**
@@ -277,27 +275,27 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessEquals: function () {
 
-        if (this._cur === '=') {
+        if (this._cur !== '=') {
 
-            //  пустой параметр или не параметр вообще или уже значение
-            if (!this.__chunk || !this.__isParam || this.__isValue) {
-
-                throw this.__getError();
-            }
-
-            this.__isValue = true;
-            this.__stack.push(this.__buf);
-            this.__buf.push({
-                type: Parser.PART_PARAM,
-                body: this.names[this.names.length] = this.__chunk,
-                parts: this.__buf = []
-            });
-            this.__chunk = '';
-
-            return true;
+            return false;
         }
 
-        return false;
+        //  пустой параметр или не параметр вообще или уже значение
+        if (!this.__chunk || !this.__isParam || this.__isValue) {
+
+            throw this.__getError();
+        }
+
+        this.__isValue = true;
+        this.__stack.push(this.__buf);
+        this.__buf.push({
+            type: Parser.PART_PARAM,
+            body: this.names[this.names.length] = this.__chunk,
+            parts: this.__buf = []
+        });
+        this.__chunk = '';
+
+        return true;
     },
 
     /**
@@ -328,33 +326,33 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessGreaterThan: function () {
 
-        if (this._cur === '>') {
+        if (this._cur !== '>') {
 
-            if (!this.__isParam || !this.__chunk) {
-
-                throw this.__getError();
-            }
-
-            if (this.__isValue) {
-                this.__addPartStatic();
-                this.__buf = this.__stack.pop();
-                this.__isValue = false;
-
-            } else {
-                this.__buf.push({
-                    type: Parser.PART_PARAM,
-                    body: this.names[this.names.length] = this.__chunk,
-                    parts: []
-                });
-                this.__chunk = '';
-            }
-
-            this.__isParam = false;
-
-            return true;
+            return false;
         }
 
-        return false;
+        if (!this.__isParam || !this.__chunk) {
+
+            throw this.__getError();
+        }
+
+        if (this.__isValue) {
+            this.__addPartStatic();
+            this.__buf = this.__stack.pop();
+            this.__isValue = false;
+
+        } else {
+            this.__buf.push({
+                type: Parser.PART_PARAM,
+                body: this.names[this.names.length] = this.__chunk,
+                parts: []
+            });
+            this.__chunk = '';
+        }
+
+        this.__isParam = false;
+
+        return true;
     },
 
     /**
@@ -366,28 +364,28 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessLeftParenthesis: function () {
 
-        if (this._cur === '(') {
+        if (this._cur !== '(') {
 
-            if (this.__isParam) {
-
-                throw this.__getError();
-            }
-
-            if (this.__chunk) {
-                this.__addPartStatic();
-            }
-
-            this.__stack.push(this.__buf);
-            this.__buf.push({
-                type: Parser.PART_OPTION,
-                parts: this.__buf = []
-            });
-            this.__nesting += 1;
-
-            return true;
+            return false;
         }
 
-        return false;
+        if (this.__isParam) {
+
+            throw this.__getError();
+        }
+
+        if (this.__chunk) {
+            this.__addPartStatic();
+        }
+
+        this.__stack.push(this.__buf);
+        this.__buf.push({
+            type: Parser.PART_OPTION,
+            parts: this.__buf = []
+        });
+        this.__nesting += 1;
+
+        return true;
     },
 
     /**
@@ -399,23 +397,23 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessLessThan: function () {
 
-        if (this._cur === '<') {
+        if (this._cur !== '<') {
 
-            if (this.__isParam) {
-
-                throw this.__getError();
-            }
-
-            if (this.__chunk) {
-                this.__addPartStatic();
-            }
-
-            this.__isParam = true;
-
-            return true;
+            return false;
         }
 
-        return false;
+        if (this.__isParam) {
+
+            throw this.__getError();
+        }
+
+        if (this.__chunk) {
+            this.__addPartStatic();
+        }
+
+        this.__isParam = true;
+
+        return true;
     },
 
     /**
@@ -445,28 +443,28 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessRightParenthesis: function () {
 
-        if (this._cur === ')') {
+        if (this._cur !== ')') {
 
-            if (this.__nesting === 0) {
-
-                throw this.__getError();
-            }
-
-            if (this.__chunk) {
-                this.__addPartStatic();
-
-            } else if (_.isEmpty(this.__buf)) {
-
-                throw this.__getError();
-            }
-
-            this.__buf = this.__stack.pop();
-            this.__nesting -= 1;
-
-            return true;
+            return false;
         }
 
-        return false;
+        if (this.__nesting === 0) {
+
+            throw this.__getError();
+        }
+
+        if (this.__chunk) {
+            this.__addPartStatic();
+
+        } else if (_.isEmpty(this.__buf)) {
+
+            throw this.__getError();
+        }
+
+        this.__buf = this.__stack.pop();
+        this.__nesting -= 1;
+
+        return true;
     },
 
     /**
@@ -478,25 +476,25 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     __guessSolidus: function () {
 
-        if (this._cur === '/') {
+        if (this._cur !== '/') {
 
-            if (this.__isParam) {
-
-                throw this.__getError();
-            }
-
-            if (this.__chunk) {
-                this.__addPartStatic();
-            }
-
-            this.__buf.push({
-                type: Parser.PART_DELIM
-            });
-
-            return true;
+            return false;
         }
 
-        return false;
+        if (this.__isParam) {
+
+            throw this.__getError();
+        }
+
+        if (this.__chunk) {
+            this.__addPartStatic();
+        }
+
+        this.__buf.push({
+            type: Parser.PART_DELIM
+        });
+
+        return true;
     }
 
 }, {
@@ -545,7 +543,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     _isFalsy: function (value) {
 
-        return value === null || value === void 0 || value === '';
+        return _.isNull(value) || _.isUndefined(value) || value === '';
     },
 
     /**
@@ -562,13 +560,13 @@ var Parser = inherit(/** @lends Parser.prototype */ {
     _compileParts: function (parts, func, n, ctx) {
 
         var chunk;
-        var index;
-        var length;
+        var i;
+        var l;
         var part;
         var result = '';
 
-        for (index = 0, length = parts.length; index < length; index += 1) {
-            part = parts[index];
+        for (i = 0, l = parts.length; i < l; i += 1) {
+            part = parts[i];
 
             if (Parser.PART_OPTION === part.type) {
                 chunk = Parser._compileParts(part.parts, func, n + 1, ctx);

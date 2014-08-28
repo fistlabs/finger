@@ -1,7 +1,10 @@
 /*global describe, it*/
 'use strict';
 
+var _ = require('lodash-node');
 var assert = require('chai').assert;
+var util = require('util');
+
 /*eslint no-extend-native: 0*/
 Object.prototype.bug = 42;
 
@@ -24,6 +27,16 @@ describe('route/route', function () {
             r = new Route(' GET, POST /a/b/c');
 
             assert.deepEqual(r.allow.sort(), ['GET', 'HEAD', 'POST'].sort());
+        });
+
+        it('Should support flags', function () {
+            var route = new Route('/ isz');
+
+            assert.deepEqual(route.params, {
+                ignoreCase: true,
+                doNotMatchStart: true,
+                z: true
+            });
         });
     });
 
@@ -68,18 +81,51 @@ describe('route/route', function () {
     });
 
     describe('{Route}.toString', function () {
-        it('Should correctly stringify the route', function () {
-            var r;
+        var samples = [
+            [
+                [
+                    ' PUT, POST /index.xml',
+                    {
+                        ignoreCase: true
+                    }
+                ],
+                'PUT,POST /index.xml i'
+            ],
+            [
+                [
+                    '/index.xml i',
+                    void 0
+                ],
+                'GET,HEAD /index.xml i'
+            ],
+            [
+                [
+                    '/',
+                    {
+                        doNotDoAnyThing: false
+                    }
+                ],
+                'GET,HEAD /'
+            ],
+            [
+                [
+                    '/index.xml I',
+                    void 0
+                ],
+                'GET,HEAD /index.xml I'
+            ]
+        ];
 
-            r = new Route(' PUT, POST /index.xml', {
-                ignoreCase: true
+        _.forEach(samples, function (sample) {
+            var header = 'String(new Route("%s", %j)) should be equal to "%s"';
+
+            header = util.format(header, sample[0][0], sample[0][1], sample[1]);
+
+            it(header, function () {
+                var route = new Route(sample[0][0], sample[0][1]);
+
+                assert.strictEqual(String(route), sample[1]);
             });
-
-            assert.strictEqual(r.toString(), 'PUT,POST /index.xml i');
-
-            r = new Route('/index.xml i');
-
-            assert.strictEqual(r.toString(), 'GET,HEAD /index.xml i');
         });
     });
 
@@ -113,6 +159,67 @@ describe('route/route', function () {
             assert.deepEqual(Route.splitPath('/'), ['/', '']);
             assert.deepEqual(Route.splitPath('/?a=5'), ['/', 'a=5']);
             assert.deepEqual(Route.splitPath('/?a=5?b=6'), ['/', 'a=5?b=6']);
+        });
+    });
+
+    describe('Route.splitPattern', function () {
+        var samples = [
+            [
+                'GET /a/ i',
+                {
+                    methods: 'GET',
+                    pattern: '/a/',
+                    options: 'i'
+                }
+            ],
+            [
+                'GET,POST /a/ i',
+                {
+                    methods: 'GET,POST',
+                    pattern: '/a/',
+                    options: 'i'
+                }
+            ],
+            [
+                'GET  /a/ ',
+                {
+                    methods: 'GET',
+                    pattern: '/a/',
+                    options: void 0
+                }
+            ],
+            [
+                '  /a/ /b/ i',
+                {
+                    methods: void 0,
+                    pattern: '/a/ /b/',
+                    options: 'i'
+                }
+            ],
+            [
+                'a',
+                {
+                    methods: void 0,
+                    pattern: 'a',
+                    options: void 0
+                }
+            ]
+        ];
+
+        _.forEach(samples, function (sample) {
+            var header = 'Should split "%s" to %j';
+
+            header = util.format(header, sample[0], sample[1]);
+
+            it(header, function () {
+                assert.deepEqual(Route.splitPattern(sample[0]), sample[1]);
+            });
+        });
+
+        it('Should throw the SyntaxError', function () {
+            assert.throws(function () {
+                return Route.splitPattern('');
+            }, SyntaxError);
         });
     });
 });

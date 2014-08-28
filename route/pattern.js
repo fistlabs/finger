@@ -9,40 +9,9 @@ var inherit = require('inherit');
  * @private
  * @static
  * @memberOf Pattern
- * @property
- * @type {RegExp}
- * */
-var R_PATTERN = /^\s*([\s\S]*?)(?:\s+(\w+))?\s*$/;
-
-/**
- * @private
- * @static
- * @memberOf Pattern
  * @method
  * */
 var escape = require('regesc');
-
-/**
- * @private
- * @static
- * @memberOf Pattern
- * @property
- * @type {Object}
- * */
-var flag2ParamMap = {
-    s: 'doNotMatchStart',
-    e: 'doNotMatchEnd',
-    i: 'ignoreCase'
-};
-
-/**
- * @private
- * @static
- * @memberOf Pattern
- * @property
- * @type {Object}
- * */
-var param2FlagMap = _.invert(flag2ParamMap);
 
 /**
  * @class Pattern
@@ -62,11 +31,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * */
     __constructor: function (pattern, params) {
 
-        var match = R_PATTERN.exec(pattern);
-
-        this.__base(match[1]);
-
-        params = _.extend({}, this.params, params);
+        this.__base(pattern);
 
         /**
          * @public
@@ -75,7 +40,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
          *
          * @type {Object}
          * */
-        this.params = _.reduce(match[2], reduceFlag, params);
+        this.params = _.extend({}, this.params, params);
 
         /**
          * @private
@@ -86,6 +51,15 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
          * */
         this.__regexp = this.__compileRegExp();
     },
+
+    /**
+     * @public
+     * @memberOf {Pattern}
+     * @property
+     *
+     * @type {Object}
+     * */
+    params: {},
 
     /**
      * @public
@@ -117,7 +91,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
         var match = this.__regexp.exec(pathname);
         var result = null;
 
-        if (match === null) {
+        if (_.isNull(match)) {
 
             return result;
         }
@@ -129,52 +103,6 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
         }
 
         return result;
-    },
-
-    /**
-     * @public
-     * @memberOf {Pattern}
-     * @method
-     *
-     * @returns {String}
-     * */
-    toString: function () {
-
-        var pattern = this.__base();
-        var flags = _.reduce(this.params, this.__reduceParam2Flag, '', this);
-
-        if (flags === '') {
-
-            return pattern;
-        }
-
-        return pattern + ' ' + flags;
-    },
-
-    /**
-     * @private
-     * @memberOf {Pattern}
-     * @method
-     *
-     * @param {String} flags
-     * @param {Boolean} value
-     * @param {String} name
-     *
-     * @returns {String}
-     * */
-    __reduceParam2Flag: function (flags, value, name) {
-
-        if (_.has(param2FlagMap, name)) {
-
-            if (value) {
-                flags += param2FlagMap[name].toLowerCase();
-
-            } else {
-                flags += param2FlagMap[name].toUpperCase();
-            }
-        }
-
-        return flags;
     },
 
     /**
@@ -420,7 +348,7 @@ function buildParamPart(name, opts, using) {
  * */
 function push2Result(result, name, value) {
 
-    if (typeof value === 'string' && -1 !== value.indexOf('%')) {
+    if (_.isString(value) && _.indexOf(value, '%') !== -1) {
         value = decodeURIComponent(value);
     }
 
@@ -440,33 +368,6 @@ function push2Result(result, name, value) {
     result[name] = value;
 
     return result;
-}
-
-/**
- * @private
- * @static
- * @memberOf Pattern
- * @method
- *
- * @param {Object} params
- * @param {String} name
- *
- * @returns {Object}
- * */
-function reduceFlag(params, name) {
-
-    var lowerName = name.toLowerCase();
-    var isLowerCased = name === lowerName;
-
-    name = lowerName;
-
-    if (_.has(flag2ParamMap, name)) {
-        name = flag2ParamMap[name];
-    }
-
-    params[name] = isLowerCased;
-
-    return params;
 }
 
 module.exports = Pattern;
