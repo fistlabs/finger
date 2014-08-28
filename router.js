@@ -105,7 +105,7 @@ var Router = inherit(/** @lends Router.prototype */ {
             return [];
         }
 
-        if (route === void 0 || route === null) {
+        if (_.isUndefined(route) || _.isNull(route)) {
 
             return this.__find(verb, pathname, 0);
         }
@@ -172,7 +172,7 @@ var Router = inherit(/** @lends Router.prototype */ {
             route = this.__routes[index];
             match = route.match(verb, pathname);
 
-            if (match[1] === null) {
+            if (!match[1]) {
 
                 continue;
             }

@@ -9,24 +9,6 @@ describe('route/parser', function () {
     /*eslint max-nested-callbacks: 0*/
     var Pattern = require('../route/pattern');
 
-    describe('Pattern', function () {
-
-        it('Should support flags', function () {
-            var pattern = new Pattern('/ isez', {
-                ignoreCase: false,
-                assert: true
-            });
-
-            assert.deepEqual(pattern.params, {
-                ignoreCase: true,
-                doNotMatchStart: true,
-                doNotMatchEnd: true,
-                z: true,
-                assert: true
-            });
-        });
-    });
-
     describe('{Pattern}.match', function () {
         var samples = [
             [
@@ -136,8 +118,10 @@ describe('route/parser', function () {
             ],
             [
                 [
-                    '/images/ e',
-                    null
+                    '/images/',
+                    {
+                        doNotMatchEnd: true
+                    }
                 ],
                 [
                     [
@@ -148,8 +132,10 @@ describe('route/parser', function () {
             ],
             [
                 [
-                    '/<filename>.<ext=gif,jpg> s',
-                    null
+                    '/<filename>.<ext=gif,jpg>',
+                    {
+                        doNotMatchStart: true
+                    }
                 ],
                 [
                     [
@@ -202,9 +188,11 @@ describe('route/parser', function () {
             ],
             [
                 [
-                    '/a/<param>/c/\t  se ',
+                    '/a/<param>/c/',
                     {
-                        ignoreCase: true
+                        ignoreCase: true,
+                        doNotMatchStart: true,
+                        doNotMatchEnd: true
                     }
                 ],
                 [
@@ -515,16 +503,8 @@ describe('route/parser', function () {
                 '/(<ns>/)disc/(<wat>/)'
             ],
             [
-                ' /a/b/c   iEs ',
-                '/a/b/c iEs'
-            ],
-            [
-                ' /a/b/c   iEsz ',
-                '/a/b/c iEs'
-            ],
-            [
-                ' /a/b/c  baz ',
-                '/a/b/c'
+                ' /a/b/c ',
+                ' /a/b/c '
             ]
         ];
 

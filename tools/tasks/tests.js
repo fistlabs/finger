@@ -11,9 +11,9 @@ var mochaPipe = gulpMocha({
     slow: Infinity
 });
 
-function runMocha() {
+function runMocha(done) {
 
-    return this.src('test/*.js').pipe(mochaPipe);
+    this.src('test/*.js').pipe(mochaPipe).on('end', done);
 }
 
 function runCover(done) {

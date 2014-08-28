@@ -1,6 +1,7 @@
 'use strict';
 
-var R_PATTERN = /^\s*(?:((?:\w+)(?:\s*,\s*(?:\w+))*)\s+)?([\s\S]*)$/;
+var R_ADVANCED_PATTERN = /^\s*(?:((?:[a-z]+)(?:\s*,\s*(?:[a-z]+))*)\s+)?([\s\S]+?)(?:\s+([a-z]+))?\s*$/i;
+
 var Pattern = /** @type Pattern */ require('./pattern');
 
 var _ = require('lodash-node');
@@ -8,6 +9,14 @@ var inherit = require('inherit');
 var hasProperty = Object.prototype.hasOwnProperty;
 var querystring = require('querystring');
 var uniqueId = require('unique-id');
+
+var flag2ParamMap = {
+    s: 'doNotMatchStart',
+    e: 'doNotMatchEnd',
+    i: 'ignoreCase'
+};
+
+var param2FlagMap = _.invert(flag2ParamMap);
 
 /**
  * @class Route
@@ -27,10 +36,15 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @param {Object} [data]
      * */
     __constructor: function (pattern, params, data) {
+        var match = Route.splitPattern(pattern);
 
-        var match = R_PATTERN.exec(pattern);
+        if (!_.isObject(params)) {
+            params = {};
+        }
 
-        this.__base(match[2], params);
+        params = _.reduce(match.options, reduceFlag, params);
+
+        this.__base(match.pattern, params);
 
         /**
          * @private
@@ -41,8 +55,8 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         this.__verbs = Object.create(null);
         this.__verbs.GET = true;
 
-        if (match[1]) {
-            this.__verbs = reduceMethods(match[1], Object.create(null));
+        if (match.methods) {
+            this.__verbs = reduceMethods(match.methods, {});
         }
 
         if (_.has(this.__verbs, 'GET')) {
@@ -88,8 +102,14 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @returns {String}
      * */
     toString: function () {
+        var pattern = this.__base();
+        var flags = _.reduce(this.params, this.__reduceParam2Flag, '', this);
 
-        return this.allow.join(',') + ' ' + this.__base();
+        if (flags) {
+            pattern += ' ' + flags;
+        }
+
+        return this.allow.join(',') + ' ' + pattern;
     },
 
     /**
@@ -103,7 +123,6 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @returns {Array}
      * */
     match: function (verb, path) {
-
         var pq = Route.splitPath(path);
         var result = this.__base(pq[0]);
 
@@ -112,6 +131,32 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         }
 
         return [verb in this.__verbs, result];
+    },
+
+    /**
+     * @private
+     * @memberOf {Route}
+     * @method
+     *
+     * @param {String} flags
+     * @param {Boolean} value
+     * @param {String} name
+     *
+     * @returns {String}
+     * */
+    __reduceParam2Flag: function (flags, value, name) {
+
+        if (_.has(param2FlagMap, name)) {
+
+            if (value) {
+                flags += param2FlagMap[name].toLowerCase();
+
+            } else {
+                flags += param2FlagMap[name].toUpperCase();
+            }
+        }
+
+        return flags;
     }
 
 }, {
@@ -168,6 +213,31 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
     },
 
     /**
+     * @public
+     * @static
+     * @memberOf Route
+     * @method
+     *
+     * @param {String} pattern
+     *
+     * @returns {Array}
+     * */
+    splitPattern: function (pattern) {
+        var match = R_ADVANCED_PATTERN.exec(pattern);
+
+        if (_.isNull(match)) {
+
+            throw new SyntaxError(pattern);
+        }
+
+        return {
+            methods: match[1],
+            pattern: match[2],
+            options: match[3]
+        };
+    },
+
+    /**
      * @protected
      * @static
      * @memberOf Route
@@ -182,7 +252,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
 
         var isQueryEmpty = true;
         var name;
-        var pathname = Pattern._build(parser, opts);
+        var pathname = this.__base(parser, opts);
         var query = {};
         var using = parser.using;
 
@@ -268,17 +338,44 @@ function parseQuery(q) {
  * */
 function stringifyPrimitive(v) {
 
-    if (typeof v === 'string') {
+    if (_.isString(v)) {
 
         return encodeURIComponent(v);
     }
 
-    if (typeof v === 'boolean' || typeof v === 'number' && isFinite(v)) {
+    if (_.isBoolean(v) || _.isNumber(v) && _.isFinite(v)) {
 
         return String(v);
     }
 
     return '';
+}
+
+/**
+ * @private
+ * @static
+ * @memberOf Route
+ * @method
+ *
+ * @param {Object} params
+ * @param {String} name
+ *
+ * @returns {Object}
+ * */
+function reduceFlag(params, name) {
+
+    var lowerName = name.toLowerCase();
+    var isLowerCased = name === lowerName;
+
+    name = lowerName;
+
+    if (_.has(flag2ParamMap, name)) {
+        name = flag2ParamMap[name];
+    }
+
+    params[name] = isLowerCased;
+
+    return params;
 }
 
 /**
