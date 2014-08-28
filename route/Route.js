@@ -1,7 +1,6 @@
 'use strict';
 
 var R_PATTERN = /^\s*(?:((?:\w+)(?:\s*,\s*(?:\w+))*)\s+)?([\s\S]*)$/;
-var Parser = /** @type Parser */ require('./Parser');
 var Pattern = /** @type Pattern */ require('./Pattern');
 
 var _ = require('lodash-node');

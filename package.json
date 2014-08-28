@@ -17,13 +17,17 @@
     },
     "description": "request routing",
     "devDependencies": {
-        "jscs": "1.5.4",
-        "eslint": "0.6.2",
-        "nodeunit": "0.9.0",
-        "istanbul": "0.2.11",
         "glob": "4.0.2",
         "benchmark": "1.0.0",
-        "susanin": "0.1.11"
+        "susanin": "0.1.11",
+        "gulp": "3.8.7",
+        "gulp-mocha": "0.5.2",
+        "gulp-istanbul": "0.2.2",
+        "gulp-jscs": "1.1.0",
+        "gulp-eslint": "0.1.8",
+        "through2": "0.6.1",
+        "gulp-util": "3.0.0",
+        "chai": "1.9.1"
     },
     "license": "MIT",
     "main": "Router",
@@ -31,15 +35,6 @@
     "repository": {
         "type": "git",
         "url": "git://github.com/fistlabs/finger.git"
-    },
-    "scripts": {
-        "jscs": "jscs .",
-        "eslint": "eslint .",
-        "lint": "npm run jscs && npm run eslint",
-        "unit": "node --harmony test/runner",
-        "test": "npm run lint && npm run unit",
-        "cover": "istanbul cover test/runner",
-        "benchmark": "benchmark/runner"
     },
     "version": "0.3.0"
 }

@@ -1,126 +1,118 @@
+/*global describe, it*/
 'use strict';
 
-var Router = require('../Router');
+var assert = require('chai').assert;
 
-module.exports = {
-    'Router.prototype.find': [
-        function (test) {
-            var router = new Router();
+describe('router', function () {
+    var Router = require('../Router');
 
-            var rIndex = router.addRoute('/', {
-                name: 'index'
-            });
+    it('Should correctly find routes', function () {
+        var router = new Router();
 
-            var rNews = router.addRoute('GET /news/(<postId>/)', {
-                name: 'news'
-            });
+        var rIndex = router.addRoute('/', {
+            name: 'index'
+        });
 
-            var rUpload = router.addRoute('POST /upload/', {
-                name: 'upload'
-            });
+        var rNews = router.addRoute('GET /news/(<postId>/)', {
+            name: 'news'
+        });
 
-            test.deepEqual(router.find('GET', '/'), {
-                match: {},
-                route: rIndex
-            });
+        var rUpload = router.addRoute('POST /upload/', {
+            name: 'upload'
+        });
 
-            test.deepEqual(router.find('HEAD', '/'), {
-                match: {},
-                route: rIndex
-            });
+        assert.deepEqual(router.find('GET', '/'), {
+            match: {},
+            route: rIndex
+        });
 
-            test.deepEqual(router.find('POST', '/').sort(),
-                ['GET', 'HEAD'].sort());
+        assert.deepEqual(router.find('HEAD', '/'), {
+            match: {},
+            route: rIndex
+        });
 
-            test.deepEqual(router.find('PUT', '/'), []);
+        assert.deepEqual(router.find('POST', '/').sort(),
+            ['GET', 'HEAD'].sort());
 
-            test.deepEqual(router.find('GET', '/news/'), {
-                match: {
-                    postId: void 0
-                },
-                route: rNews
-            });
+        assert.deepEqual(router.find('PUT', '/'), []);
 
-            test.deepEqual(router.find('GET', '/news/1231/'), {
-                match: {
-                    postId: '1231'
-                },
-                route: rNews
-            });
+        assert.deepEqual(router.find('GET', '/news/'), {
+            match: {
+                postId: void 0
+            },
+            route: rNews
+        });
 
-            test.deepEqual(router.find('GET', '/not-existing/'), null);
+        assert.deepEqual(router.find('GET', '/news/1231/'), {
+            match: {
+                postId: '1231'
+            },
+            route: rNews
+        });
 
-            rNews = router.addRoute('/news/(<postId>/)', {
-                name: 'news'
-            });
+        assert.deepEqual(router.find('GET', '/not-existing/'), null);
 
-            test.deepEqual(router.find('GET', '/news/foo/'), {
-                match: {
-                    postId: 'foo'
-                },
-                route: rNews
-            });
+        rNews = router.addRoute('/news/(<postId>/)', {
+            name: 'news'
+        });
 
-            rUpload = router.addRoute('PUT /upload/', {
-                name: 'upload'
-            });
+        assert.deepEqual(router.find('GET', '/news/foo/'), {
+            match: {
+                postId: 'foo'
+            },
+            route: rNews
+        });
 
-            test.deepEqual(router.find('PUT', '/upload/'), {
-                match: {},
-                route: rUpload
-            });
+        rUpload = router.addRoute('PUT /upload/', {
+            name: 'upload'
+        });
 
-            test.deepEqual(router.find('POST', '/upload/'), []);
+        assert.deepEqual(router.find('PUT', '/upload/'), {
+            match: {},
+            route: rUpload
+        });
 
-            test.strictEqual(router.getRoute('upload'), rUpload);
-            test.strictEqual(router.getRoute('news'), rNews);
-            test.strictEqual(router.getRoute('index'), rIndex);
-            test.strictEqual(router.getRoute('index2'), null);
+        assert.deepEqual(router.find('POST', '/upload/'), []);
 
-            test.done();
-        },
-        function (test) {
-            var router = new Router();
+        assert.strictEqual(router.getRoute('upload'), rUpload);
+        assert.strictEqual(router.getRoute('news'), rNews);
+        assert.strictEqual(router.getRoute('index'), rIndex);
+        assert.strictEqual(router.getRoute('index2'), null);
 
-            router.addRoute('GET /', {
-                name: 'r1'
-            });
+        router = new Router();
 
-            router.addRoute('GET /', {
-                name: 'r2'
-            });
+        router.addRoute('GET /', {
+            name: 'r1'
+        });
 
-            router.addRoute('GET /', {
-                name: 'r3'
-            });
+        router.addRoute('GET /', {
+            name: 'r2'
+        });
 
-            test.strictEqual(router.find('GET', '/', null).
-                route.data.name, 'r1');
+        router.addRoute('GET /', {
+            name: 'r3'
+        });
 
-            test.strictEqual(router.find('GET', '/', 'r1').
-                route.data.name, 'r2');
+        assert.strictEqual(router.find('GET', '/', null).
+            route.data.name, 'r1');
 
-            test.strictEqual(router.find('GET', '/', 'r2').
-                route.data.name, 'r3');
+        assert.strictEqual(router.find('GET', '/', 'r1').
+            route.data.name, 'r2');
 
-            test.strictEqual(router.find('GET', '/', 'r3'), null);
-            test.strictEqual(router.find('GET', '/', 'r4'), null);
+        assert.strictEqual(router.find('GET', '/', 'r2').
+            route.data.name, 'r3');
 
-            test.done();
-        },
-        function (test) {
+        assert.strictEqual(router.find('GET', '/', 'r3'), null);
+        assert.strictEqual(router.find('GET', '/', 'r4'), null);
 
-            var router = new Router({
-                ignoreCase: true
-            });
+        router = new Router({
+            ignoreCase: true
+        });
 
-            router.addRoute('/news/');
-            router.addRoute('/profile/ I');
+        router.addRoute('/news/');
+        router.addRoute('/profile/ I');
 
-            test.ok(router.find('GET', '/NEWS/'));
-            test.strictEqual(router.find('GET', '/PROFILE/'), null);
-
-            test.done();
-        }
-    ]
-};
+        assert.ok(router.find('GET', '/NEWS/'));
+        assert.strictEqual(router.find('GET', '/PROFILE/'), null);
+    });
+});
