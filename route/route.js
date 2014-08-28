@@ -169,35 +169,35 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @param {String} verb
      * @param {String} path
      *
-     * @returns {Array}
+     * @returns {Object}
      * */
     match: function (verb, path) {
-        var isAllowed = _.has(this.__verbs, verb);
-        var pq = Route.splitPath(path);
-        var query;
-        var qMatch;
-        var result = this.__base(pq[0]);
+        var pathnameAndQuery = Route.splitPath(path);
+        var query = parseQuery(pathnameAndQuery[1]);
+        var methodMatch = _.has(this.__verbs, verb);
+        var pathnameMatch = this.__base(pathnameAndQuery[0]);
+        var queryMatch = null;
+        var resultMatch = null;
 
-        if (!result) {
+        function queryHasValue(v, k) {
 
-            return [isAllowed, result];
+            return query[k] === v;
         }
 
-        query = parseQuery(pq[1]);
+        if (_.every(this.query, queryHasValue)) {
+            queryMatch = query;
 
-        qMatch = _.every(this.query, function (value, k) {
-
-            return query[k] === value;
-        });
-
-        if (qMatch) {
-            result = _.extend(query, result);
-
-        } else {
-            result = null;
+            if (pathnameMatch) {
+                resultMatch = _.extend({}, queryMatch, pathnameMatch);
+            }
         }
 
-        return [isAllowed, result];
+        return {
+            methodMatch: methodMatch,
+            resultMatch: resultMatch,
+            pathnameMatch: pathnameMatch,
+            queryMatch: queryMatch
+        };
     },
 
     /**

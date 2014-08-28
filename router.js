@@ -112,7 +112,7 @@ var Router = inherit(/** @lends Router.prototype */ {
 
         route = _.findIndex(this.__routes, {data: {name: route}});
 
-        if (-1 === route) {
+        if (route === -1) {
 
             return null;
         }
@@ -162,7 +162,6 @@ var Router = inherit(/** @lends Router.prototype */ {
      * @returns {*}
      * */
     __find: function (verb, pathname, index) {
-
         var l;
         var match;
         var route;
@@ -172,17 +171,15 @@ var Router = inherit(/** @lends Router.prototype */ {
             route = this.__routes[index];
             match = route.match(verb, pathname);
 
-            if (!match[1]) {
+            if (!match.resultMatch) {
 
                 continue;
             }
 
-            if (match[0]) {
+            if (match.methodMatch) {
+                match.routeMatch = route.data.name;
 
-                return {
-                    route: route,
-                    match: match[1]
-                };
+                return match;
             }
 
             Array.prototype.push.apply(allow, route.allow);

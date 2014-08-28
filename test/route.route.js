@@ -98,7 +98,7 @@ describe('route/route', function () {
                 it(title, function () {
                     assert.strictEqual(route.build(sample[1]), sample[0]);
                 });
-            })
+            });
         });
     });
 
@@ -114,15 +114,30 @@ describe('route/route', function () {
                 [
                     [
                         ['GET', '/INDEX.PHP'],
-                        [true, {}]
+                        {
+                            methodMatch: true,
+                            resultMatch: {},
+                            queryMatch: {},
+                            pathnameMatch: {}
+                        }
                     ],
                     [
                         ['HEAD', '/INDEX.PHP'],
-                        [true, {}]
+                        {
+                            methodMatch: true,
+                            resultMatch: {},
+                            queryMatch: {},
+                            pathnameMatch: {}
+                        }
                     ],
                     [
                         ['POST', '/INDEX.PHP'],
-                        [true, {}]
+                        {
+                            methodMatch: true,
+                            resultMatch: {},
+                            queryMatch: {},
+                            pathnameMatch: {}
+                        }
                     ]
                 ]
             ],
@@ -134,7 +149,20 @@ describe('route/route', function () {
                 [
                     [
                         ['GET', '/assert/?a=5&page=100500'],
-                        [true, {page: 'assert', a: '5'}]
+                        {
+                            methodMatch: true,
+                            resultMatch: {
+                                page: 'assert',
+                                a: '5'
+                            },
+                            queryMatch: {
+                                page: '100500',
+                                a: '5'
+                            },
+                            pathnameMatch: {
+                                page: 'assert'
+                            }
+                        }
                     ]
                 ]
             ],
@@ -146,7 +174,13 @@ describe('route/route', function () {
                 [
                     [
                         ['GET', '/'],
-                        [true, null]
+                        {
+                            methodMatch: true,
+                            resultMatch: null,
+                            queryMatch: null,
+                            pathnameMatch: {}
+
+                        }
                     ]
                 ]
             ],
@@ -158,7 +192,16 @@ describe('route/route', function () {
                 [
                     [
                         ['GET', '/?a=42'],
-                        [true, {a: '42'}]
+                        {
+                            methodMatch: true,
+                            resultMatch: {
+                                a: '42'
+                            },
+                            queryMatch: {
+                                a: '42'
+                            },
+                            pathnameMatch: {}
+                        }
                     ]
                 ]
             ],
@@ -170,7 +213,37 @@ describe('route/route', function () {
                 [
                     [
                         ['GET', '/page/?a=42'],
-                        [true, {a: 'page'}]
+                        {
+                            methodMatch: true,
+                            resultMatch: {
+                                a: 'page'
+                            },
+                            queryMatch: {
+                                a: '42'
+                            },
+                            pathnameMatch: {
+                                a: 'page'
+                            }
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<a>/?a=42',
+                    null
+                ],
+                [
+                    [
+                        ['GET', '/page/name/?a=42'],
+                        {
+                            methodMatch: true,
+                            resultMatch: null,
+                            queryMatch: {
+                                a: '42'
+                            },
+                            pathnameMatch: null
+                        }
                     ]
                 ]
             ]
