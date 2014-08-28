@@ -37,14 +37,32 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * */
     __constructor: function (pattern, params, data) {
         var match = Route.splitPattern(pattern);
+        var patternAndQuery;
 
         if (!_.isObject(params)) {
             params = {};
         }
 
         params = _.reduce(match.options, reduceFlag, params);
+        patternAndQuery = Route.splitPath(match.pattern);
 
-        this.__base(match.pattern, params);
+        this.__base(patternAndQuery[0], params);
+
+        /**
+         * @public
+         * @memberOf {Route}
+         * @property
+         * @type {Object}
+         * */
+        this.query = parseQuery(patternAndQuery[1]);
+
+        /**
+         * @private
+         * @memberOf {Route}
+         * @property
+         * @type {Boolean}
+         * */
+        this.__isQueryEmpty = _.isEmpty(this.query);
 
         /**
          * @private
@@ -85,20 +103,6 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @memberOf {Route}
      * @method
      *
-     * @param {*} [opts]
-     *
-     * @returns {String}
-     * */
-    build: function (opts) {
-
-        return Route._build(this, opts);
-    },
-
-    /**
-     * @public
-     * @memberOf {Route}
-     * @method
-     *
      * @returns {String}
      * */
     toString: function () {
@@ -117,20 +121,83 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @memberOf {Route}
      * @method
      *
+     * @param {Object} [opts]
+     *
+     * @returns {String}
+     * */
+    build: function (opts) {
+        var isQueryEmpty = this.__isQueryEmpty;
+        var name;
+        var pathname = this.__base(opts);
+        var query;
+        var using = this.using;
+
+        if (isQueryEmpty) {
+            query = {};
+
+        } else {
+            query = _.cloneDeep(this.query);
+        }
+
+        for (name in opts) {
+
+            if (hasProperty.call(opts, name)) {
+
+                if (using.hasOwnProperty(name)) {
+
+                    continue;
+                }
+
+                isQueryEmpty = false;
+                query[name] = opts[name];
+            }
+        }
+
+        if (isQueryEmpty) {
+
+            return pathname;
+        }
+
+        return pathname + '?' + stringifyQuery(query);
+    },
+
+    /**
+     * @public
+     * @memberOf {Route}
+     * @method
+     *
      * @param {String} verb
      * @param {String} path
      *
      * @returns {Array}
      * */
     match: function (verb, path) {
+        var isAllowed = _.has(this.__verbs, verb);
         var pq = Route.splitPath(path);
+        var query;
+        var qMatch;
         var result = this.__base(pq[0]);
 
-        if (result && pq[1]) {
-            result = _.extend(parseQuery(pq[1]), result);
+        if (!result) {
+
+            return [isAllowed, result];
         }
 
-        return [verb in this.__verbs, result];
+        query = parseQuery(pq[1]);
+
+        qMatch = _.every(this.query, function (value, k) {
+
+            return query[k] === value;
+        });
+
+        if (qMatch) {
+            result = _.extend(query, result);
+
+        } else {
+            result = null;
+        }
+
+        return [isAllowed, result];
     },
 
     /**
@@ -167,35 +234,6 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @memberOf Route
      * @method
      *
-     * @param {String} pattern
-     * @param {Object} [opts]
-     *
-     * @returns {String}
-     * */
-    buildPath: function (pattern, opts) {
-
-        var pq = Route.splitPath(pattern);
-
-        if (pq[1]) {
-            pq[1] = parseQuery(pq[1]);
-
-            if (_.isObject(opts)) {
-                opts = _.extend(pq[1], opts);
-
-            } else {
-                opts = pq[1];
-            }
-        }
-
-        return this.__base(pq[0], opts);
-    },
-
-    /**
-     * @public
-     * @static
-     * @memberOf Route
-     * @method
-     *
      * @param {String} path
      *
      * @returns {Array}
@@ -220,7 +258,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      *
      * @param {String} pattern
      *
-     * @returns {Array}
+     * @returns {Object}
      * */
     splitPattern: function (pattern) {
         var match = R_ADVANCED_PATTERN.exec(pattern);
@@ -235,47 +273,6 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
             pattern: match[2],
             options: match[3]
         };
-    },
-
-    /**
-     * @protected
-     * @static
-     * @memberOf Route
-     * @method
-     *
-     * @param {Parser} parser
-     * @param {Object} opts
-     *
-     * @returns {String}
-     * */
-    _build: function (parser, opts) {
-
-        var isQueryEmpty = true;
-        var name;
-        var pathname = this.__base(parser, opts);
-        var query = {};
-        var using = parser.using;
-
-        for (name in opts) {
-
-            if (hasProperty.call(opts, name)) {
-
-                if (using.hasOwnProperty(name)) {
-
-                    continue;
-                }
-
-                isQueryEmpty = false;
-                query[name] = opts[name];
-            }
-        }
-
-        if (isQueryEmpty) {
-
-            return pathname;
-        }
-
-        return pathname + '?' + stringifyQuery(query);
     }
 
 });

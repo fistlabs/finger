@@ -41,42 +41,156 @@ describe('route/route', function () {
     });
 
     describe('{Route}.build', function () {
-        it('Should add extra parameters as query-string', function () {
-            var p = new Route('/disc/<wat>/');
+        var samples = [
+            [
+                [
+                    '/disc/<wat>/',
+                    null
+                ],
+                [
+                    [
+                        '/disc/c/?assert=52&assert=true&assert=false&x=r&v=1&z=',
+                        {
+                            wat: 'c',
+                            assert: [52, true, false],
+                            x: 'r',
+                            v: 1,
+                            z: Infinity
+                        }
+                    ],
+                    [
+                        '/disc/c/',
+                        {
+                            wat: 'c'
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/?a=42',
+                    null
+                ],
+                [
+                    [
+                        '/?a=42',
+                        {}
+                    ],
+                    [
+                        '/?a=54',
+                        {
+                            a: '54'
+                        }
+                    ]
+                ]
+            ]
+        ];
 
-            assert.strictEqual(p.build({
-                wat: 'c',
-                assert: [52, true, false],
-                x: 'r',
-                v: 1,
-                z: Infinity
-            }), '/disc/c/?assert=52&assert=true&assert=false&x=r&v=1&z=');
+        _.forEach(samples, function (sample) {
+            var header = 'new Route("%s", %j) should build "%s" from %j';
+            var params = sample[0];
+            var route = new Route(params[0], params[1]);
 
-            assert.strictEqual(p.build({
-                wat: 'c'
-            }), '/disc/c/');
+            _.forEach(sample[1], function (sample) {
+                var title = util.format(header, params[0],
+                    params[1], sample[0], sample[1]);
+
+                it(title, function () {
+                    assert.strictEqual(route.build(sample[1]), sample[0]);
+                });
+            })
         });
     });
 
     describe('{Route}.match', function () {
-        it('Should add query-string to match result', function () {
-            var r;
+        var samples = [
+            [
+                [
+                    'GET, POST /index.php',
+                    {
+                        ignoreCase: true
+                    }
+                ],
+                [
+                    [
+                        ['GET', '/INDEX.PHP'],
+                        [true, {}]
+                    ],
+                    [
+                        ['HEAD', '/INDEX.PHP'],
+                        [true, {}]
+                    ],
+                    [
+                        ['POST', '/INDEX.PHP'],
+                        [true, {}]
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<page>/',
+                    null
+                ],
+                [
+                    [
+                        ['GET', '/assert/?a=5&page=100500'],
+                        [true, {page: 'assert', a: '5'}]
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/?a=42',
+                    null
+                ],
+                [
+                    [
+                        ['GET', '/'],
+                        [true, null]
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/?a=42',
+                    null
+                ],
+                [
+                    [
+                        ['GET', '/?a=42'],
+                        [true, {a: '42'}]
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<a>/?a=42',
+                    null
+                ],
+                [
+                    [
+                        ['GET', '/page/?a=42'],
+                        [true, {a: 'page'}]
+                    ]
+                ]
+            ]
+        ];
 
-            r = new Route('GET, POST /index.php', {
-                ignoreCase: true
+        _.forEach(samples, function (sample) {
+            var header = 'new Route("%s", %j) Should match "%s %s" to %j';
+            var params = sample[0];
+            var route = new Route(params[0], params[1]);
+
+            _.forEach(sample[1], function (sample) {
+                var title = util.format(header, params[0], params[1],
+                    sample[0][0], sample[0][1], sample[1]);
+
+                it(title, function () {
+                    var actual = route.match(sample[0][0], sample[0][1]);
+
+                    assert.deepEqual(actual, sample[1]);
+                });
             });
-
-            assert.deepEqual(r.match('GET', '/INDEX.PHP'), [true, {}]);
-            assert.deepEqual(r.match('HEAD', '/INDEX.PHP'), [true, {}]);
-            assert.deepEqual(r.match('POST', '/INDEX.PHP'), [true, {}]);
-
-            r = new Route('/<page>/');
-
-            assert.deepEqual(r.match('GET', '/assert/?a=5&page=100500'),
-                [true, {
-                    page: 'assert',
-                    a: '5'
-                }]);
         });
     });
 
