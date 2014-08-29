@@ -20,7 +20,8 @@ function runCover(done) {
     var self = this;
 
     this.src([
-        'route/*.js'
+        'route/*.js',
+        'router.js'
     ])
         .pipe(istanbulPipe)
         .on('finish', function () {
