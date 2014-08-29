@@ -7,7 +7,7 @@ var Pattern = /** @type Pattern */ require('./pattern');
 var _ = require('lodash-node');
 var inherit = require('inherit');
 var hasProperty = Object.prototype.hasOwnProperty;
-var querystring = require('querystring');
+var querystring = require('../util/querystring');
 var uniqueId = require('unique-id');
 
 var flag2ParamMap = {
@@ -54,7 +54,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
          * @property
          * @type {Object}
          * */
-        this.query = parseQuery(patternAndQuery[1]);
+        this.query = querystring.parse(patternAndQuery[1]);
 
         /**
          * @private
@@ -158,7 +158,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
             return pathname;
         }
 
-        return pathname + '?' + stringifyQuery(query);
+        return pathname + '?' + querystring.stringify(query);
     },
 
     /**
@@ -173,7 +173,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * */
     match: function (verb, path) {
         var pathnameAndQuery = Route.splitPath(path);
-        var query = parseQuery(pathnameAndQuery[1]);
+        var query = querystring.parse(pathnameAndQuery[1]);
         var methodMatch = _.has(this.__verbs, verb);
         var pathnameMatch = this.__base(pathnameAndQuery[0]);
         var queryMatch = null;
@@ -181,14 +181,14 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
 
         function queryHasValue(v, k) {
 
-            return query[k] === v;
+            return _.isEqual(query[k], v);
         }
 
         if (_.every(this.query, queryHasValue)) {
             queryMatch = query;
 
             if (pathnameMatch) {
-                resultMatch = _.extend({}, queryMatch, pathnameMatch);
+                resultMatch = _.merge({}, queryMatch, pathnameMatch);
             }
         }
 
@@ -276,77 +276,6 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
     }
 
 });
-
-/**
- * @private
- * @static
- * @memberOf Route
- * @method
- *
- * @param {Object} query
- *
- * @returns {String}
- * */
-function stringifyQuery(query) {
-
-    var i;
-    var k;
-    var l;
-    var q = [];
-    var v;
-
-    for (k in query) {
-
-        if (query.hasOwnProperty(k)) {
-            v = query[k];
-
-            if (_.isArray(v)) {
-
-                for (i = 0, l = v.length; i < l; i += 1) {
-                    q[q.length] = stringifyPrimitive(k) +
-                    '=' + stringifyPrimitive(v[i]);
-                }
-
-                continue;
-            }
-
-            q[q.length] = stringifyPrimitive(k) +
-            '=' + stringifyPrimitive(v);
-        }
-    }
-
-    return q.join('&');
-}
-
-function parseQuery(q) {
-
-    return querystring.parse(q);
-}
-
-/**
- * @private
- * @static
- * @memberOf Route
- * @method
- *
- * @param {*} v
- *
- * @returns {String}
- * */
-function stringifyPrimitive(v) {
-
-    if (_.isString(v)) {
-
-        return encodeURIComponent(v);
-    }
-
-    if (_.isBoolean(v) || _.isNumber(v) && _.isFinite(v)) {
-
-        return String(v);
-    }
-
-    return '';
-}
 
 /**
  * @private
