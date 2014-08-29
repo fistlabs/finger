@@ -10,7 +10,7 @@ Object.prototype.bug = 42;
 
 describe('route/route', function () {
     /*eslint max-nested-callbacks: 0*/
-    var Route = require('../route/route');
+    var Route = require('../core/route/route');
 
     describe('Route', function () {
         it('Should parse specified methods in pattern', function () {
