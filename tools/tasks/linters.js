@@ -5,7 +5,7 @@ var gulpJscs = require('gulp-jscs');
 var gulpEslint = require('gulp-eslint');
 var gutil = require('gulp-util');
 var lintPatterns = [
-    'route/**/*.js',
+    'core/**/*.js',
     'test/**/*.js',
     'tools/**/*.js',
     '*.js'

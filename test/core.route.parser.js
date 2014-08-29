@@ -7,7 +7,7 @@ var util = require('util');
 
 describe('route/parser', function () {
     /*eslint max-nested-callbacks: 0*/
-    var Parser = require('../route/parser');
+    var Parser = require('../core/route/parser');
 
     describe('Parser', function () {
 

@@ -30,7 +30,7 @@
         "chai": "1.9.1"
     },
     "license": "MIT",
-    "main": "router",
+    "main": "core/router",
     "name": "finger",
     "repository": {
         "type": "git",

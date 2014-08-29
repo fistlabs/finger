@@ -7,7 +7,7 @@ var util = require('util');
 
 describe('route/parser', function () {
     /*eslint max-nested-callbacks: 0*/
-    var Pattern = require('../route/pattern');
+    var Pattern = require('../core/route/pattern');
 
     describe('{Pattern}.match', function () {
         var samples = [
