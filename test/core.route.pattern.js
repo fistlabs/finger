@@ -203,6 +203,22 @@ describe('route/parser', function () {
                         }
                     ]
                 ]
+            ],
+            [
+                [
+                    '/page/<page.name>/',
+                    null
+                ],
+                [
+                    [
+                        '/page/about/',
+                        {
+                            page: {
+                                name: 'about'
+                            }
+                        }
+                    ]
+                ]
             ]
         ];
 

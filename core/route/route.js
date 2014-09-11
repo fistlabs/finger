@@ -2,11 +2,11 @@
 
 var R_ADVANCED_PATTERN = /^\s*(?:((?:[a-z]+)(?:\s*,\s*(?:[a-z]+))*)\s+)?([\s\S]+?)(?:\s+([a-z]+))?\s*$/i;
 
+var Obus = /** @type Obus */ require('obus');
 var Pattern = /** @type Pattern */ require('./pattern');
 
 var _ = require('lodash-node');
 var inherit = require('inherit');
-var hasProperty = Object.prototype.hasOwnProperty;
 var querystring = require('../util/querystring');
 var uniqueId = require('unique-id');
 
@@ -55,14 +55,6 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
          * @type {Object}
          * */
         this.query = querystring.parse(patternAndQuery[1]);
-
-        /**
-         * @private
-         * @memberOf {Route}
-         * @property
-         * @type {Boolean}
-         * */
-        this.__isQueryEmpty = _.isEmpty(this.query);
 
         /**
          * @private
@@ -126,39 +118,20 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @returns {String}
      * */
     build: function (opts) {
-        var isQueryEmpty = this.__isQueryEmpty;
-        var name;
         var pathname = this.__base(opts);
-        var query;
-        var using = this.using;
 
-        if (isQueryEmpty) {
-            query = {};
+        opts = _.extend(_.cloneDeep(this.query), opts);
 
-        } else {
-            query = _.cloneDeep(this.query);
-        }
+        _.forEach(this.names, function (name) {
+            Obus.del(opts, name);
+        });
 
-        for (name in opts) {
-
-            if (hasProperty.call(opts, name)) {
-
-                if (using.hasOwnProperty(name)) {
-
-                    continue;
-                }
-
-                isQueryEmpty = false;
-                query[name] = opts[name];
-            }
-        }
-
-        if (isQueryEmpty) {
+        if (_.isEmpty(opts)) {
 
             return pathname;
         }
 
-        return pathname + '?' + querystring.stringify(query);
+        return pathname + '?' + querystring.stringify(opts);
     },
 
     /**

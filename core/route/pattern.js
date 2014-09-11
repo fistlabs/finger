@@ -1,5 +1,6 @@
 'use strict';
 
+var Obus = /** @type Obus */ require('obus');
 var Parser = /** @type Parser */ require('./parser');
 
 var _ = require('lodash-node');
@@ -118,7 +119,6 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * @returns {String}
      * */
     _buildPart: function (part, opts, using) {
-
         var type = part.type;
 
         if (Parser.PART_DELIM === type) {
@@ -150,18 +150,16 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      *
      * @returns {String}
      * */
-
     _buildParamPart: function (name, opts, using) {
-
         var i;
         var value;
 
-        if (!_.has(opts, name)) {
+        if (!Obus.has(opts, name)) {
 
             return '';
         }
 
-        value = opts[name];
+        value = Obus.get(opts, name);
 
         if (using.hasOwnProperty(name)) {
             i = using[name] += 1;
@@ -331,22 +329,7 @@ function push2Result(result, name, value) {
         value = decodeURIComponent(value);
     }
 
-    if (result.hasOwnProperty(name)) {
-
-        if (_.isArray(result[name])) {
-            result[name].push(value);
-
-            return result;
-        }
-
-        result[name] = [result[name], value];
-
-        return result;
-    }
-
-    result[name] = value;
-
-    return result;
+    return Obus.add(result, name, value);
 }
 
 module.exports = Pattern;
