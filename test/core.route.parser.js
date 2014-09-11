@@ -275,14 +275,6 @@ describe('route/parser', function () {
         });
     });
 
-//    describe('Parser.create', function () {
-//        it('Should cache AST instances', function () {
-//            var parser = Parser.create('/');
-//
-//            assert.strictEqual(parser, Parser.create('/'));
-//        });
-//    });
-
     describe('{Parser}.toString', function () {
 
         var samples = [
