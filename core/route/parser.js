@@ -1,10 +1,9 @@
 'use strict';
 
-var R_SYNTAX_CHARS = /[\\\(\)<>,=*\/]/g;
+var R_SYNTAX_CHARS = /[\\\(\)<>,=\/]/g;
 
 var _ = require('lodash-node');
 var inherit = require('inherit');
-var parsers = Object.create(null);
 
 /**
  * @class Parser
@@ -159,7 +158,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * */
     compile: function (func) {
 
-        return Parser._compileParts(this.parts, func, 0, this);
+        return this.__self._compileParts(this.parts, func, 0, this);
     },
 
     /**
@@ -436,7 +435,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
             return false;
         }
 
-        if (this.__nesting === 0) {
+        if (this.__nesting === 0 || this.__isParam) {
 
             throw this.__getError();
         }
@@ -490,7 +489,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
     /**
      * @public
      * @static
-     * @memberOf Parser
+     * @memberOf {Parser}
      * @property {*}
      * */
     PART_STATIC: 0,
@@ -498,7 +497,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
     /**
      * @public
      * @static
-     * @memberOf Parser
+     * @memberOf {Parser}
      * @property {*}
      * */
     PART_OPTION: 1,
@@ -506,7 +505,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
     /**
      * @public
      * @static
-     * @memberOf Parser
+     * @memberOf {Parser}
      * @property {*}
      * */
     PART_PARAM: 2,
@@ -514,7 +513,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
     /**
      * @public
      * @static
-     * @memberOf Parser
+     * @memberOf {Parser}
      * @property {*}
      * */
     PART_DELIM: 3,
@@ -522,7 +521,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
     /**
      * @protected
      * @static
-     * @memberOf Parser
+     * @memberOf {Parser}
      * @method
      *
      * @param {String} value
@@ -546,7 +545,6 @@ var Parser = inherit(/** @lends Parser.prototype */ {
      * @param {*} [ctx]
      * */
     _compileParts: function (parts, func, n, ctx) {
-
         var chunk;
         var i;
         var l;
@@ -582,69 +580,20 @@ var Parser = inherit(/** @lends Parser.prototype */ {
         }
 
         return result;
-    },
-
-    /**
-     * @public
-     * @memberOf {Parser}
-     * @method
-     *
-     * @param {String} pattern
-     *
-     * @returns {Parser}
-     * */
-    create: function (pattern) {
-
-        if (!(pattern in parsers)) {
-            parsers[pattern] = new Parser(pattern);
-        }
-
-        return parsers[pattern];
     }
 
 });
 
-/**
- * @private
- * @static
- * @memberOf Parser
- * @method
- *
- * @param {Object} part
- *
- * @returns {String}
- * */
-function escapePart(part) {
-
-    return escape(part.body);
-}
-
-/**
- * @private
- * @static
- * @memberOf Parser
- * @method
- *
- * @param {String} s
- *
- * @returns {String}
- * */
 function escape(s) {
 
     return s.replace(R_SYNTAX_CHARS, '\\$&');
 }
 
-/**
- * @private
- * @static
- * @memberOf Parser
- * @method
- *
- * @param {Object} part
- * @param {Boolean} isBubbling
- *
- * @returns {String}
- * */
+function escapePart(part) {
+
+    return escape(part.body);
+}
+
 function part2Pattern(part, isBubbling) {
 
     if (Parser.PART_OPTION === part.type) {

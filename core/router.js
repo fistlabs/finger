@@ -66,7 +66,6 @@ var Router = inherit(/** @lends Router.prototype */ {
      * @returns {Route}
      * */
     addRoute: function (pattern, data) {
-
         var route = this._createRoute(pattern, this.params, data);
 
         _.remove(this.__routes, function (existingRoute) {

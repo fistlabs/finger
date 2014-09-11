@@ -7,13 +7,13 @@ var inherit = require('inherit');
 var querystring = require('querystring');
 
 /**
- * @class Qs
+ * @class QueryString
  * */
-var Qs = inherit(/** @lends Qs.prototype */ {
+var QueryString = inherit(/** @lends QueryString.prototype */ {
 
     /**
      * @public
-     * @memberOf {Qs}
+     * @memberOf {QueryString}
      * @method
      *
      * @param {String} qs
@@ -33,7 +33,7 @@ var Qs = inherit(/** @lends Qs.prototype */ {
 
     /**
      * @public
-     * @memberOf {Qs}
+     * @memberOf {QueryString}
      * @method
      *
      * @param {Object} qo
@@ -62,7 +62,7 @@ var Qs = inherit(/** @lends Qs.prototype */ {
 
     /**
      * @private
-     * @memberOf {Qs}
+     * @memberOf {QueryString}
      * @method
      *
      * @param {Obus} obus
@@ -152,4 +152,4 @@ function addToPaths(paths, parts, v) {
     });
 }
 
-module.exports = new Qs();
+module.exports = new QueryString();

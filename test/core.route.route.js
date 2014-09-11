@@ -5,9 +5,6 @@ var _ = require('lodash-node');
 var assert = require('chai').assert;
 var util = require('util');
 
-/*eslint no-extend-native: 0*/
-Object.prototype.bug = 42;
-
 describe('route/route', function () {
     /*eslint max-nested-callbacks: 0*/
     var Route = require('../core/route/route');
@@ -361,27 +358,53 @@ describe('route/route', function () {
     });
 
     describe('Route.buildPath', function () {
-        it('Should correctly build path from given patten', function () {
-            assert.strictEqual(Route.buildPath('/', {
-                a: 42
-            }), '/?a=42');
+        var header = 'Should build %j from %j and %j';
 
-            assert.strictEqual(Route.buildPath('/<section>/<itemId>/', {
-                a: 42,
-                section: 'post',
-                itemId: '100500'
-            }), '/post/100500/?a=42');
+        var samples = [
+            [
+                '/',
+                {
+                    a: 42
+                },
+                '/?a=42'
+            ],
+            [
+                '/<section>/<itemId>/',
+                {
+                    a: 42,
+                    section: 'post',
+                    itemId: '100500'
+                },
+                '/post/100500/?a=42'
+            ],
+            [
+                '/<section>/(<itemId>/)',
+                {
+                    a: 42,
+                    section: 'post'
+                },
+                '/post/?a=42'
+            ],
+            [
+                '/?b=5',
+                null,
+                '/?b=5'
+            ],
+            [
+                '/?b=5',
+                {
+                    a: 42
+                },
+                '/?b=5&a=42'
+            ]
+        ];
 
-            assert.strictEqual(Route.buildPath('/<section>/(<itemId>/)', {
-                a: 42,
-                section: 'post'
-            }), '/post/?a=42');
+        _.forEach(samples, function (s) {
+            var should = util.format(header, s[2], s[0], s[1]);
 
-            assert.strictEqual(Route.buildPath('/?b=5'), '/?b=5');
-
-            assert.strictEqual(Route.buildPath('/?b=5', {
-                a: 42
-            }), '/?b=5&a=42');
+            it(should, function () {
+                assert.strictEqual(Route.buildPath(s[0], s[1]), s[2]);
+            });
         });
     });
 
