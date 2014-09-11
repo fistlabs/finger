@@ -146,18 +146,6 @@ var Parser = inherit(/** @lends Parser.prototype */ {
          * @type {Array}
          * */
         this.parts = this.__buf;
-
-        /**
-         * @public
-         * @memberOf {Parser}
-         * @property
-         * @type {Object}
-         * */
-        this.using = {};
-
-        _.forEach(this.names, function (name) {
-            this.using[name] = true;
-        }, this);
     },
 
     /**
