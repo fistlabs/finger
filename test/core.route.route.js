@@ -49,13 +49,10 @@ describe('route/route', function () {
                 ],
                 [
                     [
-                        '/disc/c/?assert=52&assert=true&assert=false&x=r&v=1&z=',
+                        '/disc/c/?x=r',
                         {
                             wat: 'c',
-                            assert: [52, true, false],
-                            x: 'r',
-                            v: 1,
-                            z: Infinity
+                            x: 'r'
                         }
                     ],
                     [
@@ -80,6 +77,23 @@ describe('route/route', function () {
                         '/?a=54',
                         {
                             a: '54'
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<page.name>/',
+                    null
+                ],
+                [
+                    [
+                        '/about/?page.value=xxx',
+                        {
+                            page: {
+                                name: 'about',
+                                value: 'xxx'
+                            }
                         }
                     ]
                 ]
@@ -161,6 +175,36 @@ describe('route/route', function () {
                             },
                             pathnameMatch: {
                                 page: 'assert'
+                            }
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<page.name>/',
+                    null
+                ],
+                [
+                    [
+                        ['GET', '/about/?page.value=xxx'],
+                        {
+                            methodMatch: true,
+                            resultMatch: {
+                                page: {
+                                    name: 'about',
+                                    value: 'xxx'
+                                }
+                            },
+                            queryMatch: {
+                                page: {
+                                    value: 'xxx'
+                                }
+                            },
+                            pathnameMatch: {
+                                page: {
+                                    name: 'about'
+                                }
                             }
                         }
                     ]
