@@ -6,6 +6,7 @@ var Parser = /** @type Parser */ require('./parser');
 var _ = require('lodash-node');
 var escape = require('regesc');
 var inherit = require('inherit');
+var util = require('util');
 
 /**
  * @class Pattern
@@ -228,8 +229,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
                 return '([^/]+?)';
             }
 
-            return '(' + _.map(part.parts,
-                this.__compileStaticPart, this).join('|') + ')';
+            return util.format('(%s)', _.map(part.parts, this.__compileStaticPart, this).join('|'));
         }
 
         if (isBubbling) {
@@ -274,13 +274,14 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         if (this.params.ignoreCase) {
 
-            return result + '(?:' + escape(char) + '|' +
-            encodeURIComponent(char.toLowerCase()) + '|' +
-            encodeURIComponent(char.toUpperCase()) + ')';
+            return util.format('%s(?:%s|%s|%s)',
+                result,
+                escape(char),
+                encodeURIComponent(char.toLowerCase()),
+                encodeURIComponent(char.toUpperCase()));
         }
 
-        return result + '(?:' + escape(char) + '|' +
-        encodeURIComponent(char) + ')';
+        return util.format('%s(?:%s|%s)', result, escape(char), encodeURIComponent(char));
     }
 
 }, {

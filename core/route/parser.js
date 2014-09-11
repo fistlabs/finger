@@ -4,6 +4,7 @@ var R_SYNTAX_CHARS = /[\\\(\)<>,=\/]/g;
 
 var _ = require('lodash-node');
 var inherit = require('inherit');
+var util = require('util');
 
 /**
  * @class Parser
@@ -570,8 +571,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
 
             chunk = func.call(ctx, part, false);
 
-            if (Parser.PART_PARAM === part.type &&
-                Parser._isFalsy(chunk) && n) {
+            if (Parser.PART_PARAM === part.type && Parser._isFalsy(chunk) && n) {
 
                 return '';
             }
@@ -610,11 +610,10 @@ function part2Pattern(part, isBubbling) {
 
         if (_.isEmpty(part.parts)) {
 
-            return '<' + escape(part.body) + '>';
+            return util.format('<%s>', escape(part.body));
         }
 
-        return '<' + escapePart(part) + '=' +
-        _.map(part.parts, escapePart).join(',') + '>';
+        return util.format('<%s=%s>', escapePart(part), _.map(part.parts, escapePart).join(','));
     }
 
     if (Parser.PART_DELIM === part.type) {
