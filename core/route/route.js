@@ -226,16 +226,16 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * */
     splitPattern: function (pattern) {
         var match = R_ADVANCED_PATTERN.exec(pattern);
-        var path;
+        var parts;
 
         if (_.isNull(match)) {
 
             throw new SyntaxError(pattern);
         }
 
-        path = this.splitPath(match[2]);
+        parts = this.splitPath(match[2]);
 
-        return [match[1], path[0], path[1], match[3]];
+        return [match[1], parts[0], parts[1], match[3]];
     }
 
 });

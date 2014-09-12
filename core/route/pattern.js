@@ -59,7 +59,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
     build: function (opts) {
         var using = {};
 
-        return Parser._compileParts(this.parts, function (part) {
+        return this.__self._compileParts(this.parts, function (part) {
 
             return this._buildPart(part, opts, using);
         }, 0, this);
@@ -170,7 +170,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
             return '';
         }
 
-        if (Parser._isFalsy(value)) {
+        if (this.__self._isFalsy(value)) {
 
             return '';
         }
