@@ -161,10 +161,10 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         }
 
         return {
-            verbMatch: verbMatch,
-            pathMatch: pathMatch,
-            pathnameMatch: pathnameMatch,
-            queryMatch: queryMatch
+            verb: verbMatch,
+            path: pathMatch,
+            pathname: pathnameMatch,
+            query: queryMatch
         };
     },
 

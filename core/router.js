@@ -170,13 +170,13 @@ var Router = inherit(/** @lends Router.prototype */ {
             route = this.__routes[index];
             match = route.match(verb, pathname);
 
-            if (!match.pathMatch) {
+            if (!match.path) {
 
                 continue;
             }
 
-            if (match.verbMatch) {
-                match.routeMatch = route.data.name;
+            if (match.verb) {
+                match.route = route.data.name;
 
                 return match;
             }
