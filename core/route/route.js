@@ -36,17 +36,15 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @param {Object} [data]
      * */
     __constructor: function (pattern, params, data) {
-        var match = Route.splitPattern(pattern);
-        var patternAndQuery;
+        var parts = Route.splitPattern(pattern);
 
         if (!_.isObject(params)) {
             params = {};
         }
 
-        params = _.reduce(match.options, reduceFlag, params);
-        patternAndQuery = Route.splitPath(match.pattern);
+        params = _.reduce(parts[3], reduceFlag, params);
 
-        this.__base(patternAndQuery[0], params);
+        this.__base(parts[1], params);
 
         /**
          * @public
@@ -54,7 +52,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
          * @property
          * @type {Object}
          * */
-        this.query = querystring.parse(patternAndQuery[1]);
+        this.query = querystring.parse(parts[2]);
 
         /**
          * @private
@@ -66,8 +64,8 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
             GET: true
         };
 
-        if (match.methods) {
-            this.__verbs = reduceMethods(match.methods, {});
+        if (parts[0]) {
+            this.__verbs = parseMethods(parts[0]);
         }
 
         if (_.has(this.__verbs, 'GET')) {
@@ -121,7 +119,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
     build: function (opts) {
         var pathname = this.__base(opts);
 
-        opts = _.extend(_.cloneDeep(this.query), opts);
+        opts = _.merge({}, this.query, opts);
 
         _.forEach(this.names, function (name) {
             Obus.del(opts, name);
@@ -146,31 +144,26 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @returns {Object}
      * */
     match: function (verb, path) {
-        var pathnameAndQuery = Route.splitPath(path);
-        var query = querystring.parse(pathnameAndQuery[1]);
-        var methodMatch = _.has(this.__verbs, verb);
-        var pathnameMatch = this.__base(pathnameAndQuery[0]);
+        var parts = Route.splitPath(path);
+        var query = querystring.parse(parts[1]);
+        var verbMatch = _.has(this.__verbs, verb);
+        var pathnameMatch = this.__base(parts[0]);
         var queryMatch = null;
-        var resultMatch = null;
+        var pathMatch = null;
 
-        function queryHasValue(v, k) {
-
-            return _.isEqual(query[k], v);
-        }
-
-        if (_.every(this.query, queryHasValue)) {
+        if (contains(query, this.query)) {
             queryMatch = query;
 
             if (pathnameMatch) {
-                resultMatch = _.merge({}, queryMatch, pathnameMatch);
+                pathMatch = _.merge({}, queryMatch, pathnameMatch);
             }
         }
 
         return {
-            methodMatch: methodMatch,
-            resultMatch: resultMatch,
-            pathnameMatch: pathnameMatch,
-            queryMatch: queryMatch
+            verb: verbMatch,
+            path: pathMatch,
+            pathname: pathnameMatch,
+            query: queryMatch
         };
     },
 
@@ -187,17 +180,15 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * */
     __reduceParam2Flag: function (flags, value, name) {
 
-        if (_.has(param2FlagMap, name)) {
-
-            if (value) {
-                flags += param2FlagMap[name].toLowerCase();
-
-            } else {
-                flags += param2FlagMap[name].toUpperCase();
-            }
+        if (!_.has(param2FlagMap, name)) {
+            return flags;
         }
 
-        return flags;
+        if (value) {
+            return flags + param2FlagMap[name].toLowerCase();
+        }
+
+        return flags + param2FlagMap[name].toUpperCase();
     }
 
 }, {
@@ -235,17 +226,16 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * */
     splitPattern: function (pattern) {
         var match = R_ADVANCED_PATTERN.exec(pattern);
+        var path;
 
         if (_.isNull(match)) {
 
             throw new SyntaxError(pattern);
         }
 
-        return {
-            methods: match[1],
-            pattern: match[2],
-            options: match[3]
-        };
+        path = this.splitPath(match[2]);
+
+        return [match[1], path[0], path[1], match[3]];
     }
 
 });
@@ -271,9 +261,38 @@ function reduceMethod(methods, m) {
     return methods;
 }
 
-function reduceMethods(methods, init) {
+function parseMethods(methods) {
 
-    return _.reduce(methods.split(','), reduceMethod, init);
+    return _.reduce(methods.split(','), reduceMethod, {});
+}
+
+function contains(a, b) {
+
+    if (_.isArray(a) && _.isArray(b)) {
+        a = _.clone(a);
+
+        return _.every(b, function (b) {
+            var aInB = _.findIndex(a, function (a) {
+                return contains(a, b);
+            });
+
+            if (aInB === -1) {
+                return false;
+            }
+
+            a.splice(aInB, 1);
+
+            return true;
+        });
+    }
+
+    if (_.isObject(a) && _.isObject(b)) {
+        return _.every(b, function (b, k) {
+            return contains(a[k], b);
+        });
+    }
+
+    return a === b;
 }
 
 module.exports = Route;

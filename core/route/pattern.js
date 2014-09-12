@@ -75,11 +75,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * @returns {Object}
      * */
     match: function (pathname) {
-
-        var i;
-        var l;
         var match;
-        var result = null;
 
         if (!_.isRegExp(this.__regexp)) {
             this.__regexp = this.__compileRegExp();
@@ -89,16 +85,20 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         if (_.isNull(match)) {
 
-            return result;
+            return null;
         }
 
-        result = {};
+        function addValue(obus, name, i) {
+            var value = match[i + 1];
 
-        for (i = 0, l = this.names.length; i < l; i += 1) {
-            push2Result(result, this.names[i], match[i + 1]);
+            if (_.isString(value) && _.indexOf(value, '%') !== -1) {
+                value = decodeURIComponent(value);
+            }
+
+            return obus.add(name, value);
         }
 
-        return result;
+        return _.reduce(this.names, addValue, new Obus({})).valueOf();
     },
 
     /**
@@ -303,14 +303,5 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
     }
 
 });
-
-function push2Result(result, name, value) {
-
-    if (_.isString(value) && _.indexOf(value, '%') !== -1) {
-        value = decodeURIComponent(value);
-    }
-
-    return Obus.add(result, name, value);
-}
 
 module.exports = Pattern;

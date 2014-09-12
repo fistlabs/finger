@@ -126,28 +126,28 @@ describe('route/route', function () {
                     [
                         ['GET', '/INDEX.PHP'],
                         {
-                            methodMatch: true,
-                            resultMatch: {},
-                            queryMatch: {},
-                            pathnameMatch: {}
+                            verb: true,
+                            path: {},
+                            query: {},
+                            pathname: {}
                         }
                     ],
                     [
                         ['HEAD', '/INDEX.PHP'],
                         {
-                            methodMatch: true,
-                            resultMatch: {},
-                            queryMatch: {},
-                            pathnameMatch: {}
+                            verb: true,
+                            path: {},
+                            query: {},
+                            pathname: {}
                         }
                     ],
                     [
                         ['POST', '/INDEX.PHP'],
                         {
-                            methodMatch: true,
-                            resultMatch: {},
-                            queryMatch: {},
-                            pathnameMatch: {}
+                            verb: true,
+                            path: {},
+                            query: {},
+                            pathname: {}
                         }
                     ]
                 ]
@@ -161,16 +161,16 @@ describe('route/route', function () {
                     [
                         ['GET', '/assert/?a=5&page=100500'],
                         {
-                            methodMatch: true,
-                            resultMatch: {
+                            verb: true,
+                            path: {
                                 page: 'assert',
                                 a: '5'
                             },
-                            queryMatch: {
+                            query: {
                                 page: '100500',
                                 a: '5'
                             },
-                            pathnameMatch: {
+                            pathname: {
                                 page: 'assert'
                             }
                         }
@@ -186,19 +186,19 @@ describe('route/route', function () {
                     [
                         ['GET', '/about/?page.value=xxx'],
                         {
-                            methodMatch: true,
-                            resultMatch: {
+                            verb: true,
+                            path: {
                                 page: {
                                     name: 'about',
                                     value: 'xxx'
                                 }
                             },
-                            queryMatch: {
+                            query: {
                                 page: {
                                     value: 'xxx'
                                 }
                             },
-                            pathnameMatch: {
+                            pathname: {
                                 page: {
                                     name: 'about'
                                 }
@@ -216,10 +216,10 @@ describe('route/route', function () {
                     [
                         ['GET', '/'],
                         {
-                            methodMatch: true,
-                            resultMatch: null,
-                            queryMatch: null,
-                            pathnameMatch: {}
+                            verb: true,
+                            path: null,
+                            query: null,
+                            pathname: {}
 
                         }
                     ]
@@ -234,14 +234,14 @@ describe('route/route', function () {
                     [
                         ['GET', '/?a=42'],
                         {
-                            methodMatch: true,
-                            resultMatch: {
+                            verb: true,
+                            path: {
                                 a: '42'
                             },
-                            queryMatch: {
+                            query: {
                                 a: '42'
                             },
-                            pathnameMatch: {}
+                            pathname: {}
                         }
                     ]
                 ]
@@ -255,14 +255,14 @@ describe('route/route', function () {
                     [
                         ['GET', '/page/?a=42'],
                         {
-                            methodMatch: true,
-                            resultMatch: {
+                            verb: true,
+                            path: {
                                 a: 'page'
                             },
-                            queryMatch: {
+                            query: {
                                 a: '42'
                             },
-                            pathnameMatch: {
+                            pathname: {
                                 a: 'page'
                             }
                         }
@@ -278,12 +278,42 @@ describe('route/route', function () {
                     [
                         ['GET', '/page/name/?a=42'],
                         {
-                            methodMatch: true,
-                            resultMatch: null,
-                            queryMatch: {
+                            verb: true,
+                            path: null,
+                            query: {
                                 a: '42'
                             },
-                            pathnameMatch: null
+                            pathname: null
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/?a=6&a=5',
+                    null
+                ],
+                [
+                    [
+                        ['GET', '/?a=5&a=6'],
+                        {
+                            verb: true,
+                            path: {
+                                a: ['5', '6']
+                            },
+                            query: {
+                                a: ['5', '6']
+                            },
+                            pathname: {}
+                        }
+                    ],
+                    [
+                        ['GET', '/?a=7&a=5'],
+                        {
+                            verb: true,
+                            path: null,
+                            query: null,
+                            pathname: {}
                         }
                     ]
                 ]
@@ -420,43 +450,27 @@ describe('route/route', function () {
         var samples = [
             [
                 'GET /a/ i',
-                {
-                    methods: 'GET',
-                    pattern: '/a/',
-                    options: 'i'
-                }
+                ['GET', '/a/', '', 'i']
             ],
             [
                 'GET,POST /a/ i',
-                {
-                    methods: 'GET,POST',
-                    pattern: '/a/',
-                    options: 'i'
-                }
+                ['GET,POST', '/a/', '', 'i']
             ],
             [
                 'GET  /a/ ',
-                {
-                    methods: 'GET',
-                    pattern: '/a/',
-                    options: void 0
-                }
+                ['GET', '/a/', '', void 0]
             ],
             [
                 '  /a/ /b/ i',
-                {
-                    methods: void 0,
-                    pattern: '/a/ /b/',
-                    options: 'i'
-                }
+                [void 0, '/a/ /b/', '', 'i']
             ],
             [
                 'a',
-                {
-                    methods: void 0,
-                    pattern: 'a',
-                    options: void 0
-                }
+                [void 0, 'a', '', void 0]
+            ],
+            [
+                'GET /<page>/?a=42 ise',
+                ['GET', '/<page>/', 'a=42', 'ise']
             ]
         ];
 

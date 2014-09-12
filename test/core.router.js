@@ -22,19 +22,19 @@ describe('router', function () {
         });
 
         assert.deepEqual(router.find('GET', '/'), {
-            resultMatch: {},
-            pathnameMatch: {},
-            queryMatch: {},
-            methodMatch: true,
-            routeMatch: 'index'
+            path: {},
+            pathname: {},
+            query: {},
+            verb: true,
+            route: 'index'
         });
 
         assert.deepEqual(router.find('HEAD', '/'), {
-            resultMatch: {},
-            pathnameMatch: {},
-            queryMatch: {},
-            methodMatch: true,
-            routeMatch: 'index'
+            path: {},
+            pathname: {},
+            query: {},
+            verb: true,
+            route: 'index'
         });
 
         assert.deepEqual(router.find('POST', '/').sort(),
@@ -43,27 +43,27 @@ describe('router', function () {
         assert.deepEqual(router.find('PUT', '/'), []);
 
         assert.deepEqual(router.find('GET', '/news/'), {
-            resultMatch: {
+            path: {
                 postId: void 0
             },
-            pathnameMatch: {
+            pathname: {
                 postId: void 0
             },
-            queryMatch: {},
-            methodMatch: true,
-            routeMatch: 'news'
+            query: {},
+            verb: true,
+            route: 'news'
         });
 
         assert.deepEqual(router.find('GET', '/news/1231/'), {
-            resultMatch: {
+            path: {
                 postId: '1231'
             },
-            pathnameMatch: {
+            pathname: {
                 postId: '1231'
             },
-            queryMatch: {},
-            methodMatch: true,
-            routeMatch: 'news'
+            query: {},
+            verb: true,
+            route: 'news'
         });
 
         assert.deepEqual(router.find('GET', '/not-existing/'), null);
@@ -73,15 +73,15 @@ describe('router', function () {
         });
 
         assert.deepEqual(router.find('GET', '/news/foo/'), {
-            resultMatch: {
+            path: {
                 postId: 'foo'
             },
-            pathnameMatch: {
+            pathname: {
                 postId: 'foo'
             },
-            queryMatch: {},
-            methodMatch: true,
-            routeMatch: 'news'
+            query: {},
+            verb: true,
+            route: 'news'
         });
 
         rUpload = router.addRoute('PUT /upload/', {
@@ -89,11 +89,11 @@ describe('router', function () {
         });
 
         assert.deepEqual(router.find('PUT', '/upload/'), {
-            resultMatch: {},
-            pathnameMatch: {},
-            queryMatch: {},
-            methodMatch: true,
-            routeMatch: 'upload'
+            path: {},
+            pathname: {},
+            query: {},
+            verb: true,
+            route: 'upload'
         });
 
         assert.deepEqual(router.find('POST', '/upload/'), []);
@@ -101,7 +101,7 @@ describe('router', function () {
         assert.strictEqual(router.getRoute('upload'), rUpload);
         assert.strictEqual(router.getRoute('news'), rNews);
         assert.strictEqual(router.getRoute('index'), rIndex);
-        assert.strictEqual(router.getRoute('index2'), null);
+        assert.strictEqual(router.getRoute('index2'), void 0);
 
         router = new Router();
 
@@ -117,15 +117,9 @@ describe('router', function () {
             name: 'r3'
         });
 
-        assert.strictEqual(router.find('GET', '/', null).
-            routeMatch, 'r1');
-
-        assert.strictEqual(router.find('GET', '/', 'r1').
-            routeMatch, 'r2');
-
-        assert.strictEqual(router.find('GET', '/', 'r2').
-            routeMatch, 'r3');
-
+        assert.strictEqual(router.find('GET', '/', null).route, 'r1');
+        assert.strictEqual(router.find('GET', '/', 'r1').route, 'r2');
+        assert.strictEqual(router.find('GET', '/', 'r2').route, 'r3');
         assert.strictEqual(router.find('GET', '/', 'r3'), null);
         assert.strictEqual(router.find('GET', '/', 'r4'), null);
 

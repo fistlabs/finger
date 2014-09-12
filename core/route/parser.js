@@ -556,7 +556,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
             part = parts[i];
 
             if (Parser.PART_OPTION === part.type) {
-                chunk = Parser._compileParts(part.parts, func, n + 1, ctx);
+                chunk = this._compileParts(part.parts, func, n + 1, ctx);
 
                 if (Parser._isFalsy(chunk)) {
 
@@ -564,7 +564,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
                 }
 
                 result += func.call(ctx, part, false) +
-                chunk + func.call(ctx, part, true);
+                    chunk + func.call(ctx, part, true);
 
                 continue;
             }

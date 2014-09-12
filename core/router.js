@@ -92,12 +92,12 @@ var Router = inherit(/** @lends Router.prototype */ {
      * @method
      *
      * @param {String} verb
-     * @param {String} pathname
+     * @param {String} path
      * @param {*} [route] Можно продолжить искать после этого роута
      *
      * @returns {Array}
      * */
-    find: function (verb, pathname, route) {
+    find: function (verb, path, route) {
 
         if (!_.has(this.__verbs, verb)) {
 
@@ -106,7 +106,7 @@ var Router = inherit(/** @lends Router.prototype */ {
 
         if (_.isUndefined(route) || _.isNull(route)) {
 
-            return this.__find(verb, pathname, 0);
+            return this.__find(verb, path, 0);
         }
 
         route = _.findIndex(this.__routes, {data: {name: route}});
@@ -116,7 +116,7 @@ var Router = inherit(/** @lends Router.prototype */ {
             return null;
         }
 
-        return this.__find(verb, pathname, route + 1);
+        return this.__find(verb, path, route + 1);
     },
 
     /**
@@ -130,7 +130,7 @@ var Router = inherit(/** @lends Router.prototype */ {
      * */
     getRoute: function (name) {
 
-        return this.__index[name] || null;
+        return _.has(this.__index, name) ? this.__index[name] : void 0;
     },
 
     /**
@@ -155,12 +155,12 @@ var Router = inherit(/** @lends Router.prototype */ {
      * @method
      *
      * @param {String} verb
-     * @param {String} pathname
+     * @param {String} path
      * @param {Number} index
      *
      * @returns {*}
      * */
-    __find: function (verb, pathname, index) {
+    __find: function (verb, path, index) {
         var l;
         var match;
         var route;
@@ -168,15 +168,15 @@ var Router = inherit(/** @lends Router.prototype */ {
 
         for (l = this.__routes.length; index < l; index += 1) {
             route = this.__routes[index];
-            match = route.match(verb, pathname);
+            match = route.match(verb, path);
 
-            if (!match.resultMatch) {
+            if (!match.path) {
 
                 continue;
             }
 
-            if (match.methodMatch) {
-                match.routeMatch = route.data.name;
+            if (match.verb) {
+                match.route = route.data.name;
 
                 return match;
             }
