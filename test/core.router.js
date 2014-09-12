@@ -117,15 +117,9 @@ describe('router', function () {
             name: 'r3'
         });
 
-        assert.strictEqual(router.find('GET', '/', null).
-            route, 'r1');
-
-        assert.strictEqual(router.find('GET', '/', 'r1').
-            route, 'r2');
-
-        assert.strictEqual(router.find('GET', '/', 'r2').
-            route, 'r3');
-
+        assert.strictEqual(router.find('GET', '/', null).route, 'r1');
+        assert.strictEqual(router.find('GET', '/', 'r1').route, 'r2');
+        assert.strictEqual(router.find('GET', '/', 'r2').route, 'r3');
         assert.strictEqual(router.find('GET', '/', 'r3'), null);
         assert.strictEqual(router.find('GET', '/', 'r4'), null);
 
