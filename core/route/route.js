@@ -153,12 +153,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         var queryMatch = null;
         var resultMatch = null;
 
-        function queryHasValue(v, k) {
-
-            return _.isEqual(query[k], v);
-        }
-
-        if (_.every(this.query, queryHasValue)) {
+        if (contains(query, this.query)) {
             queryMatch = query;
 
             if (pathnameMatch) {
@@ -274,6 +269,35 @@ function reduceMethod(methods, m) {
 function reduceMethods(methods, init) {
 
     return _.reduce(methods.split(','), reduceMethod, init);
+}
+
+function contains(a, b) {
+
+    if (_.isArray(a) && _.isArray(b)) {
+        a = _.clone(a);
+
+        return _.every(b, function (b) {
+            var aInB = _.findIndex(a, function (a) {
+                return contains(a, b);
+            });
+
+            if (aInB === -1) {
+                return false;
+            }
+
+            a.splice(aInB, 1);
+
+            return true;
+        });
+    }
+
+    if (_.isObject(a) && _.isObject(b)) {
+        return _.every(b, function (b, k) {
+            return contains(a[k], b);
+        });
+    }
+
+    return a === b;
 }
 
 module.exports = Route;

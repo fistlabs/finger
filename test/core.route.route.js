@@ -287,6 +287,36 @@ describe('route/route', function () {
                         }
                     ]
                 ]
+            ],
+            [
+                [
+                    '/?a=6&a=5',
+                    null
+                ],
+                [
+                    [
+                        ['GET', '/?a=5&a=6'],
+                        {
+                            methodMatch: true,
+                            resultMatch: {
+                                a: ['5', '6']
+                            },
+                            queryMatch: {
+                                a: ['5', '6']
+                            },
+                            pathnameMatch: {}
+                        }
+                    ],
+                    [
+                        ['GET', '/?a=7&a=5'],
+                        {
+                            methodMatch: true,
+                            resultMatch: null,
+                            queryMatch: null,
+                            pathnameMatch: {}
+                        }
+                    ]
+                ]
             ]
         ];
 
