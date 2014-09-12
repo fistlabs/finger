@@ -11,10 +11,10 @@
     ],
     "dependencies": {
         "obus": "0.0.3",
-        "unique-id": "~0.0.1",
-        "lodash-node": "~2.4.1",
-        "regesc": "~0.0.1",
-        "inherit": "~2.2.2"
+        "unique-id": "0.0.1",
+        "lodash-node": "2.4.1",
+        "regesc": "0.0.1",
+        "inherit": "2.2.2"
     },
     "description": "request routing",
     "devDependencies": {

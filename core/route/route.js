@@ -62,8 +62,9 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
          * @property
          * @type {Object}
          * */
-        this.__verbs = Object.create(null);
-        this.__verbs.GET = true;
+        this.__verbs = {
+            GET: true
+        };
 
         if (match.methods) {
             this.__verbs = reduceMethods(match.methods, {});
@@ -204,7 +205,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
     /**
      * @public
      * @static
-     * @memberOf Route
+     * @memberOf {Route}
      * @method
      *
      * @param {String} path
@@ -212,10 +213,9 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @returns {Array}
      * */
     splitPath: function (path) {
-
         var i = path.indexOf('?');
 
-        if (-1 === i) {
+        if (i === -1) {
 
             return [path, ''];
         }
@@ -226,7 +226,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
     /**
      * @public
      * @static
-     * @memberOf Route
+     * @memberOf {Route}
      * @method
      *
      * @param {String} pattern
@@ -250,19 +250,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
 
 });
 
-/**
- * @private
- * @static
- * @memberOf Route
- * @method
- *
- * @param {Object} params
- * @param {String} name
- *
- * @returns {Object}
- * */
 function reduceFlag(params, name) {
-
     var lowerName = name.toLowerCase();
     var isLowerCased = name === lowerName;
 
@@ -277,32 +265,12 @@ function reduceFlag(params, name) {
     return params;
 }
 
-/**
- * @private
- * @memberOf Route
- * @method
- *
- * @param {Object} methods
- * @param {String} m
- *
- * @returns {Object}
- * */
 function reduceMethod(methods, m) {
     methods[m.trim().toUpperCase()] = true;
 
     return methods;
 }
 
-/**
- * @private
- * @memberOf Route
- * @method
- *
- * @param {String} methods
- * @param {Object} init
- *
- * @returns {Object}
- * */
 function reduceMethods(methods, init) {
 
     return _.reduce(methods.split(','), reduceMethod, init);

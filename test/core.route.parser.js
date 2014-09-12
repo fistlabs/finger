@@ -36,7 +36,9 @@ describe('route/parser', function () {
                 '<param=a',
                 '(a<b>(<c>d)',
                 '<para/m>',
-                '<param=c/d>'
+                '<param=c/d>',
+                '(<a)b>',
+                '<a(>b)'
             ];
 
             _.forEach(samples, function (pattern) {
@@ -270,14 +272,6 @@ describe('route/parser', function () {
                     assert.deepEqual(parser.parts, sample[1]);
                 });
             });
-        });
-    });
-
-    describe('Parser.create', function () {
-        it('Should cache AST instances', function () {
-            var parser = Parser.create('/');
-
-            assert.strictEqual(parser, Parser.create('/'));
         });
     });
 

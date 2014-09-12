@@ -4,15 +4,9 @@ var Obus = /** @type Obus */ require('obus');
 var Parser = /** @type Parser */ require('./parser');
 
 var _ = require('lodash-node');
-var inherit = require('inherit');
-
-/**
- * @private
- * @static
- * @memberOf Pattern
- * @method
- * */
 var escape = require('regesc');
+var inherit = require('inherit');
+var util = require('util');
 
 /**
  * @class Pattern
@@ -161,7 +155,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         value = Obus.get(opts, name);
 
-        if (using.hasOwnProperty(name)) {
+        if (_.has(using, name)) {
             i = using[name] += 1;
 
         } else {
@@ -192,7 +186,6 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * @returns {Object}
      * */
     __compileRegExp: function () {
-
         var source = this.compile(this.__compileRegExpPart);
 
         if (!this.params.doNotMatchStart) {
@@ -217,7 +210,6 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * @returns {Object}
      * */
     __compileRegExpPart: function (part, isBubbling) {
-
         var type = part.type;
 
         if (Parser.PART_DELIM === type) {
@@ -237,8 +229,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
                 return '([^/]+?)';
             }
 
-            return '(' + _.map(part.parts,
-                this.__compileStaticPart, this).join('|') + ')';
+            return util.format('(%s)', _.map(part.parts, this.__compileStaticPart, this).join('|'));
         }
 
         if (isBubbling) {
@@ -283,13 +274,14 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
         if (this.params.ignoreCase) {
 
-            return result + '(?:' + escape(char) + '|' +
-            encodeURIComponent(char.toLowerCase()) + '|' +
-            encodeURIComponent(char.toUpperCase()) + ')';
+            return util.format('%s(?:%s|%s|%s)',
+                result,
+                escape(char),
+                encodeURIComponent(char.toLowerCase()),
+                encodeURIComponent(char.toUpperCase()));
         }
 
-        return result + '(?:' + escape(char) + '|' +
-        encodeURIComponent(char) + ')';
+        return util.format('%s(?:%s|%s)', result, escape(char), encodeURIComponent(char));
     }
 
 }, {
@@ -297,7 +289,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
     /**
      * @public
      * @static
-     * @memberOf Pattern
+     * @memberOf {Pattern}
      * @method
      *
      * @param {String} pattern
@@ -312,17 +304,6 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
 
 });
 
-/**
- * @private
- * @static
- * @memberOf Pattern
- *
- * @param {Object} result
- * @param {String} name
- * @param {*} value
- *
- * @returns {Object}
- * */
 function push2Result(result, name, value) {
 
     if (_.isString(value) && _.indexOf(value, '%') !== -1) {
