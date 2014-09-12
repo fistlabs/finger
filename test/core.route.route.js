@@ -450,43 +450,23 @@ describe('route/route', function () {
         var samples = [
             [
                 'GET /a/ i',
-                {
-                    methods: 'GET',
-                    pattern: '/a/',
-                    options: 'i'
-                }
+                ['GET', '/a/', 'i']
             ],
             [
                 'GET,POST /a/ i',
-                {
-                    methods: 'GET,POST',
-                    pattern: '/a/',
-                    options: 'i'
-                }
+                ['GET,POST', '/a/', 'i']
             ],
             [
                 'GET  /a/ ',
-                {
-                    methods: 'GET',
-                    pattern: '/a/',
-                    options: void 0
-                }
+                ['GET', '/a/', void 0]
             ],
             [
                 '  /a/ /b/ i',
-                {
-                    methods: void 0,
-                    pattern: '/a/ /b/',
-                    options: 'i'
-                }
+                [void 0, '/a/ /b/', 'i']
             ],
             [
                 'a',
-                {
-                    methods: void 0,
-                    pattern: 'a',
-                    options: void 0
-                }
+                [void 0, 'a', void 0]
             ]
         ];
 
