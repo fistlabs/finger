@@ -161,8 +161,8 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
         }
 
         return {
-            methodMatch: verbMatch,
-            resultMatch: pathMatch,
+            verbMatch: verbMatch,
+            pathMatch: pathMatch,
             pathnameMatch: pathnameMatch,
             queryMatch: queryMatch
         };
@@ -235,7 +235,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
             throw new SyntaxError(pattern);
         }
 
-        return _.rest(match, 1)
+        return _.rest(match, 1);
     }
 
 });

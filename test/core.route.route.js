@@ -126,8 +126,8 @@ describe('route/route', function () {
                     [
                         ['GET', '/INDEX.PHP'],
                         {
-                            methodMatch: true,
-                            resultMatch: {},
+                            verbMatch: true,
+                            pathMatch: {},
                             queryMatch: {},
                             pathnameMatch: {}
                         }
@@ -135,8 +135,8 @@ describe('route/route', function () {
                     [
                         ['HEAD', '/INDEX.PHP'],
                         {
-                            methodMatch: true,
-                            resultMatch: {},
+                            verbMatch: true,
+                            pathMatch: {},
                             queryMatch: {},
                             pathnameMatch: {}
                         }
@@ -144,8 +144,8 @@ describe('route/route', function () {
                     [
                         ['POST', '/INDEX.PHP'],
                         {
-                            methodMatch: true,
-                            resultMatch: {},
+                            verbMatch: true,
+                            pathMatch: {},
                             queryMatch: {},
                             pathnameMatch: {}
                         }
@@ -161,8 +161,8 @@ describe('route/route', function () {
                     [
                         ['GET', '/assert/?a=5&page=100500'],
                         {
-                            methodMatch: true,
-                            resultMatch: {
+                            verbMatch: true,
+                            pathMatch: {
                                 page: 'assert',
                                 a: '5'
                             },
@@ -186,8 +186,8 @@ describe('route/route', function () {
                     [
                         ['GET', '/about/?page.value=xxx'],
                         {
-                            methodMatch: true,
-                            resultMatch: {
+                            verbMatch: true,
+                            pathMatch: {
                                 page: {
                                     name: 'about',
                                     value: 'xxx'
@@ -216,8 +216,8 @@ describe('route/route', function () {
                     [
                         ['GET', '/'],
                         {
-                            methodMatch: true,
-                            resultMatch: null,
+                            verbMatch: true,
+                            pathMatch: null,
                             queryMatch: null,
                             pathnameMatch: {}
 
@@ -234,8 +234,8 @@ describe('route/route', function () {
                     [
                         ['GET', '/?a=42'],
                         {
-                            methodMatch: true,
-                            resultMatch: {
+                            verbMatch: true,
+                            pathMatch: {
                                 a: '42'
                             },
                             queryMatch: {
@@ -255,8 +255,8 @@ describe('route/route', function () {
                     [
                         ['GET', '/page/?a=42'],
                         {
-                            methodMatch: true,
-                            resultMatch: {
+                            verbMatch: true,
+                            pathMatch: {
                                 a: 'page'
                             },
                             queryMatch: {
@@ -278,8 +278,8 @@ describe('route/route', function () {
                     [
                         ['GET', '/page/name/?a=42'],
                         {
-                            methodMatch: true,
-                            resultMatch: null,
+                            verbMatch: true,
+                            pathMatch: null,
                             queryMatch: {
                                 a: '42'
                             },
@@ -297,8 +297,8 @@ describe('route/route', function () {
                     [
                         ['GET', '/?a=5&a=6'],
                         {
-                            methodMatch: true,
-                            resultMatch: {
+                            verbMatch: true,
+                            pathMatch: {
                                 a: ['5', '6']
                             },
                             queryMatch: {
@@ -310,8 +310,8 @@ describe('route/route', function () {
                     [
                         ['GET', '/?a=7&a=5'],
                         {
-                            methodMatch: true,
-                            resultMatch: null,
+                            verbMatch: true,
+                            pathMatch: null,
                             queryMatch: null,
                             pathnameMatch: {}
                         }

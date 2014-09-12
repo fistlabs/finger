@@ -22,18 +22,18 @@ describe('router', function () {
         });
 
         assert.deepEqual(router.find('GET', '/'), {
-            resultMatch: {},
+            pathMatch: {},
             pathnameMatch: {},
             queryMatch: {},
-            methodMatch: true,
+            verbMatch: true,
             routeMatch: 'index'
         });
 
         assert.deepEqual(router.find('HEAD', '/'), {
-            resultMatch: {},
+            pathMatch: {},
             pathnameMatch: {},
             queryMatch: {},
-            methodMatch: true,
+            verbMatch: true,
             routeMatch: 'index'
         });
 
@@ -43,26 +43,26 @@ describe('router', function () {
         assert.deepEqual(router.find('PUT', '/'), []);
 
         assert.deepEqual(router.find('GET', '/news/'), {
-            resultMatch: {
+            pathMatch: {
                 postId: void 0
             },
             pathnameMatch: {
                 postId: void 0
             },
             queryMatch: {},
-            methodMatch: true,
+            verbMatch: true,
             routeMatch: 'news'
         });
 
         assert.deepEqual(router.find('GET', '/news/1231/'), {
-            resultMatch: {
+            pathMatch: {
                 postId: '1231'
             },
             pathnameMatch: {
                 postId: '1231'
             },
             queryMatch: {},
-            methodMatch: true,
+            verbMatch: true,
             routeMatch: 'news'
         });
 
@@ -73,14 +73,14 @@ describe('router', function () {
         });
 
         assert.deepEqual(router.find('GET', '/news/foo/'), {
-            resultMatch: {
+            pathMatch: {
                 postId: 'foo'
             },
             pathnameMatch: {
                 postId: 'foo'
             },
             queryMatch: {},
-            methodMatch: true,
+            verbMatch: true,
             routeMatch: 'news'
         });
 
@@ -89,10 +89,10 @@ describe('router', function () {
         });
 
         assert.deepEqual(router.find('PUT', '/upload/'), {
-            resultMatch: {},
+            pathMatch: {},
             pathnameMatch: {},
             queryMatch: {},
-            methodMatch: true,
+            verbMatch: true,
             routeMatch: 'upload'
         });
 
