@@ -36,16 +36,15 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * @param {Object} [data]
      * */
     __constructor: function (pattern, params, data) {
-        var match = Route.splitPattern(pattern);
-        var parts = Route.splitPath(match[1]);
+        var parts = Route.splitPattern(pattern);
 
         if (!_.isObject(params)) {
             params = {};
         }
 
-        params = _.reduce(match[2], reduceFlag, params);
+        params = _.reduce(parts[3], reduceFlag, params);
 
-        this.__base(parts[0], params);
+        this.__base(parts[1], params);
 
         /**
          * @public
@@ -53,7 +52,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
          * @property
          * @type {Object}
          * */
-        this.query = querystring.parse(parts[1]);
+        this.query = querystring.parse(parts[2]);
 
         /**
          * @private
@@ -65,8 +64,8 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
             GET: true
         };
 
-        if (match[0]) {
-            this.__verbs = reduceMethods(match[0], {});
+        if (parts[0]) {
+            this.__verbs = parseMethods(parts[0]);
         }
 
         if (_.has(this.__verbs, 'GET')) {
@@ -181,17 +180,15 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * */
     __reduceParam2Flag: function (flags, value, name) {
 
-        if (_.has(param2FlagMap, name)) {
-
-            if (value) {
-                flags += param2FlagMap[name].toLowerCase();
-
-            } else {
-                flags += param2FlagMap[name].toUpperCase();
-            }
+        if (!_.has(param2FlagMap, name)) {
+            return flags;
         }
 
-        return flags;
+        if (value) {
+            return flags + param2FlagMap[name].toLowerCase();
+        }
+
+        return flags + param2FlagMap[name].toUpperCase();
     }
 
 }, {
@@ -229,13 +226,16 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
      * */
     splitPattern: function (pattern) {
         var match = R_ADVANCED_PATTERN.exec(pattern);
+        var path;
 
         if (_.isNull(match)) {
 
             throw new SyntaxError(pattern);
         }
 
-        return _.rest(match, 1);
+        path = this.splitPath(match[2]);
+
+        return [match[1], path[0], path[1], match[3]];
     }
 
 });
@@ -261,9 +261,9 @@ function reduceMethod(methods, m) {
     return methods;
 }
 
-function reduceMethods(methods, init) {
+function parseMethods(methods) {
 
-    return _.reduce(methods.split(','), reduceMethod, init);
+    return _.reduce(methods.split(','), reduceMethod, {});
 }
 
 function contains(a, b) {
