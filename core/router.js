@@ -130,7 +130,7 @@ var Router = inherit(/** @lends Router.prototype */ {
      * */
     getRoute: function (name) {
 
-        return this.__index[name] || null;
+        return _.has(this.__index, name) ? this.__index[name] : void 0;
     },
 
     /**

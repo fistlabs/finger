@@ -101,7 +101,7 @@ describe('router', function () {
         assert.strictEqual(router.getRoute('upload'), rUpload);
         assert.strictEqual(router.getRoute('news'), rNews);
         assert.strictEqual(router.getRoute('index'), rIndex);
-        assert.strictEqual(router.getRoute('index2'), null);
+        assert.strictEqual(router.getRoute('index2'), void 0);
 
         router = new Router();
 
