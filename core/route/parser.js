@@ -125,8 +125,7 @@ var Parser = inherit(/** @lends Parser.prototype */ {
             this.__chunk += this._cur;
         }
 
-        if (this.__nesting + this.__isEscape +
-            this.__isParam + this.__isValue) {
+        if (this.__nesting + this.__isEscape + this.__isParam + this.__isValue) {
 
             throw this.__getError();
         }

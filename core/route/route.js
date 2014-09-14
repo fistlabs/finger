@@ -242,7 +242,7 @@ var Route = inherit(Pattern, /** @lends Route.prototype */ {
 
 function reduceFlag(params, name) {
     var lowerName = name.toLowerCase();
-    var isLowerCased = name === lowerName;
+    var isEnabled = name === lowerName;
 
     name = lowerName;
 
@@ -250,7 +250,7 @@ function reduceFlag(params, name) {
         name = flag2ParamMap[name];
     }
 
-    params[name] = isLowerCased;
+    params[name] = isEnabled;
 
     return params;
 }

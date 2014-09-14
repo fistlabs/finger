@@ -25,7 +25,6 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
      * @param {Object} [params]
      * */
     __constructor: function (pattern, params) {
-
         this.__base(pattern);
 
         /**
@@ -275,8 +274,7 @@ var Pattern = inherit(Parser, /** @lends Pattern.prototype */ {
         if (this.params.ignoreCase) {
 
             return util.format('%s(?:%s|%s|%s)',
-                result,
-                escape(char),
+                result, escape(char),
                 encodeURIComponent(char.toLowerCase()),
                 encodeURIComponent(char.toUpperCase()));
         }
