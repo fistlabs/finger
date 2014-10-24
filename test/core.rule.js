@@ -52,7 +52,7 @@ describe('core/rule', function () {
             assert.ok(rule.params);
             assert.strictEqual(typeof rule.params, 'object');
             rule = new Rule('/', params);
-            assert.strictEqual(rule.params, params);
+            assert.strictEqual(rule.params.x, params.x);
         });
     });
 

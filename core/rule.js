@@ -14,7 +14,7 @@ var Type = /** @type Type */ require('./type');
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
 var lazydef = require('lazydef');
-var query = /** @type {Query} */ new Query({sep: '&', eq: '='});
+//var query = /** @type {Query} */ new Query({sep: '&', eq: '='});
 var regesc = require('regesc');
 var util = require('util');
 
@@ -31,10 +31,34 @@ function Rule(ruleString, params) {
     /**
      * @public
      * @memberOf {Rule}
-     * @property
+     * @property params
      * @type {Object}
      * */
-    this.params = Object(params);
+    lazydef(this, 'params', function () {
+        var i;
+        var p = {};
+        for (i in Rule.defaultParams) {
+            if (hasProperty.call(Rule.defaultParams, i)) {
+                p[i] = Rule.defaultParams[i];
+            }
+        }
+
+        for (i in params) {
+            if (hasProperty.call(params, i)) {
+                p[i] = params[i];
+            }
+        }
+
+        return p;
+    });
+
+    /**
+     * @protected
+     * @memberOf {Rule}
+     * @property _query
+     * @type {Query}
+     * */
+    lazydef(this, '_query', this.__createQuery);
 
     /**
      * @protected
@@ -50,7 +74,7 @@ function Rule(ruleString, params) {
      * @property _queryMatcherFunc
      * @type {Function}
      * */
-    lazydef(this, '_queryMatcherFunc', this._compileQueryMatcherFunc);
+    lazydef(this, '_queryMatcherFunc', this.__compileQueryMatcherFunc);
 
     /**
      * @protected
@@ -58,7 +82,7 @@ function Rule(ruleString, params) {
      * @property _pathArgsOrder
      * @type {Array<String>}
      * */
-    lazydef(this, '_pathArgsOrder', this._compilePathArgsOrder);
+    lazydef(this, '_pathArgsOrder', this.__compilePathArgsOrder);
 
     /**
      * @protected
@@ -66,7 +90,7 @@ function Rule(ruleString, params) {
      * @property _pathArgsIndex
      * @type {Object}
      * */
-    lazydef(this, '_pathArgsIndex', this._compilePathArgsIndex);
+    lazydef(this, '_pathArgsIndex', this.__compilePathArgsIndex);
 
     /**
      * @protected
@@ -96,32 +120,6 @@ Rule.prototype = Object.create(Tools.prototype);
 Rule.prototype.constructor = Rule;
 
 /**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype.__compileTypes = function () {
-    var name;
-    var types = {};
-
-    for (name in Rule.builtinTypes) {
-        if (hasProperty.call(Rule.builtinTypes, name)) {
-            types[name] = new Type(name, Rule.builtinTypes[name]);
-        }
-    }
-
-    for (name in this.params.types) {
-        if (hasProperty.call(this.params.types, name)) {
-            types[name] = new Type(name, this.params.types[name]);
-        }
-    }
-
-    return types;
-};
-
-/**
  * @public
  * @memberOf {Rule}
  * @method
@@ -131,7 +129,7 @@ Rule.prototype.__compileTypes = function () {
  * @returns {String}
  * */
 Rule.prototype.build = function (args) {
-    return this._builderFunc(args ? query.flatten(args) : {});
+    return this._builderFunc(args ? this._query.flatten(args) : {});
 };
 
 /**
@@ -175,18 +173,18 @@ Rule.prototype.match = function (subj) {
         val = match[i + 1];
 
         if (typeof val === 'string') {
-            val = query.unescape(val);
+            val = this._query.unescape(val);
         }
 
         Query.addValue(args, pathArgsOrder[i], val);
     }
 
     if (hasPathArgs) {
-        args = query.deeper(args);
+        args = this._query.deeper(args);
     }
 
     if (queryObject) {
-        queryObject = query.deeper(queryObject);
+        queryObject = this._query.deeper(queryObject);
         args = this.__mergeArgs(args, queryObject);
     }
 
@@ -203,17 +201,57 @@ Rule.prototype.match = function (subj) {
  * @returns {Object|null}
  * */
 Rule.prototype.matchQueryString = function (queryString) {
-    return this._queryMatcherFunc(query.parse(queryString));
+    return this._queryMatcherFunc(this._query.parse(queryString));
 };
 
 /**
- * @protected
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Query}
+ * */
+Rule.prototype.__createQuery = function () {
+    return new Query({
+        eq: this.params.queryEq,
+        sep: this.params.querySep
+    });
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__compileTypes = function () {
+    var name;
+    var types = {};
+
+    for (name in Rule.builtinTypes) {
+        if (hasProperty.call(Rule.builtinTypes, name)) {
+            types[name] = new Type(name, Rule.builtinTypes[name]);
+        }
+    }
+
+    for (name in this.params.types) {
+        if (hasProperty.call(this.params.types, name)) {
+            types[name] = new Type(name, this.params.types[name]);
+        }
+    }
+
+    return types;
+};
+
+/**
+ * @private
  * @memberOf {Rule}
  * @method
  *
  * @returns {Array<String>}
  * */
-Rule.prototype._compilePathArgsOrder = function () {
+Rule.prototype.__compilePathArgsOrder = function () {
     var order = [];
 
     this.inspectRule(function (rule) {
@@ -226,13 +264,13 @@ Rule.prototype._compilePathArgsOrder = function () {
 };
 
 /**
- * @protected
+ * @private
  * @memberOf {Rule}
  * @method
  *
  * @returns {Object}
  * */
-Rule.prototype._compilePathArgsIndex = function () {
+Rule.prototype.__compilePathArgsIndex = function () {
     var i;
     var l;
     var order = this._pathArgsOrder;
@@ -252,13 +290,13 @@ Rule.prototype._compilePathArgsIndex = function () {
 };
 
 /**
- * @protected
+ * @private
  * @memberOf {Rule}
  * @method
  *
  * @returns {Object}
  * */
-Rule.prototype._compileQueryMatcherFunc = function () {
+Rule.prototype.__compileQueryMatcherFunc = function () {
     var args = this._pathRule.args;
     var index = this._pathArgsIndex;
     var body = [];
@@ -482,7 +520,7 @@ Rule.prototype.__compileRegExpPartStatic = function (part) {
     for (i = 0, l = text.length; i < l; i += 1) {
         char = text.charAt(i);
 
-        if (char === query.escape(char)) {
+        if (char === this._query.escape(char)) {
             result += regesc(char);
 
             continue;
@@ -490,13 +528,13 @@ Rule.prototype.__compileRegExpPartStatic = function (part) {
 
         if (this.params.ignoreCase) {
             result += '(?:' + regesc(char) + '|' +
-                query.escape(char.toLowerCase()) + '|' +
-                query.escape(char.toUpperCase()) + ')';
+                this._query.escape(char.toLowerCase()) + '|' +
+                this._query.escape(char.toUpperCase()) + ')';
 
             continue;
         }
 
-        result += '(?:' + regesc(char) + '|' + query.escape(char) + ')';
+        result += '(?:' + regesc(char) + '|' + this._query.escape(char) + ')';
     }
 
     return result;
@@ -672,7 +710,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                                     ),
                                     true
                                 ),
-                                this.__createAstTypeLiteral(query.escape(part.name))
+                                this.__createAstTypeLiteral(this._query.escape(part.name))
                             )
                         )],
                     //  else
@@ -716,14 +754,24 @@ Rule.prototype.__compileBuilderFunc = function () {
                         this.__createAstTypeIdentifier('part'),
                         this.__createAstTypeIdentifier('join')),
                     [
-                        this.__createAstTypeLiteral(query.params.sep)]))));
+                        this.__createAstTypeLiteral(this._query.params.sep)]))));
 
     func = escodegen.generate(func);
 
-    return new Function('query', 'hasProperty', 'undefined',
-            'return ' + func)(query, hasProperty, void 0);
+    return new Function('hasProperty', 'undefined',
+            'return ' + func)(hasProperty, void 0);
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} logicalOp
+ * @param {String} binaryOp
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstValueCheckExpression = function (logicalOp, binaryOp) {
     return this.__createAstTypeLogicalExpression(logicalOp,
         this.__createAstTypeLogicalExpression(logicalOp,
@@ -738,15 +786,32 @@ Rule.prototype.__createAstValueCheckExpression = function (logicalOp, binaryOp) 
             this.__createAstTypeLiteral('')));
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstQueryEscapeValue = function () {
     return this.__createAstTypeCallExpression(
         this.__createAstTypeMemberExpression(
-            this.__createAstTypeIdentifier('query'),
+            this.__createAstTypeMemberExpression(
+                this.__createAstTypeIdentifier('this'),
+                this.__createAstTypeIdentifier('_query')
+            ),
             this.__createAstTypeIdentifier('stringifyVal')),
         [
             this.__createAstTypeIdentifier('value')]);
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstIsValueArray = function () {
     return this.__createAstTypeCallExpression(
         this.__createAstTypeMemberExpression(
@@ -756,6 +821,15 @@ Rule.prototype.__createAstIsValueArray = function () {
             this.__createAstTypeIdentifier('value')]);
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {Number} nth
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstGetNthValue = function (nth) {
     return this.__createAstTypeExpressionStatement(
         this.__createAstTypeAssignmentExpression('=',
@@ -766,6 +840,15 @@ Rule.prototype.__createAstGetNthValue = function (nth) {
                 true)));
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {Number} nth
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstGetNthValueIfArray = function (nth) {
     return this.__createAstTypeIfStatement(
         this.__createAstIsValueArray(),
@@ -773,6 +856,15 @@ Rule.prototype.__createAstGetNthValueIfArray = function (nth) {
             this.__createAstGetNthValue(nth)]);
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} name
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstGetArgsValue = function (name) {
     return this.__createAstTypeExpressionStatement(
         this.__createAstTypeAssignmentExpression('=',
@@ -783,6 +875,15 @@ Rule.prototype.__createAstGetArgsValue = function (name) {
                 true)));
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {*} plus
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstPartSelfPlus = function (plus) {
     return this.__createAstTypeExpressionStatement(
         this.__createAstTypeAssignmentExpression('+=',
@@ -790,6 +891,15 @@ Rule.prototype.__createAstPartSelfPlus = function (plus) {
             plus));
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {*} assign
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstAssignPart = function (assign) {
     return this.__createAstTypeExpressionStatement(
         this.__createAstTypeAssignmentExpression('=',
@@ -797,6 +907,17 @@ Rule.prototype.__createAstAssignPart = function (assign) {
             assign));
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} name
+ * @param {*} consequent
+ * @param {*} [alternate]
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstIfArgsHas = function (name, consequent, alternate) {
     return this.__createAstTypeIfStatement(
         this.__createAstTypeCallExpression(
@@ -810,6 +931,13 @@ Rule.prototype.__createAstIfArgsHas = function (name, consequent, alternate) {
         alternate);
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstResetValue = function () {
     return this.__createAstTypeExpressionStatement(
         this.__createAstTypeAssignmentExpression('=',
@@ -817,6 +945,15 @@ Rule.prototype.__createAstResetValue = function () {
             this.__createAstTypeIdentifier('undefined')));
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} name
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstAddQueryArg = function (name) {
     return this.__createAstTypeExpressionStatement(
         this.__createAstTypeAssignmentExpression('=',
@@ -828,11 +965,18 @@ Rule.prototype.__createAstAddQueryArg = function (name) {
                 ),
                 true),
             this.__createAstTypeBinaryExpression('+',
-                this.__createAstTypeLiteral(query.escape(name) + query.params.eq),
+                this.__createAstTypeLiteral(this._query.escape(name) + this._query.params.eq),
                 this.__createAstQueryEscapeValue())
         ));
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
 Rule.prototype.__createAstResetPart = function () {
     return this.__createAstAssignPart(
         this.__createAstTypeLiteral(''));
@@ -1207,6 +1351,18 @@ Rule.prototype.__createAstTypeMemberExpression = function (object, property, com
 Rule.builtinTypes = {
     Segment: '[^/]+?',
     Free: '[\\s\\S]+?'
+};
+
+/**
+ * @public
+ * @static
+ * @memberOf {Rule}
+ * @property
+ * @type {Object}
+ * */
+Rule.defaultParams = {
+    queryEq: '=',
+    querySep: '&'
 };
 
 module.exports = Rule;
