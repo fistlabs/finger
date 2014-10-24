@@ -74,7 +74,7 @@ Type.checkRegExp = function (source) {
         return false;
     }
 
-    r = /(?:\\[\[\(]|\[(?:\\[\s\S]|[^\]])*\]|\(\?\:)|(\()/g;
+    r = /(?:\\[\[\(]|\[(?:\\[\s\S]|[^\]])*]|\(\?:)|(\()/g;
 
     /*eslint no-cond-assign: 0*/
     while ($ = r.exec(source)) {
