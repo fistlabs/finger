@@ -7,7 +7,6 @@ var suite = new Suite();
 
 Benchmark.options.minSamples = 100;
 
-var Router = require('../core/router');
 var Susanin = require('susanin');
 var RouterRule = require('../core/rule');
 var SusaninRoute = Susanin.Route;
@@ -62,58 +61,14 @@ function benchFingerBuild() {
 
 //  Warm up!
 benchSusaninMatch();
-//benchSusaninBuild();
+benchSusaninBuild();
 benchFingerMatch();
-//benchFingerBuild();
+benchFingerBuild();
 
 suite.add('Susanin.Route#match', benchSusaninMatch);
 suite.add('finger/core/rule#match', benchFingerMatch);
 suite.add('Susanin.Route#build', benchSusaninBuild);
 suite.add('finger/core/pattern#build', benchFingerBuild);
-//
-//var susaninRouter = new Susanin();
-//
-//susaninRouter.addRoute({
-//    pattern: '/',
-//    name: 'index'
-//});
-//
-//susaninRouter.addRoute({
-//    pattern: '/news/',
-//    name: 'news'
-//});
-//
-//susaninRouter.addRoute({
-//    pattern: '/news/<postId>',
-//    name: 'post'
-//});
-//
-//var fingerRouter = new Router();
-//
-//fingerRouter.addRoute('/', {
-//    name: 'index'
-//});
-//
-//fingerRouter.addRoute('/news/', {
-//    name: 'news'
-//});
-//
-//fingerRouter.addRoute('/news/<postId>', {
-//    name: 'post'
-//});
-
-//suite.add('Susanin#findFirst', function () {
-//    susaninRouter.findFirst('/');
-//    susaninRouter.findFirst('/news/');
-//    susaninRouter.findFirst('/news/123/');
-//    susaninRouter.findFirst('/XXX/');
-//});
-//suite.add('Router#find', function () {
-//    fingerRouter.find('GET', '/');
-//    fingerRouter.find('GET', '/news/');
-//    fingerRouter.find('GET', '/news/123/');
-//    fingerRouter.find('GET', '/XXX/');
-//});
 
 suite.on('cycle', function (event) {
     console.log(String(event.target));
