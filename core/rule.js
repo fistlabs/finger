@@ -14,7 +14,6 @@ var Type = /** @type Type */ require('./type');
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
 var lazydef = require('lazydef');
-//var query = /** @type {Query} */ new Query({sep: '&', eq: '='});
 var regesc = require('regesc');
 var util = require('util');
 
