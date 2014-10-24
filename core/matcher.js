@@ -25,7 +25,7 @@ function Matcher(params) {
      * @property
      * @type {Array<Rule>}
      * */
-    this.rules = [];
+    this.order = [];
 
     /**
      * @public
@@ -33,7 +33,7 @@ function Matcher(params) {
      * @property
      * @type {Object<Rule>}
      * */
-    this.names = Object.create(null);
+    this.index = Object.create(null);
 }
 
 /**
@@ -61,14 +61,14 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
 
     rule.data = data;
 
-    for (i = this.rules.length - 1; i >= 0; i -= 1) {
-        if (this.rules[i] === rule.data.name) {
-            this.rules.splice(i, 1);
+    for (i = this.order.length - 1; i >= 0; i -= 1) {
+        if (this.order[i] === rule.data.name) {
+            this.order.splice(i, 1);
         }
     }
 
-    this.names[rule.data.name] = rule;
-    this.rules.push(rule.data.name);
+    this.index[rule.data.name] = rule;
+    this.order.push(rule.data.name);
 
     return this;
 };
@@ -83,7 +83,7 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
  * @returns {Rule|void}
  * */
 Matcher.prototype.getRule = function (name) {
-    return this.names[name];
+    return this.index[name];
 };
 
 /**
@@ -115,9 +115,9 @@ Matcher.prototype.match = function (url) {
     var result = [];
     var name;
 
-    for (i = 0, l = this.rules.length; i < l; i += 1) {
-        name = this.rules[i];
-        args = this.names[name].match(url);
+    for (i = 0, l = this.order.length; i < l; i += 1) {
+        name = this.order[i];
+        args = this.index[name].match(url);
 
         if (args === null) {
             continue;
