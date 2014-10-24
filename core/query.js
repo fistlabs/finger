@@ -1,7 +1,7 @@
 'use strict';
 
 var Obus = /** @type Obus */ require('obus');
-var RuleArg = require('./parser/rule-arg');
+var RuleArg = /** @type RuleArg */ require('./parser/rule-arg');
 
 var hasProperty = Object.prototype.hasOwnProperty;
 

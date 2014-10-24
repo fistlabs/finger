@@ -1,10 +1,10 @@
 'use strict';
 
-var Parser = require('jison').Parser;
-var RuleSeq = require('./rule-seq');
-var RuleAny = require('./rule-any');
-var RuleSep = require('./rule-sep');
-var RuleArg = require('./rule-arg');
+var Parser = /** @type Parser */ require('jison').Parser;
+var RuleSeq = /** @type RuleSeq */ require('./rule-seq');
+var RuleAny = /** @type RuleAny */ require('./rule-any');
+var RuleSep = /** @type RuleSep */ require('./rule-sep');
+var RuleArg = /** @type RuleArg */ require('./rule-arg');
 
 var fs = require('fs');
 var path = require('path');
