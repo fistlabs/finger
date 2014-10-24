@@ -732,7 +732,8 @@ Rule.prototype.__compileBuilderFunc = function () {
                         )],
                     //  else
                     [
-                        //  part[part.length] = `query.escape(part.name) + query.params.eq` + query.stringifyQueryArg(value);
+                        //  part[part.length] = `query.escape(part.name) + query.params.eq` +
+                        //      query.stringifyQueryArg(value);
                         this.__createAstAddQueryArg(part.name)]));
         } else {
             body.push(
@@ -740,7 +741,8 @@ Rule.prototype.__compileBuilderFunc = function () {
                     //  if (value !== undefined && value !== null && value !== '') {
                     this.__createAstValueCheckExpression('&&', '!=='),
                     [
-                        //  part += `query.escape(part.name) + query.params.eq` + query.stringifyQueryArg(value);
+                        //  part += `query.escape(part.name) + query.params.eq` +
+                        //      query.stringifyQueryArg(value);
                         this.__createAstAddQueryArg(part.name)]));
 
         }
