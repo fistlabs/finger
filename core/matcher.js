@@ -62,13 +62,13 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
     rule.data = data;
 
     for (i = this.rules.length - 1; i >= 0; i -= 1) {
-        if (this.rules[i].data.name === rule.data.name) {
+        if (this.rules[i] === rule.data.name) {
             this.rules.splice(i, 1);
         }
     }
 
-    this.rules.push(rule);
     this.names[rule.data.name] = rule;
+    this.rules.push(rule.data.name);
 
     return this;
 };
@@ -115,7 +115,7 @@ Matcher.prototype.match = function (url) {
     var result = [];
 
     for (i = 0, l = this.rules.length; i < l; i += 1) {
-        args = this.rules[i].match(url);
+        args = this.names[this.rules[i]].match(url);
 
         if (args === null) {
             continue;
@@ -123,7 +123,7 @@ Matcher.prototype.match = function (url) {
 
         result[result.length] = {
             args: args,
-            name: this.rules[i].data.name
+            name: this.rules[i]
         };
     }
 
