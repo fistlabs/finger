@@ -48,10 +48,9 @@ function Matcher(params) {
  * */
 Matcher.prototype.addRule = function (ruleString, ruleData) {
     var i;
-    var rule = this._createRule(ruleString);
-    var data = {
-        name: uniqueId()
-    };
+    var data = {name: uniqueId()};
+    var name;
+    var rule = this._createRule(ruleString, this.params);
 
     for (i in ruleData) {
         if (hasProperty.call(ruleData, i)) {
@@ -59,16 +58,17 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
         }
     }
 
+    name = data.name;
     rule.data = data;
 
     for (i = this.order.length - 1; i >= 0; i -= 1) {
-        if (this.order[i] === rule.data.name) {
+        if (this.order[i] === name) {
             this.order.splice(i, 1);
         }
     }
 
-    this.index[rule.data.name] = rule;
-    this.order.push(rule.data.name);
+    this.index[name] = rule;
+    this.order.push(name);
 
     return this;
 };
@@ -92,11 +92,12 @@ Matcher.prototype.getRule = function (name) {
  * @method
  *
  * @param {String} ruleString
+ * @param {Object} params
  *
  * @returns {Rule}
  * */
-Matcher.prototype._createRule = function (ruleString) {
-    return new Rule(ruleString, this.params);
+Matcher.prototype._createRule = function (ruleString, params) {
+    return new Rule(ruleString, params);
 };
 
 /**
