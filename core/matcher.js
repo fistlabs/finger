@@ -67,6 +67,8 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
         }
     }
 
+    rule.warmUp();
+
     this.index[name] = rule;
     this.order.push(name);
 

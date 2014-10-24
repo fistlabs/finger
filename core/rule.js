@@ -204,6 +204,22 @@ Rule.prototype.matchQueryString = function (queryString) {
 };
 
 /**
+ * @public
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Rule}
+ * */
+Rule.prototype.warmUp = function () {
+    /*eslint guard-for-in: 0*/
+    for (var lazy in this) {
+        lazy = this[lazy];
+    }
+
+    return this;
+};
+
+/**
  * @private
  * @memberOf {Rule}
  * @method
