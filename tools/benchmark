@@ -1,0 +1,129 @@
+#!/usr/bin/env node
+'use strict';
+
+var Benchmark = require('benchmark').Benchmark;
+var Suite = Benchmark.Suite;
+var suite = new Suite();
+
+Benchmark.options.minSamples = 100;
+
+var Router = require('../core/router');
+var Susanin = require('susanin');
+var RouterRule = require('../core/rule');
+var SusaninRoute = Susanin.Route;
+
+var susaninRoute = new SusaninRoute('/news/(<post>/)');
+var routerRoute = new RouterRule('/news/(<post>/)');
+
+function benchSusaninMatch() {
+    susaninRoute.match('/foo/bar/');
+    susaninRoute.match('/news/42/');
+    susaninRoute.match('/news/42/?a=42');
+    susaninRoute.match('/news/');
+    susaninRoute.match('/news/?a=42');
+}
+
+function benchFingerMatch() {
+    routerRoute.match('/foo/bar/');
+    routerRoute.match('/news/42/');
+    routerRoute.match('/news/42/?a=42');
+    routerRoute.match('/news/');
+    routerRoute.match('/news/?a=42');
+}
+
+function benchSusaninBuild() {
+    susaninRoute.build();
+    susaninRoute.build({
+        post: 42
+    });
+    susaninRoute.build({
+        x: 43
+    });
+    susaninRoute.build({
+        post: 42,
+        x: 43
+    });
+}
+
+
+function benchFingerBuild() {
+    routerRoute.build();
+    routerRoute.build({
+        post: 42
+    });
+    routerRoute.build({
+        x: 43
+    });
+    routerRoute.build({
+        post: 42,
+        x: 43
+    });
+}
+
+//  Warm up!
+benchSusaninMatch();
+//benchSusaninBuild();
+benchFingerMatch();
+//benchFingerBuild();
+
+suite.add('Susanin.Route#match', benchSusaninMatch);
+suite.add('finger/core/rule#match', benchFingerMatch);
+suite.add('Susanin.Route#build', benchSusaninBuild);
+suite.add('finger/core/pattern#build', benchFingerBuild);
+//
+//var susaninRouter = new Susanin();
+//
+//susaninRouter.addRoute({
+//    pattern: '/',
+//    name: 'index'
+//});
+//
+//susaninRouter.addRoute({
+//    pattern: '/news/',
+//    name: 'news'
+//});
+//
+//susaninRouter.addRoute({
+//    pattern: '/news/<postId>',
+//    name: 'post'
+//});
+//
+//var fingerRouter = new Router();
+//
+//fingerRouter.addRoute('/', {
+//    name: 'index'
+//});
+//
+//fingerRouter.addRoute('/news/', {
+//    name: 'news'
+//});
+//
+//fingerRouter.addRoute('/news/<postId>', {
+//    name: 'post'
+//});
+
+//suite.add('Susanin#findFirst', function () {
+//    susaninRouter.findFirst('/');
+//    susaninRouter.findFirst('/news/');
+//    susaninRouter.findFirst('/news/123/');
+//    susaninRouter.findFirst('/XXX/');
+//});
+//suite.add('Router#find', function () {
+//    fingerRouter.find('GET', '/');
+//    fingerRouter.find('GET', '/news/');
+//    fingerRouter.find('GET', '/news/123/');
+//    fingerRouter.find('GET', '/XXX/');
+//});
+
+suite.on('cycle', function (event) {
+    console.log(String(event.target));
+});
+
+suite.on('complete', function () {
+    console.log();
+});
+
+suite.run({
+    queued: true,
+    async: true
+});
