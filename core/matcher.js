@@ -113,9 +113,11 @@ Matcher.prototype.match = function (url) {
     var i;
     var l;
     var result = [];
+    var name;
 
     for (i = 0, l = this.rules.length; i < l; i += 1) {
-        args = this.names[this.rules[i]].match(url);
+        name = this.rules[i];
+        args = this.names[name].match(url);
 
         if (args === null) {
             continue;
@@ -123,7 +125,7 @@ Matcher.prototype.match = function (url) {
 
         result[result.length] = {
             args: args,
-            name: this.rules[i]
+            name: name
         };
     }
 
