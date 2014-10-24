@@ -150,11 +150,35 @@ Query.prototype.deeper = function (flatArgs) {
  *
  * @returns {Object}
  * */
-Query.prototype.stringifyVal = function (v) {
+Query.prototype.stringifyQueryArg = function (v) {
     var t = typeof v;
 
     if (t === 'string') {
         return this.escape(v);
+    }
+
+    if (t === 'boolean' || t === 'number' && isFinite(v)) {
+
+        return String(v);
+    }
+
+    return '';
+};
+
+/**
+ * @public
+ * @memberOf {Query}
+ * @method
+ *
+ * @param {*} [v]
+ *
+ * @returns {Object}
+ * */
+Query.prototype.stringifyPathArg = function (v) {
+    var t = typeof v;
+
+    if (t === 'string') {
+        return encodeURI(v);
     }
 
     if (t === 'boolean' || t === 'number' && isFinite(v)) {

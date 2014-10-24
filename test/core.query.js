@@ -54,23 +54,44 @@ describe('core/query', function () {
         });
     });
 
-    describe('{Query}.stringifyVal', function () {
-        it('Should have own method "stringifyVal"', function () {
+    describe('{Query}.stringifyQueryArg', function () {
+        it('Should have own method "stringifyQueryArg"', function () {
             var query = new Query();
-            assert.strictEqual(typeof query.stringifyVal, 'function');
+            assert.strictEqual(typeof query.stringifyQueryArg, 'function');
         });
         it('Should correctly stringify values', function () {
             var query = new Query();
-            assert.strictEqual(query.stringifyVal(true), 'true');
-            assert.strictEqual(query.stringifyVal(false), 'false');
-            assert.strictEqual(query.stringifyVal('foo'), 'foo');
-            assert.strictEqual(query.stringifyVal(' '), '%20');
-            assert.strictEqual(query.stringifyVal(), '');
-            assert.strictEqual(query.stringifyVal({}), '');
-            assert.strictEqual(query.stringifyVal([]), '');
-            assert.strictEqual(query.stringifyVal(5), '5');
-            assert.strictEqual(query.stringifyVal(NaN), '');
-            assert.strictEqual(query.stringifyVal(Infinity), '');
+            assert.strictEqual(query.stringifyQueryArg(true), 'true');
+            assert.strictEqual(query.stringifyQueryArg(false), 'false');
+            assert.strictEqual(query.stringifyQueryArg('foo'), 'foo');
+            assert.strictEqual(query.stringifyQueryArg(' '), '%20');
+            assert.strictEqual(query.stringifyQueryArg(), '');
+            assert.strictEqual(query.stringifyQueryArg({}), '');
+            assert.strictEqual(query.stringifyQueryArg([]), '');
+            assert.strictEqual(query.stringifyQueryArg(5), '5');
+            assert.strictEqual(query.stringifyQueryArg(NaN), '');
+            assert.strictEqual(query.stringifyQueryArg(Infinity), '');
+        });
+    });
+
+    describe('{Query}.stringifyPathArg', function () {
+        it('Should have own method "stringifyPathArg"', function () {
+            var query = new Query();
+            assert.strictEqual(typeof query.stringifyPathArg, 'function');
+        });
+        it('Should correctly stringify values', function () {
+            var query = new Query();
+            assert.strictEqual(query.stringifyPathArg(true), 'true');
+            assert.strictEqual(query.stringifyPathArg(false), 'false');
+            assert.strictEqual(query.stringifyPathArg('foo'), 'foo');
+            assert.strictEqual(query.stringifyPathArg(' '), '%20');
+            assert.strictEqual(query.stringifyPathArg(), '');
+            assert.strictEqual(query.stringifyPathArg({}), '');
+            assert.strictEqual(query.stringifyPathArg([]), '');
+            assert.strictEqual(query.stringifyPathArg(5), '5');
+            assert.strictEqual(query.stringifyPathArg(NaN), '');
+            assert.strictEqual(query.stringifyPathArg(Infinity), '');
+            assert.strictEqual(query.stringifyPathArg('/foo/'), '/foo/');
         });
     });
 

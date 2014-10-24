@@ -773,6 +773,18 @@ describe('core/rule', function () {
                         }
                     ]
                 ]
+            ],
+            [
+                '<Free:pathname>?renderer',
+                [
+                    [
+                        '/foo/bar/?renderer=%2Ffoo%2F',
+                        {
+                            pathname: '/foo/bar/',
+                            renderer: '/foo/'
+                        }
+                    ]
+                ]
             ]
         ];
 
