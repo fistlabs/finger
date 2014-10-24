@@ -167,8 +167,8 @@ Query.prototype.stringifyVal = function (v) {
 
 /**
  * @public
- * @static
  * @memberOf {Query}
+ * @method
  *
  * @param {Object} args
  * @param {String} key
@@ -176,7 +176,7 @@ Query.prototype.stringifyVal = function (v) {
  *
  * @returns {Object}
  * */
-Query.addValue  = function (args, key, val) {
+Query.prototype.addValue = function (args, key, val) {
     if (!hasProperty.call(args, key)) {
         args[key] = val;
     } else if (Array.isArray(args[key])) {

@@ -175,7 +175,7 @@ Rule.prototype.match = function (subj) {
             val = this._query.unescape(val);
         }
 
-        Query.addValue(args, pathArgsOrder[i], val);
+        this._query.addValue(args, pathArgsOrder[i], val);
     }
 
     if (hasPathArgs) {
@@ -391,7 +391,9 @@ Rule.prototype.__compileQueryMatcherFunc = function () {
             this.__createAstTypeExpressionStatement(
                 this.__createAstTypeCallExpression(
                     this.__createAstTypeMemberExpression(
-                        this.__createAstTypeIdentifier('Query'),
+                        this.__createAstTypeMemberExpression(
+                            this.__createAstTypeIdentifier('this'),
+                            this.__createAstTypeIdentifier('_query')),
                         this.__createAstTypeIdentifier('addValue')),
                     [
                         this.__createAstTypeIdentifier('result'),
@@ -405,7 +407,7 @@ Rule.prototype.__compileQueryMatcherFunc = function () {
 
     func = escodegen.generate(func);
 
-    return new Function('Query', 'hasProperty', 'return ' + func)(Query, hasProperty);
+    return new Function('hasProperty', 'return ' + func)(hasProperty);
 };
 
 /**
