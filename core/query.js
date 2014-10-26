@@ -175,18 +175,7 @@ Query.prototype.stringifyQueryArg = function (v) {
  * @returns {Object}
  * */
 Query.prototype.stringifyPathArg = function (v) {
-    var t = typeof v;
-
-    if (t === 'string') {
-        return encodeURI(v);
-    }
-
-    if (t === 'boolean' || t === 'number' && isFinite(v)) {
-
-        return String(v);
-    }
-
-    return '';
+    return this.stringifyQueryArg(v).replace(/%2F/g, '/');
 };
 
 /**
