@@ -5,7 +5,19 @@ var assert = require('assert');
 
 describe('core/matcher', function () {
     /*eslint max-nested-callbacks: 0*/
-    var Matcher = require('../core/matcher');
+    var StdMatcher = require('../core/matcher');
+    var Rule = require('../core/rule');
+
+    function Matcher () {
+        StdMatcher.apply(this, arguments);
+    }
+
+    Matcher.prototype = Object.create(StdMatcher.prototype);
+
+    Matcher.prototype.getRules = function () {
+        return this._rules;
+    };
+
     describe('{Matcher}.params', function () {
         it('Should have own property "params"', function () {
             var matcher = new Matcher();
@@ -27,9 +39,9 @@ describe('core/matcher', function () {
 
         it('Should push items to {Matcher}.order', function () {
             var matcher = new Matcher();
-            assert.strictEqual(matcher.rules.length, 0);
+            assert.strictEqual(matcher.getRules().length, 0);
             matcher.addRule('/');
-            assert.strictEqual(matcher.rules.length, 1);
+            assert.strictEqual(matcher.getRules().length, 1);
         });
 
         it('Should accept ruleData', function () {
@@ -44,11 +56,16 @@ describe('core/matcher', function () {
             matcher.addRule('/bar/', {name: 'bar'});
             matcher.addRule('/', {name: 'foo'});
             assert.strictEqual(matcher.getRule('foo').data.name, 'foo');
-            assert.strictEqual(matcher.rules.length, 2);
+            assert.strictEqual(matcher.getRules().length, 2);
             matcher.addRule('/asd/', {name: 'foo', x: 42});
             assert.strictEqual(matcher.getRule('foo').data.name, 'foo');
-            assert.strictEqual(matcher.rules.length, 2);
+            assert.strictEqual(matcher.getRules().length, 2);
             assert.strictEqual(matcher.getRule('foo').data.x, 42);
+        });
+
+        it('Should return an instance of Rule', function () {
+            var matcher = new Matcher();
+            assert.ok(matcher.addRule('/') instanceof Rule);
         });
     });
 

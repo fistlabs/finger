@@ -25,7 +25,7 @@ function Matcher(params) {
      * @property
      * @type {Array}
      * */
-    this.rules = [];
+    this._rules = [];
 
     /**
      * @public
@@ -33,7 +33,7 @@ function Matcher(params) {
      * @property
      * @type {Object}
      * */
-    this.index = Object.create(null);
+    this._index = Object.create(null);
 }
 
 /**
@@ -66,21 +66,40 @@ Matcher.prototype._createRuleData = function (ruleData) {
  * @param {String} ruleString
  * @param {Object} [ruleData]
  *
- * @returns {Matcher}
+ * @returns {Rule}
  * */
 Matcher.prototype.addRule = function (ruleString, ruleData) {
-    var i;
     var rule = this._createRoute(ruleString, ruleData);
 
-    for (i = this.rules.length - 1; i >= 0; i -= 1) {
-        if (this.rules[i].data.name === rule.data.name) {
-            this.rules.splice(i, 1);
+    this.delRule(rule.data.name);
+    this._index[rule.data.name] = this._rules.push(rule) - 1;
+
+    return rule;
+};
+
+/**
+ * @public
+ * @memberOf {Matcher}
+ * @method
+ *
+ * @param {String} name
+ *
+ * @returns {Rule|null}
+ * */
+Matcher.prototype.delRule = function (name) {
+    var i;
+    var rule = null;
+
+    for (i = this._rules.length - 1; i >= 0; i -= 1) {
+        if (this._rules[i].data.name === name) {
+            rule = this._rules.splice(i, 1)[0];
+            delete this._index[rule.data.name];
+
+            break;
         }
     }
 
-    this.index[rule.data.name] = this.rules.push(rule) - 1;
-
-    return this;
+    return rule;
 };
 
 /**
@@ -93,7 +112,7 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
  * @returns {Rule|void}
  * */
 Matcher.prototype.getRule = function (name) {
-    return this.rules[this.index[name]];
+    return this._rules[this._index[name]];
 };
 
 /**
@@ -114,6 +133,16 @@ Matcher.prototype._createRoute = function (urlPattern, ruleData) {
     return rule;
 };
 
+/**
+ * @protected
+ * @memberOf {Matcher}
+ * @method
+ *
+ * @param {String} ruleString
+ * @param {Object} params
+ *
+ * @returns {Rule}
+ * */
 Matcher.prototype._createRule = function (ruleString, params) {
     return new Rule(ruleString, params);
 };
@@ -132,14 +161,16 @@ Matcher.prototype.matchAll = function (url) {
     var args;
     var i;
     var l;
+    var rule;
 
-    for (i = 0, l = this.rules.length; i < l; i += 1) {
-        args = this.rules[i].match(url);
+    for (i = 0, l = this._rules.length; i < l; i += 1) {
+        rule = this._rules[i];
+        args = rule.match(url);
 
         if (args) {
             matches[matches.length] = {
                 args: args,
-                name: this.rules[i].data.name
+                name: rule.data.name
             };
         }
     }
