@@ -8,7 +8,7 @@ describe('core/matcher', function () {
     var StdMatcher = require('../core/matcher');
     var Rule = require('../core/rule');
 
-    function Matcher () {
+    function Matcher() {
         StdMatcher.apply(this, arguments);
     }
 
@@ -80,6 +80,10 @@ describe('core/matcher', function () {
             matcher.addRule('/', {name: 'index'});
             assert.strictEqual(matcher.getRule('index').data.name, 'index');
             assert.strictEqual(matcher.getRule('foo'), void 0);
+            matcher.addRule('/', {name: 'index2'});
+            matcher.addRule('/', {name: 'index3'});
+            matcher.delRule('index2');
+            assert.ok(matcher.getRule('index3'));
         });
     });
 
