@@ -27,28 +27,28 @@ describe('core/matcher', function () {
 
         it('Should push items to {Matcher}.order', function () {
             var matcher = new Matcher();
-            assert.strictEqual(matcher.order.length, 0);
+            assert.strictEqual(matcher.rules.length, 0);
             matcher.addRule('/');
-            assert.strictEqual(matcher.order.length, 1);
+            assert.strictEqual(matcher.rules.length, 1);
         });
 
         it('Should accept ruleData', function () {
             var matcher = new Matcher();
             var ruleData = {x: 42, name: 'foo'};
             matcher.addRule('/', ruleData);
-            assert.deepEqual(matcher.index.foo.data, ruleData);
+            assert.deepEqual(matcher.getRule('foo').data, ruleData);
         });
 
         it('Should remove rules with the same name', function () {
             var matcher = new Matcher();
             matcher.addRule('/bar/', {name: 'bar'});
             matcher.addRule('/', {name: 'foo'});
-            assert.strictEqual(matcher.index.foo.data.name, 'foo');
-            assert.strictEqual(matcher.order.length, 2);
+            assert.strictEqual(matcher.getRule('foo').data.name, 'foo');
+            assert.strictEqual(matcher.rules.length, 2);
             matcher.addRule('/asd/', {name: 'foo', x: 42});
-            assert.strictEqual(matcher.index.foo.data.name, 'foo');
-            assert.strictEqual(matcher.order.length, 2);
-            assert.strictEqual(matcher.index.foo.data.x, 42);
+            assert.strictEqual(matcher.getRule('foo').data.name, 'foo');
+            assert.strictEqual(matcher.rules.length, 2);
+            assert.strictEqual(matcher.getRule('foo').data.x, 42);
         });
     });
 

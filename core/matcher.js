@@ -1,5 +1,7 @@
+/*eslint no-constant-condition: 0*/
 'use strict';
 
+var Match = /** @type Match */ require('./match');
 var Rule = /** @type Rule */ require('./rule');
 
 var hasProperty = Object.prototype.hasOwnProperty;
@@ -23,15 +25,15 @@ function Matcher(params) {
      * @public
      * @memberOf {Matcher}
      * @property
-     * @type {Array<Rule>}
+     * @type {Array}
      * */
-    this.order = [];
+    this.rules = [];
 
     /**
      * @public
      * @memberOf {Matcher}
      * @property
-     * @type {Object<Rule>}
+     * @type {Object}
      * */
     this.index = Object.create(null);
 }
@@ -61,16 +63,15 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
     name = data.name;
     rule.data = data;
 
-    for (i = this.order.length - 1; i >= 0; i -= 1) {
-        if (this.order[i] === name) {
-            this.order.splice(i, 1);
+    for (i = this.rules.length - 1; i >= 0; i -= 1) {
+        if (this.rules[i].data.name === name) {
+            this.rules.splice(i, 1);
         }
     }
 
     rule.warmUp();
 
-    this.index[name] = rule;
-    this.order.push(name);
+    this.index[name] = this.rules.push(rule) - 1;
 
     return this;
 };
@@ -85,7 +86,20 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
  * @returns {Rule|void}
  * */
 Matcher.prototype.getRule = function (name) {
-    return this.index[name];
+    return this.rules[this.index[name]];
+};
+
+/**
+ * @protected
+ * @memberOf {Matcher}
+ * @method
+ *
+ * @param {String} url
+ *
+ * @returns {Match}
+ * */
+Matcher.prototype._createMatch = function (url) {
+    return new Match(this, url);
 };
 
 /**
@@ -109,30 +123,26 @@ Matcher.prototype._createRule = function (ruleString, params) {
  *
  * @param {String} url
  *
- * @returns {Object|null}
+ * @returns {Array}
  * */
 Matcher.prototype.match = function (url) {
-    var args;
-    var i;
-    var l;
-    var result = [];
-    var name;
+    var match = this._createMatch(url);
+    var matches = [];
+    var result;
 
-    for (i = 0, l = this.order.length; i < l; i += 1) {
-        name = this.order[i];
-        args = this.index[name].match(url);
+    while (true) {
+        result = match.next();
 
-        if (args === null) {
-            continue;
+        if (result.value && result.value.args) {
+            matches[matches.length] = result.value;
         }
 
-        result[result.length] = {
-            args: args,
-            name: name
-        };
+        if (result.done) {
+            break;
+        }
     }
 
-    return result;
+    return matches;
 };
 
 module.exports = Matcher;
