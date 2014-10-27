@@ -2,7 +2,6 @@
 
 var RuleSeq = /** @type RuleSeq */ require('./parser/rule-seq');
 
-var lazydef = require('lazydef');
 var parser = require('./parser/parser');
 
 /**
@@ -25,7 +24,7 @@ function Tools(ruleString) {
      * @property _pathRule
      * @type {RuleSeq}
      * */
-    lazydef(this, '_pathRule', this._compilePathRule);
+    this._pathRule = this._compilePathRule();
 }
 
 /**

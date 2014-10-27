@@ -12,7 +12,6 @@
         "unique-id": "0.0.1",
         "regesc": "0.0.1",
         "inherit": "2.2.2",
-        "lazydef": "0.0.3",
         "escodegen": "1.4.1"
     },
     "description": "request routing",

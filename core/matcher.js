@@ -78,8 +78,6 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
         }
     }
 
-    rule.warmUp();
-
     this.index[rule.data.name] = this.rules.push(rule) - 1;
 
     return this;

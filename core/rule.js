@@ -13,7 +13,6 @@ var Type = /** @type Type */ require('./type');
 
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
-var lazydef = require('lazydef');
 var regesc = require('regesc');
 var util = require('util');
 
@@ -25,7 +24,7 @@ var util = require('util');
  * @param {Object} [params]
  * */
 function Rule(ruleString, params) {
-    Tools.call(this, ruleString);
+    var i;
 
     /**
      * @public
@@ -33,31 +32,19 @@ function Rule(ruleString, params) {
      * @property params
      * @type {Object}
      * */
-    lazydef(this, 'params', function () {
-        var i;
-        var p = {};
-        for (i in Rule.defaultParams) {
-            if (hasProperty.call(Rule.defaultParams, i)) {
-                p[i] = Rule.defaultParams[i];
-            }
+    this.params = {};
+
+    for (i in Rule.defaultParams) {
+        if (hasProperty.call(Rule.defaultParams, i)) {
+            this.params[i] = Rule.defaultParams[i];
         }
+    }
 
-        for (i in params) {
-            if (hasProperty.call(params, i)) {
-                p[i] = params[i];
-            }
+    for (i in params) {
+        if (hasProperty.call(params, i)) {
+            this.params[i] = params[i];
         }
-
-        return p;
-    });
-
-    /**
-     * @protected
-     * @memberOf {Rule}
-     * @property _query
-     * @type {Query}
-     * */
-    lazydef(this, '_query', this.__createQuery);
+    }
 
     /**
      * @protected
@@ -65,15 +52,9 @@ function Rule(ruleString, params) {
      * @property _types
      * @type {Object}
      * */
-    lazydef(this, '_types', this.__compileTypes);
+    this._types = this.__compileTypes();
 
-    /**
-     * @protected
-     * @memberOf {Rule}
-     * @property _queryMatcherFunc
-     * @type {Function}
-     * */
-    lazydef(this, '_queryMatcherFunc', this.__compileQueryMatcherFunc);
+    Tools.call(this, ruleString);
 
     /**
      * @protected
@@ -81,7 +62,7 @@ function Rule(ruleString, params) {
      * @property _pathArgsOrder
      * @type {Array<String>}
      * */
-    lazydef(this, '_pathArgsOrder', this.__compilePathArgsOrder);
+    this._pathArgsOrder = this.__compilePathArgsOrder();
 
     /**
      * @protected
@@ -89,7 +70,23 @@ function Rule(ruleString, params) {
      * @property _pathArgsIndex
      * @type {Object}
      * */
-    lazydef(this, '_pathArgsIndex', this.__compilePathArgsIndex);
+    this._pathArgsIndex = this.__compilePathArgsIndex();
+
+    /**
+     * @protected
+     * @memberOf {Rule}
+     * @property _query
+     * @type {Query}
+     * */
+    this._query =  this.__createQuery();
+
+    /**
+     * @protected
+     * @memberOf {Rule}
+     * @property _queryMatcherFunc
+     * @type {Function}
+     * */
+    this._queryMatcherFunc = this.__compileQueryMatcherFunc();
 
     /**
      * @protected
@@ -97,7 +94,7 @@ function Rule(ruleString, params) {
      * @property _matchRegExp
      * @type {RegExp}
      * */
-    lazydef(this, '_matchRegExp', this.__compileMatchRegExp);
+    this._matchRegExp = this.__compileMatchRegExp();
 
     /**
      * @protected
@@ -105,7 +102,7 @@ function Rule(ruleString, params) {
      * @property _builderFunc
      * @type {Function}
      * */
-    lazydef(this, '_builderFunc', this.__compileBuilderFunc);
+    this._builderFunc = this.__compileBuilderFunc();
 }
 
 Rule.prototype = Object.create(Tools.prototype);
@@ -201,22 +198,6 @@ Rule.prototype.match = function (subj) {
  * */
 Rule.prototype.matchQueryString = function (queryString) {
     return this._queryMatcherFunc(this._query.parse(queryString));
-};
-
-/**
- * @public
- * @memberOf {Rule}
- * @method
- *
- * @returns {Rule}
- * */
-Rule.prototype.warmUp = function () {
-    /*eslint guard-for-in: 0*/
-    for (var lazy in this) {
-        lazy = this[lazy];
-    }
-
-    return this;
 };
 
 /**
