@@ -66,25 +66,25 @@ describe('core/matcher', function () {
         });
     });
 
-    describe('{Matcher}.match', function () {
-        it('Should have own method "match"', function () {
+    describe('{Matcher}.matchAll', function () {
+        it('Should have own method "matchAll"', function () {
             var matcher = new Matcher();
-            assert.strictEqual(typeof matcher.match, 'function');
+            assert.strictEqual(typeof matcher.matchAll, 'function');
         });
 
         it('Should return all matched rules', function () {
             var matcher = new Matcher();
             matcher.addRule('/foo/', {name: 'foo'});
-            assert.deepEqual(matcher.match('/'), []);
+            assert.deepEqual(matcher.matchAll('/'), []);
             matcher.addRule('/', {name: 'index0'});
-            assert.deepEqual(matcher.match('/'), [
+            assert.deepEqual(matcher.matchAll('/'), [
                 {
                     args: {},
                     name: 'index0'
                 }
             ]);
             matcher.addRule('/', {name: 'index1'});
-            assert.deepEqual(matcher.match('/'), [
+            assert.deepEqual(matcher.matchAll('/'), [
                 {
                     args: {},
                     name: 'index0'
