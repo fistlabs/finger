@@ -99,6 +99,14 @@ function Rule(ruleString, params) {
     /**
      * @protected
      * @memberOf {Rule}
+     * @property
+     * @type {Function}
+     * */
+    this._matcherFunc = this.__compileMatcherFunc();
+
+    /**
+     * @protected
+     * @memberOf {Rule}
      * @property _builderFunc
      * @type {Function}
      * */
@@ -129,60 +137,202 @@ Rule.prototype.build = function (args) {
 };
 
 /**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Function}
+ * */
+Rule.prototype.__compileMatcherFunc = function () {
+    var body = [];
+    //  function __matcherFunc(url) {
+    var func = this.__createAstTypeFunctionDeclaration('_matcherFunc', body, [
+        this.__createAstTypeIdentifier('url')
+    ]);
+    var pathArgsOrder = this._pathArgsOrder;
+    var i;
+    var l = pathArgsOrder.length;
+
+    body.push(
+        //  var args = null;
+        this.__createAstTypeVarDeclaration('args',
+            this.__createAstTypeLiteral(null)),
+        //  var match = this._matchRegExp.exec(url);
+        this.__createAstTypeVarDeclaration('match',
+            this.__createAstTypeCallExpression(
+                this.__createAstTypeMemberExpression(
+                    this.__createAstTypeMemberExpression(
+                        this.__createAstTypeIdentifier('this'),
+                        this.__createAstTypeIdentifier('_matchRegExp')),
+                    this.__createAstTypeIdentifier('exec')),
+                [
+                    this.__createAstTypeIdentifier('url')])),
+        //  var queryObject;
+        this.__createAstTypeVarDeclaration('queryObject'),
+        //  var value;
+        this.__createAstTypeVarDeclaration('value')
+    );
+
+    //  if (match === null) {
+    body.push(
+        this.__createAstTypeIfStatement(
+            this.__createAstTypeBinaryExpression('===',
+                this.__createAstTypeIdentifier('match'),
+                this.__createAstTypeLiteral(null)),
+            [
+                //  return null;
+                this.__createAstTypeReturnStatement(
+                    this.__createAstTypeIdentifier('args'))]));
+
+    //  Need to match query
+    if (this._pathRule.args.length) {
+        body.push(
+            //  queryObject = this.matchQueryString(match[`l + 1`]);
+            this.__createAstTypeExpressionStatement(
+                this.__createAstTypeAssignmentExpression('=',
+                    this.__createAstTypeIdentifier('queryObject'),
+                    this.__createAstTypeCallExpression(
+                        this.__createAstTypeMemberExpression(
+                            this.__createAstTypeIdentifier('this'),
+                            this.__createAstTypeIdentifier('matchQueryString')),
+                        [
+                            this.__createAstTypeMemberExpression(
+                                this.__createAstTypeIdentifier('match'),
+                                this.__createAstTypeLiteral(l + 1),
+                                true)]))),
+            //  if (queryObject === null) {
+        this.__createAstTypeIfStatement(
+            this.__createAstTypeBinaryExpression('===',
+                this.__createAstTypeIdentifier('queryObject'),
+                this.__createAstTypeLiteral(null)),
+            [
+                //  return null;
+                this.__createAstTypeReturnStatement(
+                    this.__createAstTypeIdentifier('args'))]));
+    }
+
+    //  args = {};
+    body.push(
+        this.__createAstTypeExpressionStatement(
+            this.__createAstTypeAssignmentExpression('=',
+                this.__createAstTypeIdentifier('args'),
+                this.__createAstTypeObjectExpression([]))));
+
+    for (i = 0; i < l; i += 1) {
+        body.push(
+            //  value = match[`i + 1`]
+            this.__createAstTypeExpressionStatement(
+                this.__createAstTypeAssignmentExpression('=',
+                    this.__createAstTypeIdentifier('value'),
+                    this.__createAstTypeMemberExpression(
+                        this.__createAstTypeIdentifier('match'),
+                        this.__createAstTypeLiteral(i + 1),
+                        true))),
+            this.__createAstTypeIfStatement(
+                //  if (typeof value === 'string') {
+                this.__createAstTypeBinaryExpression('===',
+                    {
+                        type: 'UnaryExpression',
+                        operator: 'typeof',
+                        argument: this.__createAstTypeIdentifier('value'),
+                        prefix: true
+                    },
+                    this.__createAstTypeLiteral('string')),
+                [
+                    //  value = this._query.unescape(value);
+                    this.__createAstTypeExpressionStatement(
+                        this.__createAstTypeAssignmentExpression('=',
+                            this.__createAstTypeIdentifier('value'),
+                            this.__createAstTypeCallExpression(
+                                this.__createAstTypeMemberExpression(
+                                    this.__createAstTypeMemberExpression(
+                                        this.__createAstTypeIdentifier('this'),
+                                        this.__createAstTypeIdentifier('_query')),
+                                    this.__createAstTypeIdentifier('unescape')),
+                                [
+                                    this.__createAstTypeIdentifier('value')])))]),
+            // this._query.addValue(args, `pathArgsOrder[i]`, val);
+            this.__createAstTypeExpressionStatement(
+                this.__createAstTypeCallExpression(
+                    this.__createAstTypeMemberExpression(
+                        this.__createAstTypeMemberExpression(
+                            this.__createAstTypeIdentifier('this'),
+                            this.__createAstTypeIdentifier('_query')),
+                        this.__createAstTypeIdentifier('addValue')
+                    ),
+                    [
+                        this.__createAstTypeIdentifier('args'),
+                        this.__createAstTypeLiteral(pathArgsOrder[i]),
+                        this.__createAstTypeIdentifier('value')])));
+    }
+
+    if (l) {
+        //  args = this._query.deeper(args);
+        body.push(
+            this.__createAstTypeExpressionStatement(
+                this.__createAstTypeAssignmentExpression('=',
+                    this.__createAstTypeIdentifier('args'),
+                    this.__createAstTypeCallExpression(
+                        this.__createAstTypeMemberExpression(
+                            this.__createAstTypeMemberExpression(
+                                this.__createAstTypeIdentifier('this'),
+                                this.__createAstTypeIdentifier('_query')),
+                            this.__createAstTypeIdentifier('deeper')
+                        ),
+                        [
+                            this.__createAstTypeIdentifier('args')]))));
+    }
+
+    if (this._pathRule.args.length) {
+        body.push(
+            //  queryObject = this._query.deeper(queryObject);
+            this.__createAstTypeExpressionStatement(
+                this.__createAstTypeAssignmentExpression('=',
+                    this.__createAstTypeIdentifier('queryObject'),
+                    this.__createAstTypeCallExpression(
+                        this.__createAstTypeMemberExpression(
+                            this.__createAstTypeMemberExpression(
+                                this.__createAstTypeIdentifier('this'),
+                                this.__createAstTypeIdentifier('_query')),
+                            this.__createAstTypeIdentifier('deeper')
+                        ),
+                        [
+                            this.__createAstTypeIdentifier('queryObject')]))),
+            //  args = this.__mergeArgs(args, queryObject);
+            this.__createAstTypeExpressionStatement(
+                this.__createAstTypeAssignmentExpression('=',
+                    this.__createAstTypeIdentifier('args'),
+                    this.__createAstTypeCallExpression(
+                        this.__createAstTypeMemberExpression(
+                            this.__createAstTypeIdentifier('this'),
+                            this.__createAstTypeIdentifier('__mergeArgs')
+                        ),
+                        [
+                            this.__createAstTypeIdentifier('args'),
+                            this.__createAstTypeIdentifier('queryObject')]))));
+
+    }
+
+    body.push(
+        this.__createAstTypeReturnStatement(
+            this.__createAstTypeIdentifier('args')));
+
+    func = escodegen.generate(func);
+
+    return new Function('return ' + func)();
+};
+
+/**
  * @public
  * @memberOf {Rule}
  * @method
  *
- * @param {String} subj
+ * @param {String} url
  *
  * @returns {Object|Null}
  * */
-Rule.prototype.match = function (subj) {
-    var args;
-    var i;
-    var l;
-    var match = this._matchRegExp.exec(subj);
-    var queryObject = null;
-    var pathArgsOrder;
-    var val;
-
-    if (match === null) {
-        return null;
-    }
-
-    pathArgsOrder = this._pathArgsOrder;
-    l = pathArgsOrder.length;
-
-    if (this._pathRule.args.length) {
-        queryObject = this.matchQueryString(match[l + 1]);
-
-        if (!queryObject) {
-            return null;
-        }
-    }
-
-    args = {};
-
-    for (i = 0; i < l; i += 1) {
-        val = match[i + 1];
-
-        if (typeof val === 'string') {
-            val = this._query.unescape(val);
-        }
-
-        this._query.addValue(args, pathArgsOrder[i], val);
-    }
-
-    if (l) {
-        args = this._query.deeper(args);
-    }
-
-    if (queryObject) {
-        queryObject = this._query.deeper(queryObject);
-        args = this.__mergeArgs(args, queryObject);
-    }
-
-    return args;
+Rule.prototype.match = function (url) {
+    return this._matcherFunc(url);
 };
 
 /**
@@ -303,7 +453,7 @@ Rule.prototype.__compileQueryMatcherFunc = function () {
 
     body.push(
         this.__createAstTypeVarDeclaration('result',
-            {type: 'ObjectExpression', properties: []}),
+            this.__createAstTypeObjectExpression([])),
         this.__createAstTypeVarDeclaration('type'),
         this.__createAstTypeVarDeclaration('value'));
 
@@ -1213,6 +1363,23 @@ Rule.prototype.__createAstTypeArrayExpression = function (elements) {
     return {
         type: 'ArrayExpression',
         elements: elements
+    };
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {Array} properties
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__createAstTypeObjectExpression = function (properties) {
+
+    return {
+        type: 'ObjectExpression',
+        properties: properties
     };
 };
 
