@@ -1,93 +1,143 @@
 finger [![Build Status](https://travis-ci.org/fistlabs/finger.svg?branch=master)](https://travis-ci.org/fistlabs/finger)
 =========
 
-Серверный роутер для http-запросов.
-
-#[finger/Router](Router.js)
-##```Router([params])```
-Конструктор роутера. На вход принимает опциональный объект параметров, которые являются умолчательными опциями для всех маршрутов роутера. Собственные опции маршрутов имеют более высокий приоритет.
+##[core/rule](core/rule.js)
+```Rule``` is a part of ```Matcher``` that can match and build urls described in special syntax.
+###```Rule new Rule(String ruleString[, Object params])```
+Creates new rule.
 ```js
-var router = new Router({
-    //  Включает игнорирование регистра символов в uri запроса для всех маршрутов
-    ignoreCase: true,
-    //  При компилировании регулярного выражения в начало не будет 
-    //  установлен якорь начала строки
-    doNotMatchStart: true,
-    // При компилировании регулярного выражения в конец не будет 
-    //  установлен якорь конца строки
-    doNotMathEnd: true
+var rule = new Rule('/');
+```
+####```String ruleString```
+RuleString is a ```String``` describing url both for mathing and building back.
+RuleString could describe ```pathname``` rule and optionally ```query```.
+Pathname rule consists of static rule parts, parameters captures and optional parts.
+```
+/news/(42/)
+```
+The ```/news/``` part describes required part of url, and ```42/``` - optional.
+Let me make ```postId``` dynamic:
+```
+/news/(<postId>/)
+```
+Now, ```postId``` is parameter now. This rule both valid for ```/news/``` and ```/news/146/``` urls.
+
+Let me to describe ```query```. I describe query params like pathname params.
+
+```
+/news/(<Alnum:postId>/)&date
+```
+For now ```date``` is required parameter. I can describe more query parameters:
+```
+/news/(<postId>/)&date&time
+```
+Query parameters can be optional:
+```
+/news/(<postId>/)&date?time
+```
+Now, ```time``` parameter optional.
+
+Datsall for ```ruleString``` syntax.
+
+####```Object params```
+Params support some rule parameters.
+#####```Boolean params.ignoreCase```
+This option desables case sensitivity for pathname rule.
+```
+var rule = new Rule('/news/', {
+    ignoreCase: true
 });
 ```
 
-по умолчанию все опции отключены
+For this rule both ```/news/``` and ```/NeWs/``` urls are valid.
 
-##```Router.prototype.addRoute(pattern[, data])```
-Добавляет в роутер маршрут, соответствующий заданному паттерну.
-Паттерн состоит из одной обязательной части и двух необязательных. Обязательной частью паттерня является непостредственно шаблон ```uri``` запроса
+###```Object|null Rule.prototype.match(String url)```
+Matches the url on rule. Returns the set of described parameters with values.
 ```js
-var pattern = '/news/(<post>/)';
+var rule = new Rule('/news/(<postId>/)?date');
+rule.match('/news/'); // -> {postId: undefined, date: undefined}
+rule.match('/news/146/'); // -> {postId: '146', date: undefined}
+rule.match('/news/146/?nondecl=42'); // -> {postId: '146', date: undefined}
+rule.match('/news/146/?date=31-12-14'); // -> {postId: '146', date: '31-12-14'}
+rule.match('/forum/'); // -> null
 ```
-Шаблон может иметь не только статические части, но и именованные параметры, а также необязательные для матчинга части.
-Если при успешном матчинге запроса необходимо получить некоторые части ```uri```, то необходимо выделить их в параметры. Параметры указываются в угловых скобках. Необязательные части заключаются в круглые скобки. Это значит, что вышеприведенный шаблон соответствует как ```/news/``` так и ```/news/my-post/```
 
-Также паттерн может специфицировать метод запроса для ```uri```.
+###```String Rule.prototype.build([Object args])```
+Builds url from rule.
 ```js
-var pattern = 'GET /news/(<post>)';
+var rule = new Rule('/news/(<postId>/)?date');
+rule.build(); // -> '/news/'
+rule.build({postId: 146}); // -> '/news/146/'
+rule.build({date: 42}); // -> /news/?date=42
+rule.build({postId: 146, date: 42}); // -> /news/146/?date=42
 ```
-Если не указать метод, то умолчательным методом запроса будет ```GET```. Также маршруты для ```GET``` запросов матчатся на ```HEAD``` запросы.
 
-Непосредственно в паттерне запроса можно указать некоторые опции, которые являются частью синтаксиса паттернов. Опции передаются как флаги в ругулярных выражениях. Поддерживаются флаги ```e```, ```s```, ```i```. При компилировании паттерна флаги раскриваются в параметры. ```e``` интерпретируется как ```doNotMatchEnd: true```, ```s``` как ```doNotMatchStart: true```, ```i``` - ```ignoreCase: true```. Чтобы установить опцию в ```false``` (например чтобы переопределить дефолтное поведение роутера) необходимо устанавливать флаги в верхнем регистре. Например ```E``` ~ ```doNotMatchEnd: false```.
+##[core/matcher](core/matcher.js)
+```Matcher``` is a set of ```Rule```s that gives an interface to manage rules e.g. adding, deleting, matching.
+###```Matcher new Matcher([Object params])```
+Creates new ```matcher``` object. ```params``` is a general parameters for all rules.
+###```Rule Matcher.prototype.addRule(String ruleString[, Object ruleData])```
+Adds a ```rule``` to ```matcher```.
+```ruleString``` is a rule declaration that I mentioned above
+```ruleData``` is an object that will be associated with rule. ```ruleData.name``` is required, it will be random generated if omitted.
 ```js
-var router = new Router({
-    doNotMatchEnd: true
+var matcher = new Matcher();
+var rule = matcher.addRule('/', {name: 'index', foo: 42});
+rule.data.name // -> 'index'
+rule.data.foo // -> 42
+```
+###```Rule|null Matcher.prototype.delRule(String name)```
+Deletes the rule from set
+```js
+var matcher = new Matcher();
+var rule = matcher.addRule('/', {name: 'index'});
+assert.strictEqual(rule, matcher.delRule('index'));
+```
+###```Rule|void Matcher.prototype.getRule(String name)```
+Returns the ```rule``` by ```name```
+```js
+var matcher = new Matcher();
+var rule = matcher.addRule('/', {name: 'index'});
+assert.strictEqual(rule, matcher.getRule('index'));
+```
+###```Array<Rule> Matcher.prototype.matchAll(String url)```
+Returns all matched rules
+```js
+var matcher = new Matcher();
+var index1 = matcher.addRule('/news/?date', {name: 'index1'})
+var index2 = matcher.addRule('/news/', {name: 'index2'});
+assert.deepEqual([
+    {
+        name: 'index1', 
+        args: {
+            date: undefined
+        }
+    }, 
+    {
+        name: 'index2', 
+        args: {}
+    }
+], matcher.matchAll('/news/'));
+```
+##Features
+###Parameter types
+Let me add the types to parameters
+```js
+var matcher = new Matcher({
+    types: {
+        Alnum: '\\d+'
+    }
 });
-router.addRoute('GET /images/<fileName>.jpg Es');
-router.addRoute('GET /downloads/');
+matcher.addRule('/news/<Alnum:postId>/', {name: 'postPage'});
 ```
-Вторым аргументом в этот метод передается объект ```data``` (опционально). Этот объект може содержать любые данные, ассоцированне с маршрутом, но одно поле имеет особое значение: ```data.name```. Если планируется пользоваться методом [getRoute](#routerprototypegetroutename), для того чтобы получить доступ к api маршрута, то необходимо его указать, иначе ```name``` будет сгенерирован случайным образом.
-
-Метод возвращает объект только что созданного маршрута.
-##```Router.prototype.getRoute(name)```
-Возвращает объект маршрута по имени.
+Now the rule is valid for ```/news/42/``` but not for ```/news/foo/```.
+Builtin types are ```Segment```(default for pathname arguments ```[^/]+?```) and ```Free``` (default for query arguments ```[\s\S]+?```).
+###Nested parameters
 ```js
-var router = new Router();
-router.addRoute('GET /', {
-    name: 'index'
-});
-var indexRoute = router.getRoute('index');
+var rule = new Rule('/<page.section>/(<page.itemId>/)');
+rule.match('/news/146/'); // -> {page: {section: 'news', itemId: '146'}}
 ```
-##```Router.prototype.find(verb, path)```
-Принимает на вход метод запроса,```path``` и возвращает один из 
-нескольких вариантов ответа.
-Метод может вернуть 4 разных варианта данных, которые стоит интерпретировать по-разному. 
-Если роутер вернул ```null```, это значит что нет ресурса для заданного ```uri``` (404).
-Если роутер вернул пустой массив, это значит что в роутере нет ни одного маршрута для заданного метода запроса (501).
-Если роутер вернул не пустой массив, то это значит что данный ресурс недоступен данным методом, но доступен одним из тех что в массиве. Из этого масива можно сформировать заголовок Allow для ответа 405.
-В остальных случаях роутер возвращает объект с двумя полями: ```route``` и ```match```. ```route``` - это сам объект маршрута, а ```match``` - результат матчинга ```uri``` на шаблон. Если в шаблоне были указаны параметры, то в этом объекте будут их значения.
+Supported both for pathname and query parameters
 
-#[finger/route/Route](route/Route.js)
-Объект маршрута роутера. Маршуты можно создавать вручную для кастомного использования.
-
-##```Route.prototype.build([opts])```
-Создает ```path``` из ```pattern```
-
-```js
-var router = new Router();
-router.addRoute('GET /news/(<post>/)', {
-    name: 'news'
-});
-
-router.getRoute('news').build(); // /news/
-router.getRoute('news').build({post: 'foo'}); // /news/foo/
-router.getRoute('news').build({post: 'foo', bar: 'baz'}); // /news/foo/?bar=baz
-router.getRoute('news').build({foo: 'bar', baz: 'zot'}); // /news/?foo=bar&baz=zot
-```
-
-##```Route.buildPath(pattern[, opts])```
-Создает из ```pattern``` ```url``` . Инстансы AST-ов кэшируются
-```js
-Route.buildPath('/<page>/', {
-    page: 'about',
-    foo: 'bar'
-}); // -> /about/?foo=bar
-```
+---------
+LICENSE [MIT](LICENSE)
