@@ -1,6 +1,8 @@
 finger [![Build Status](https://travis-ci.org/fistlabs/finger.svg?branch=master)](https://travis-ci.org/fistlabs/finger)
 =========
 
+Finger is a powerful and fast nodejs router
+
 ##[core/rule](core/rule.js)
 ```Rule``` is a part of ```Matcher``` that can match and build urls described in special syntax.
 ###```Rule new Rule(String ruleString[, Object options])```
