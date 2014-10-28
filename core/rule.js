@@ -1449,7 +1449,7 @@ Rule.prototype.__mergeArgs = function (pathArgs, queryArgs) {
                     continue;
                 }
 
-                pVal.push(qVal);
+                pVal[pVal.length] = qVal;
 
                 continue;
             }
@@ -1463,8 +1463,11 @@ Rule.prototype.__mergeArgs = function (pathArgs, queryArgs) {
 
         if (qVal && typeof qVal === 'object') {
             if (Array.isArray(qVal)) {
-                pathArgs[name] = [pVal].concat(qVal);
+                pVal = [pVal];
+                [].push.apply(pVal, qVal);
+                pathArgs[name] = pVal;
             }
+
             continue;
         }
 
