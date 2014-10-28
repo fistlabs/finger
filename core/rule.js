@@ -798,10 +798,7 @@ Rule.prototype._compilePathRule = function () {
         }
 
         if (!hasProperty.call(types, rule.kind)) {
-            name = 'Unknown argument rule type %j';
-            name = util.format(name, rule.kind);
-
-            throw new TypeError(name);
+            throw new TypeError(util.format('Unknown %j parameter type %j', name, rule.kind));
         }
 
         if (used[name] === void 0) {
@@ -815,11 +812,10 @@ Rule.prototype._compilePathRule = function () {
 
     Tools._inspectRule(rule, function (rule) {
 
-        if (rule.type !== RuleArg.TYPE) {
-            return;
+        if (rule.type === RuleArg.TYPE) {
+            useArg(rule);
         }
 
-        useArg(rule);
     });
 
     defaultType = 'Free';
@@ -1453,7 +1449,7 @@ Rule.prototype.__mergeArgs = function (pathArgs, queryArgs) {
                     continue;
                 }
 
-                pVal.push(qVal);
+                pVal[pVal.length] = qVal;
 
                 continue;
             }
@@ -1467,8 +1463,11 @@ Rule.prototype.__mergeArgs = function (pathArgs, queryArgs) {
 
         if (qVal && typeof qVal === 'object') {
             if (Array.isArray(qVal)) {
-                pathArgs[name] = [pVal].concat(qVal);
+                pVal = [pVal];
+                [].push.apply(pVal, qVal);
+                pathArgs[name] = pVal;
             }
+
             continue;
         }
 
