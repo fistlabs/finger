@@ -14,45 +14,42 @@ var rule = new Rule('/');
 ```
 
 ####```String ruleString```
-```ruleString``` is a ```String``` describing url both for mathing and building back.
-```ruleString``` could describe pathname and optionally query.
-Pathname rule consists of static rule parts, parameters captures and optional parts.
+```ruleString``` is a ```String``` describing url both for mathing and building.
+```ruleString``` could describe pathname and, optionally, query.
+It consists of static rule parts, parameters captures and optional parts.
 
 ```
 /news/(42/)
 ```
 The ```/news/``` part describes required part of url, and ```42/``` - optional.
-Let me make ```postId``` dynamic:
+Let's make optional part more dynamic:
 
 ```
 /news/(<postId>/)
 ```
 Now, ```postId``` is parameter now. This rule both valid for ```/news/``` and ```/news/146/``` urls.
-
-Let me to describe ```query```. I describe query arguments like pathname arguments.
+Let's describe query arguments.
 
 ```
 /news/(<postId>/)&date
 ```
-For now ```date``` is required argument. I can describe more than one query arguments:
+For now ```date``` is required query argument. Let's describe more than one query argument:
 
 ```
 /news/(<postId>/)&date&time
 ```
-I can describe optional query arguments:
+Query arguments may be optional:
 
 ```
 /news/(<postId>/)&date?time
 ```
-Now, ```time``` argument optional.
-
-That's for ```ruleString``` syntax.
+Now, ```time``` argument is optional.
 
 ####```Object options```
-```options``` object support some rule options.
+Rule object support some options
 
 #####```Boolean options.ignoreCase```
-This option disables case sensitivity for pathname rule.
+Disables case sensitivity for pathname rule
 
 ```js
 var rule = new Rule('/news/', {
@@ -60,10 +57,10 @@ var rule = new Rule('/news/', {
 });
 ```
 
-For this rule both ```/news/``` and ```/NeWs/``` urls are valid.
+For this rule both ```/news/``` and ```/NeWs/``` urls are identical.
 
 ###```Object|null rule.match(String url)```
-Matches the url to the rule. Returns the set of values according to described arguments.
+Matches the url to the rule. Returns the set of values according to described arguments
 
 ```js
 var rule = new Rule('/news/(<postId>/)?date');
@@ -75,7 +72,7 @@ rule.match('/forum/'); // -> null
 ```
 
 ###```String rule.build([Object args])```
-Builds url from rule.
+Builds url from rule
 
 ```js
 var rule = new Rule('/news/(<postId>/)?date');
@@ -121,13 +118,13 @@ assert.strictEqual(rule, matcher.getRule('index'));
 ```
 
 ###```Array<Rule> matcher.matchAll(String url)```
-Returns all matched rules
+Returns all match results
 
 ```js
 var matcher = new Matcher();
-var index1 = matcher.addRule('/news/?date', {name: 'index1'})
-var index2 = matcher.addRule('/news/', {name: 'index2'});
-assert.deepEqual([
+matcher.addRule('/news/?date', {name: 'index1'})
+matcher.addRule('/news/', {name: 'index2'});
+assert.deepEqual(matcher.matchAll('/news/'), [
     {
         name: 'index1', 
         args: {
@@ -138,13 +135,13 @@ assert.deepEqual([
         name: 'index2', 
         args: {}
     }
-], matcher.matchAll('/news/'));
+]);
 ```
 
 ##Features
 
 ###Parameter types
-Let me add the types to parameters
+Let's add the types to parameters:
 
 ```js
 var matcher = new Matcher({
@@ -156,8 +153,8 @@ matcher.addRule('/news/<Alnum:postId>/');
 ```
 Now the rule is valid for ```/news/42/``` but not for ```/news/foo/```.
 Builtin types:
- * ```Segment```- default for pathname arguments (```[^/]+?```).
- * ```Free```  - default for query arguments (```[\s\S]+?```).
+ * ```Segment```- default for pathname parameters (```[^/]+?```).
+ * ```Free```  - default for query parameters (```[\s\S]+?```).
 
 ###Combined parameters
 The parameters could describe where values must be placed in arguments object.
