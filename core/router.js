@@ -1,252 +1,211 @@
 'use strict';
 
-var Route = /** @type Route */ require('./route/route');
-
-var _ = /** @type _*/ require('lodash-node');
-var inherit = require('inherit');
+var Matcher = /** @type Matcher */ require('./matcher');
+var Route = /** @type Route */ require('./route');
 
 /**
  * @class Router
+ * @extends Matcher
+ *
+ * @param {Object} params
  * */
-var Router = inherit(/** @lends Router.prototype */ {
-
-    /**
-     * @private
-     * @memberOf {Router}
-     * @method
-     *
-     * @param {Object} [params]
-     *
-     * @constructs
-     * */
-    __constructor: function (params) {
-
-        /**
-         * @public
-         * @memberOf {Router}
-         * @property
-         * @type {Object}
-         * */
-        this.params = _.extend({}, this.params, params);
-
-        /**
-         * @private
-         * @memberOf {Router}
-         * @property
-         * @type {Array<Route>}
-         * */
-        this.__routes = [];
-
-        /**
-         * @private
-         * @memberOf {Router}
-         * @property
-         * @type {Object}
-         * */
-        this.__index = {};
-
-        /**
-         * @private
-         * @memberOf {Router}
-         * @property
-         * @type {Object}
-         * */
-        this.__verbs = {};
-    },
-
-    /**
-     * @public
-     * @memberOf {Router}
-     * @method
-     *
-     * @param {String} pattern      шаблон урла запроса
-     * @param {*} [data]            любые закрепленные данные
-     * @param {*} [data.name]       Уникальный идентификатор маршрута
-     *
-     * @returns {Route}
-     * */
-    addRoute: function (pattern, data) {
-        var route = this._createRoute(pattern, this.params, data);
-
-        _.remove(this.__routes, function (existingRoute) {
-
-            if (existingRoute.data.name === route.data.name) {
-                this.__reduceVerbs(existingRoute.allow);
-
-                return true;
-            }
-
-            return false;
-        }, this);
-
-        this.__increaseVerbs(route.allow);
-        this.__routes.push(route);
-        this.__index[route.data.name] = route;
-
-        return route;
-    },
-
-    /**
-     * @public
-     * @memberOf {Router}
-     * @method
-     *
-     * @param {String} verb
-     * @param {String} path
-     * @param {*} [route] Можно продолжить искать после этого роута
-     *
-     * @returns {Array}
-     * */
-    find: function (verb, path, route) {
-
-        if (!_.has(this.__verbs, verb)) {
-
-            return [];
-        }
-
-        if (_.isUndefined(route) || _.isNull(route)) {
-
-            return this.__find(verb, path, 0);
-        }
-
-        route = _.findIndex(this.__routes, {data: {name: route}});
-
-        if (route === -1) {
-
-            return null;
-        }
-
-        return this.__find(verb, path, route + 1);
-    },
-
-    /**
-     * @public
-     * @memberOf {Router}
-     * @method
-     *
-     * @param {String} name
-     *
-     * @returns {Route}
-     * */
-    getRoute: function (name) {
-
-        return _.has(this.__index, name) ? this.__index[name] : void 0;
-    },
+function Router(params) {
+    Matcher.call(this, params);
 
     /**
      * @protected
      * @memberOf {Router}
-     * @method
-     *
-     * @param {String} pattern
-     * @param {Object} params
-     * @param {Object} data
-     *
-     * @returns {Route}
+     * @property
+     * @type {Object}
      * */
-    _createRoute: function (pattern, params, data) {
+    this._implemented = Object.create(null);
+}
 
-        return new Route(pattern, params, data);
-    },
+Router.prototype = Object.create(Matcher.prototype);
 
-    /**
-     * @private
-     * @memberOf {Router}
-     * @method
-     *
-     * @param {String} verb
-     * @param {String} path
-     * @param {Number} index
-     *
-     * @returns {*}
-     * */
-    __find: function (verb, path, index) {
-        var l;
-        var match;
-        var route;
-        var allow = [];
+Router.prototype.constructor = Router;
 
-        for (l = this.__routes.length; index < l; index += 1) {
-            route = this.__routes[index];
-            match = route.match(verb, path);
+/**
+ * @public
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} verb
+ *
+ * @returns {Boolean}
+ * */
+Router.prototype.isImplemented = function (verb) {
+    return verb in this._implemented;
+};
 
-            if (!match.path) {
+/**
+ * @public
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} ruleString
+ * @param {*} [ruleData]
+ *
+ * @returns {Route}
+ * */
+Router.prototype.addRule = function (ruleString, ruleData) {
+    var i;
+    var l;
+    var rule = Matcher.prototype.addRule.call(this, ruleString, ruleData);
+    var verbs = rule.verbs;
+    var verb;
+    var rules;
 
-                continue;
-            }
+    for (i = 0, l = verbs.length; i < l; i += 1) {
+        verb = verbs[i];
+        rules = this._implemented[verb];
 
-            if (match.verb) {
-                match.route = route.data.name;
-
-                return match;
-            }
-
-            Array.prototype.push.apply(allow, route.allow);
+        if (!rules) {
+            rules = this._implemented[verb] = [];
         }
 
-        if (allow.length === 0) {
-
-            return null;
-        }
-
-        return _.uniq(allow);
-    },
-
-    /**
-     * @private
-     * @memberOf {Router}
-     * @method
-     *
-     * @param {String} verb
-     * */
-    __increaseVerb: function (verb) {
-
-        if (_.has(this.__verbs, verb)) {
-            this.__verbs[verb] += 1;
-
-            return;
-        }
-
-        this.__verbs[verb] = 1;
-    },
-
-    /**
-     * @private
-     * @memberOf {Router}
-     * @method
-     *
-     * @param {Array<String>} verbs
-     * */
-    __increaseVerbs: function (verbs) {
-        _.forEach(verbs, this.__increaseVerb, this);
-    },
-
-    /**
-     * @private
-     * @memberOf {Router}
-     * @method
-     *
-     * @param {String} verb
-     * */
-    __reduceVerb: function (verb) {
-        this.__verbs[verb] -= 1;
-
-        if (this.__verbs[verb] === 0) {
-            delete this.__verbs[verb];
-        }
-    },
-
-    /**
-     * @private
-     * @memberOf {Router}
-     * @method
-     *
-     * @param {Array<String>} verbs
-     * */
-    __reduceVerbs: function (verbs) {
-        _.forEach(verbs, this.__reduceVerb, this);
+        rules[rules.length] = rule.data.name;
     }
 
-});
+    return rule;
+};
+
+/**
+ * @public
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} name
+ *
+ * @returns {Route|null}
+ * */
+Router.prototype.delRule = function (name) {
+    var i;
+    var j;
+    var l;
+    var rule = Matcher.prototype.delRule.call(this, name);
+    var verbs;
+    var verb;
+    var rules;
+
+    if (!rule) {
+        return rule;
+    }
+
+    verbs = rule.verbs;
+
+    for (i = 0, l = verbs.length; i < l; i += 1) {
+        verb = verbs[i];
+        rules = this._implemented[verb];
+
+        for (j = rules.length - 1; j >= 0; j -= 1) {
+            if (rules[j] === name) {
+                rules.splice(j, 1);
+            }
+        }
+
+        if (!rules.length) {
+            delete this._implemented[verb];
+        }
+    }
+
+    return rule;
+};
+
+/**
+ * @public
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} url
+ *
+ * @returns {Array}
+ * */
+Router.prototype.matchVerbs = function (url) {
+    var verbs = [];
+    var i;
+    var j;
+    var k;
+    var l;
+    var rule;
+    var args;
+
+    for (i = 0, l = this._rules.length; i < l; i += 1) {
+        rule = this._rules[i];
+        args = rule.match(url);
+
+        if (!args) {
+            continue;
+        }
+
+        for (j = 0, k = rule.verbs.length; j < k; j += 1) {
+            if (verbs.indexOf(rule.verbs[j]) === -1) {
+                verbs[verbs.length] = rule.verbs[j];
+            }
+        }
+    }
+
+    verbs.sort();
+
+    return verbs;
+};
+
+/**
+ * @public
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} verb
+ * @param {String} url
+ *
+ * @returns {Array}
+ * */
+Router.prototype.matchAll = function (verb, url) {
+    var matches = [];
+    var rules;
+    var rule;
+    var i;
+    var name;
+    var l;
+    var args;
+
+    verb = verb.toUpperCase();
+
+    //  DO NOT CHECK IS IMPLEMENTED, LET THROW ERROR
+    //  if (!(verb in this._implemented)) {
+    //      return matches;
+    //  }
+
+    rules = this._implemented[verb];
+
+    for (i = 0, l = rules.length; i < l; i += 1) {
+        name = rules[i];
+        rule = this._rules[this._index[name]];
+        args = rule.match(url);
+
+        if (args) {
+            matches[matches.length] = {
+                args: args,
+                name: rule.data.name
+            };
+        }
+    }
+
+    return matches;
+};
+
+/**
+ * @protected
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} requestRule
+ * @param {Object} [params]
+ *
+ * @returns {Route}
+ * */
+Router.prototype._createRule = function (requestRule, params) {
+    return new Route(requestRule, params);
+};
 
 module.exports = Router;

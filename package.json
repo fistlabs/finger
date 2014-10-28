@@ -1,8 +1,5 @@
 {
-    "author": {
-        "name": "Golyshev Dmitrii",
-        "email": "golyshev.dmitry@yandex.ru"
-    },
+    "author": "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>",
     "bugs": {
         "url": "https://github.com/fistlabs/finger/issues"
     },
@@ -10,28 +7,30 @@
         "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>"
     ],
     "dependencies": {
-        "obus": "0.0.3",
+        "jison": "0.4.15",
+        "obus": "0.0.5",
         "unique-id": "0.0.1",
-        "lodash-node": "2.4.1",
         "regesc": "0.0.1",
-        "inherit": "2.2.2"
+        "inherit": "2.2.2",
+        "escodegen": "1.4.1"
     },
     "description": "request routing",
     "devDependencies": {
-        "glob": "4.0.2",
+        "lodash-node": "2.4.1",
+        "glob": "4.0.6",
         "benchmark": "1.0.0",
         "susanin": "0.1.11",
-        "gulp": "3.8.7",
-        "gulp-mocha": "0.5.2",
-        "gulp-istanbul": "0.2.2",
-        "gulp-jscs": "1.1.0",
-        "gulp-eslint": "0.1.8",
-        "through2": "0.6.1",
-        "gulp-util": "3.0.0",
-        "chai": "1.9.1"
+        "gulp": "3.8.9",
+        "gulp-mocha": "1.1.1",
+        "gulp-istanbul": "0.3.1",
+        "gulp-jscs": "1.2.1",
+        "eslint": "0.8.2",
+        "gulp-util": "3.0.1",
+        "vow": "0.4.6",
+        "vow-fs": "0.3.3"
     },
     "license": "MIT",
-    "main": "core/router",
+    "main": "core/matcher",
     "name": "finger",
     "repository": {
         "type": "git",

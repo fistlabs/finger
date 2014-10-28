@@ -7,6 +7,7 @@ var writePipe = gulpIstanbul.writeReports();
 var mochaPipe = gulpMocha({
     ui: 'bdd',
     reporter: 'spec',
+//    reporter: 'dot',
     checkLeaks: true,
     slow: Infinity
 });

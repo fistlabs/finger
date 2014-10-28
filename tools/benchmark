@@ -1,0 +1,121 @@
+#!/usr/bin/env node
+'use strict';
+
+var Benchmark = require('benchmark').Benchmark;
+var Suite = Benchmark.Suite;
+var suite = new Suite();
+
+Benchmark.options.minSamples = 100;
+
+var SusaninRouter = require('susanin');
+var FingerMatcher = require('../core/matcher');
+var FingerRule = require('../core/rule');
+var SusaninRoute = SusaninRouter.Route;
+
+var susaninRouter = new SusaninRouter();
+var fingerMatcher = new FingerMatcher();
+
+susaninRouter.addRoute('/');
+susaninRouter.addRoute('/news/(<postId>/)');
+susaninRouter.addRoute('/upload/');
+susaninRouter.addRoute('/forum/');
+
+fingerMatcher.addRule('/');
+fingerMatcher.addRule('/news/(<postId>/)');
+fingerMatcher.addRule('/upload/');
+fingerMatcher.addRule('/forum/');
+
+var susaninRoute = new SusaninRoute('/news/(<postId>/)');
+var fingerRule = new FingerRule('/news/(<postId>/)');
+
+function benchSusaninRouteMatch() {
+    susaninRoute.match('/foo/bar/');
+    susaninRoute.match('/news/42/');
+    susaninRoute.match('/news/42/?a=42');
+    susaninRoute.match('/news/');
+    susaninRoute.match('/news/?a=42');
+}
+
+function benchFingerRuleMatch() {
+    fingerRule.match('/foo/bar/');
+    fingerRule.match('/news/42/');
+    fingerRule.match('/news/42/?a=42');
+    fingerRule.match('/news/');
+    fingerRule.match('/news/?a=42');
+}
+
+function benchSusaninRouteBuild() {
+    susaninRoute.build();
+    susaninRoute.build({
+        postId: 42
+    });
+    susaninRoute.build({
+        x: 43
+    });
+    susaninRoute.build({
+        postId: 42,
+        x: 43
+    });
+}
+
+function benchFingerRuleBuild() {
+    fingerRule.build();
+    fingerRule.build({
+        postId: 42
+    });
+    fingerRule.build({
+        x: 43
+    });
+    fingerRule.build({
+        postId: 42,
+        x: 43
+    });
+}
+
+function benchSusaninRouterFind() {
+    susaninRouter.find('/');
+    susaninRouter.find('/news/');
+    susaninRouter.find('/news/42/');
+    susaninRouter.find('/upload/');
+    susaninRouter.find('/forum/');
+}
+
+function benchFingerMatcherMatchAll() {
+    fingerMatcher.matchAll('/');
+    fingerMatcher.matchAll('/news/');
+    fingerMatcher.matchAll('/news/42/');
+    fingerMatcher.matchAll('/upload/');
+    fingerMatcher.matchAll('/forum/');
+}
+
+//  Warm up!
+benchSusaninRouteMatch();
+benchFingerRuleMatch();
+
+benchSusaninRouteBuild();
+benchFingerRuleBuild();
+
+benchSusaninRouterFind();
+benchFingerMatcherMatchAll();
+
+suite.add('Susanin.Route#match', benchSusaninRouteMatch);
+suite.add('finger/core/rule#match', benchFingerRuleMatch);
+
+suite.add('Susanin.Route#build', benchSusaninRouteBuild);
+suite.add('finger/core/rule#build', benchFingerRuleBuild);
+
+suite.add('Susanin#find', benchSusaninRouterFind);
+suite.add('finger/core/matcher#matchAll', benchFingerMatcherMatchAll);
+
+suite.on('cycle', function (event) {
+    console.log(String(event.target));
+});
+
+suite.on('complete', function () {
+    console.log();
+});
+
+suite.run({
+    queued: true,
+    async: true
+});

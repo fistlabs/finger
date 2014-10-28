@@ -1,136 +1,71 @@
 /*global describe, it*/
 'use strict';
 
-var assert = require('chai').assert;
+var assert = require('assert');
 
-describe('router', function () {
+describe('core/router', function () {
+    /*eslint max-nested-callbacks: 0*/
     var Router = require('../core/router');
 
-    it('Should correctly find routes', function () {
-        var router = new Router();
-
-        var rIndex = router.addRoute('/', {
-            name: 'index'
+    describe('{Router}.isImplemented', function () {
+        it('Should have "isImplemented" own method', function () {
+            var router = new Router();
+            assert.strictEqual(typeof router.isImplemented, 'function');
         });
 
-        var rNews = router.addRoute('GET /news/(<postId>/)', {
-            name: 'news'
+        it('Should check if method is implemented', function () {
+            var router = new Router();
+            assert.ok(!router.isImplemented('POST'));
+            router.addRule('POST /upload/', {name: 'upload'});
+            router.addRule('POST /upload2/', {name: 'upload2'});
+            assert.ok(router.isImplemented('POST'));
+            router.delRule('upload');
+            assert.ok(router.isImplemented('POST'));
+            router.delRule('upload2');
+            assert.ok(!router.isImplemented('POST'));
+        });
+    });
+
+    describe('{Router}.matchAll', function () {
+        it('Should have "matchAll" own method', function () {
+            var router = new Router();
+            assert.strictEqual(typeof router.matchAll, 'function');
         });
 
-        var rUpload = router.addRoute('POST /upload/', {
-            name: 'upload'
+        it('Should throw error if method is not implemented', function () {
+            var router = new Router();
+            assert.throws(function () {
+                router.matchAll('GET', '/');
+            });
         });
 
-        assert.deepEqual(router.find('GET', '/'), {
-            path: {},
-            pathname: {},
-            query: {},
-            verb: true,
-            route: 'index'
+        it('Should match routes according to passed verb', function () {
+            var router = new Router();
+            router.addRule('/', {name: 'index0'});
+            router.addRule('/foo/', {name: 'foo'});
+            router.addRule('/', {name: 'index1'});
+            router.addRule('POST /', {name: 'index2'});
+            assert.deepEqual(router.matchAll('GET', '/'), [
+                {
+                    args: {},
+                    name: 'index0'
+                },
+                {
+                    args: {},
+                    name: 'index1'
+                }
+            ]);
         });
+    });
 
-        assert.deepEqual(router.find('HEAD', '/'), {
-            path: {},
-            pathname: {},
-            query: {},
-            verb: true,
-            route: 'index'
+    describe('{Router}.matchVerbs', function () {
+        it('Should return unique verbs list', function () {
+            var router = new Router();
+            router.addRule('/', {name: 'index0'});
+            router.addRule('/', {name: 'index1'});
+            router.addRule('/foo/', {name: 'foo'});
+            router.addRule('POST /', {name: 'upload'});
+            assert.deepEqual(router.matchVerbs('/').sort(), ['HEAD', 'GET', 'POST'].sort());
         });
-
-        assert.deepEqual(router.find('POST', '/').sort(),
-            ['GET', 'HEAD'].sort());
-
-        assert.deepEqual(router.find('PUT', '/'), []);
-
-        assert.deepEqual(router.find('GET', '/news/'), {
-            path: {
-                postId: void 0
-            },
-            pathname: {
-                postId: void 0
-            },
-            query: {},
-            verb: true,
-            route: 'news'
-        });
-
-        assert.deepEqual(router.find('GET', '/news/1231/'), {
-            path: {
-                postId: '1231'
-            },
-            pathname: {
-                postId: '1231'
-            },
-            query: {},
-            verb: true,
-            route: 'news'
-        });
-
-        assert.deepEqual(router.find('GET', '/not-existing/'), null);
-
-        rNews = router.addRoute('/news/(<postId>/)', {
-            name: 'news'
-        });
-
-        assert.deepEqual(router.find('GET', '/news/foo/'), {
-            path: {
-                postId: 'foo'
-            },
-            pathname: {
-                postId: 'foo'
-            },
-            query: {},
-            verb: true,
-            route: 'news'
-        });
-
-        rUpload = router.addRoute('PUT /upload/', {
-            name: 'upload'
-        });
-
-        assert.deepEqual(router.find('PUT', '/upload/'), {
-            path: {},
-            pathname: {},
-            query: {},
-            verb: true,
-            route: 'upload'
-        });
-
-        assert.deepEqual(router.find('POST', '/upload/'), []);
-
-        assert.strictEqual(router.getRoute('upload'), rUpload);
-        assert.strictEqual(router.getRoute('news'), rNews);
-        assert.strictEqual(router.getRoute('index'), rIndex);
-        assert.strictEqual(router.getRoute('index2'), void 0);
-
-        router = new Router();
-
-        router.addRoute('GET /', {
-            name: 'r1'
-        });
-
-        router.addRoute('GET /', {
-            name: 'r2'
-        });
-
-        router.addRoute('GET /', {
-            name: 'r3'
-        });
-
-        assert.strictEqual(router.find('GET', '/', null).route, 'r1');
-        assert.strictEqual(router.find('GET', '/', 'r1').route, 'r2');
-        assert.strictEqual(router.find('GET', '/', 'r2').route, 'r3');
-        assert.strictEqual(router.find('GET', '/', 'r3'), null);
-        assert.strictEqual(router.find('GET', '/', 'r4'), null);
-
-        router = new Router({
-            ignoreCase: true
-        });
-
-        router.addRoute('/news/');
-        router.addRoute('/profile/ I');
-
-        assert.ok(router.find('GET', '/NEWS/'));
-        assert.strictEqual(router.find('GET', '/PROFILE/'), null);
     });
 });
