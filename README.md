@@ -3,47 +3,53 @@ finger [![Build Status](https://travis-ci.org/fistlabs/finger.svg?branch=master)
 
 ##[core/rule](core/rule.js)
 ```Rule``` is a part of ```Matcher``` that can match and build urls described in special syntax.
-###```Rule new Rule(String ruleString[, Object params])```
+###```Rule new Rule(String ruleString[, Object options])```
 Creates new rule.
+
 ```js
 var rule = new Rule('/');
 ```
 ####```String ruleString```
-RuleString is a ```String``` describing url both for mathing and building back.
-RuleString could describe ```pathname``` rule and optionally ```query```.
+```ruleString``` is a ```String``` describing url both for mathing and building back.
+```ruleString``` could describe pathname and optionally query.
 Pathname rule consists of static rule parts, parameters captures and optional parts.
+
 ```
 /news/(42/)
 ```
 The ```/news/``` part describes required part of url, and ```42/``` - optional.
 Let me make ```postId``` dynamic:
+
 ```
 /news/(<postId>/)
 ```
 Now, ```postId``` is parameter now. This rule both valid for ```/news/``` and ```/news/146/``` urls.
 
-Let me to describe ```query```. I describe query params like pathname params.
+Let me to describe ```query```. I describe query arguments like pathname arguments.
 
 ```
-/news/(<Alnum:postId>/)&date
+/news/(<postId>/)&date
 ```
-For now ```date``` is required parameter. I can describe more query parameters:
+For now ```date``` is required argument. I can describe more than one query arguments:
+
 ```
 /news/(<postId>/)&date&time
 ```
-Query parameters can be optional:
+I can describe optional query arguments:
+
 ```
 /news/(<postId>/)&date?time
 ```
-Now, ```time``` parameter optional.
+Now, ```time``` argument optional.
 
-Datsall for ```ruleString``` syntax.
+That's for ```ruleString``` syntax.
 
-####```Object params```
-Params support some rule parameters.
-#####```Boolean params.ignoreCase```
-This option desables case sensitivity for pathname rule.
-```
+####```Object options```
+```options``` object support some rule options.
+#####```Boolean options.ignoreCase```
+This option disables case sensitivity for pathname rule.
+
+```js
 var rule = new Rule('/news/', {
     ignoreCase: true
 });
@@ -52,7 +58,8 @@ var rule = new Rule('/news/', {
 For this rule both ```/news/``` and ```/NeWs/``` urls are valid.
 
 ###```Object|null Rule.prototype.match(String url)```
-Matches the url on rule. Returns the set of described parameters with values.
+Matches the url to the rule. Returns the set of values according to described arguments.
+
 ```js
 var rule = new Rule('/news/(<postId>/)?date');
 rule.match('/news/'); // -> {postId: undefined, date: undefined}
@@ -61,9 +68,9 @@ rule.match('/news/146/?nondecl=42'); // -> {postId: '146', date: undefined}
 rule.match('/news/146/?date=31-12-14'); // -> {postId: '146', date: '31-12-14'}
 rule.match('/forum/'); // -> null
 ```
-
 ###```String Rule.prototype.build([Object args])```
 Builds url from rule.
+
 ```js
 var rule = new Rule('/news/(<postId>/)?date');
 rule.build(); // -> '/news/'
@@ -71,15 +78,15 @@ rule.build({postId: 146}); // -> '/news/146/'
 rule.build({date: 42}); // -> /news/?date=42
 rule.build({postId: 146, date: 42}); // -> /news/146/?date=42
 ```
-
 ##[core/matcher](core/matcher.js)
-```Matcher``` is a set of ```Rule```s that gives an interface to manage rules e.g. adding, deleting, matching.
-###```Matcher new Matcher([Object params])```
-Creates new ```matcher``` object. ```params``` is a general parameters for all rules.
+```Matcher``` is a set of rules that gives an interface to manage rules e.g. adding, deleting, matching.
+###```Matcher new Matcher([Object options])```
+Creates new ```matcher``` object. ```options``` is a general options for all rules.
 ###```Rule Matcher.prototype.addRule(String ruleString[, Object ruleData])```
 Adds a ```rule``` to ```matcher```.
-```ruleString``` is a rule declaration that I mentioned above
+```ruleString``` is a rule declaration that I mentioned above.
 ```ruleData``` is an object that will be associated with rule. ```ruleData.name``` is required, it will be random generated if omitted.
+
 ```js
 var matcher = new Matcher();
 var rule = matcher.addRule('/', {name: 'index', foo: 42});
@@ -88,6 +95,7 @@ rule.data.foo // -> 42
 ```
 ###```Rule|null Matcher.prototype.delRule(String name)```
 Deletes the rule from set
+
 ```js
 var matcher = new Matcher();
 var rule = matcher.addRule('/', {name: 'index'});
@@ -95,6 +103,7 @@ assert.strictEqual(rule, matcher.delRule('index'));
 ```
 ###```Rule|void Matcher.prototype.getRule(String name)```
 Returns the ```rule``` by ```name```
+
 ```js
 var matcher = new Matcher();
 var rule = matcher.addRule('/', {name: 'index'});
@@ -102,6 +111,7 @@ assert.strictEqual(rule, matcher.getRule('index'));
 ```
 ###```Array<Rule> Matcher.prototype.matchAll(String url)```
 Returns all matched rules
+
 ```js
 var matcher = new Matcher();
 var index1 = matcher.addRule('/news/?date', {name: 'index1'})
@@ -122,17 +132,22 @@ assert.deepEqual([
 ##Features
 ###Parameter types
 Let me add the types to parameters
+
 ```js
 var matcher = new Matcher({
     types: {
         Alnum: '\\d+'
     }
 });
-matcher.addRule('/news/<Alnum:postId>/', {name: 'postPage'});
+matcher.addRule('/news/<Alnum:postId>/');
 ```
 Now the rule is valid for ```/news/42/``` but not for ```/news/foo/```.
-Builtin types are ```Segment```(default for pathname arguments ```[^/]+?```) and ```Free``` (default for query arguments ```[\s\S]+?```).
-###Nested parameters
+Builtin types:
+ * ```Segment```- default for pathname arguments (```[^/]+?```).
+ * ```Free```  - default for query arguments (```[\s\S]+?```).
+###Combined parameters
+The parameters could describe where values must be placed in arguments object.
+
 ```js
 var rule = new Rule('/<page.section>/(<page.itemId>/)');
 rule.match('/news/146/'); // -> {page: {section: 'news', itemId: '146'}}
