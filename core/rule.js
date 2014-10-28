@@ -812,11 +812,10 @@ Rule.prototype._compilePathRule = function () {
 
     Tools._inspectRule(rule, function (rule) {
 
-        if (rule.type !== RuleArg.TYPE) {
-            return;
+        if (rule.type === RuleArg.TYPE) {
+            useArg(rule);
         }
 
-        useArg(rule);
     });
 
     defaultType = 'Free';
