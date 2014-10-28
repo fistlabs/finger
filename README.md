@@ -5,12 +5,14 @@ Finger is a powerful and fast nodejs router
 
 ##[core/rule](core/rule.js)
 ```Rule``` is a part of ```Matcher``` that can match and build urls described in special syntax.
+
 ###```Rule new Rule(String ruleString[, Object options])```
 Creates new rule.
 
 ```js
 var rule = new Rule('/');
 ```
+
 ####```String ruleString```
 ```ruleString``` is a ```String``` describing url both for mathing and building back.
 ```ruleString``` could describe pathname and optionally query.
@@ -48,6 +50,7 @@ That's for ```ruleString``` syntax.
 
 ####```Object options```
 ```options``` object support some rule options.
+
 #####```Boolean options.ignoreCase```
 This option disables case sensitivity for pathname rule.
 
@@ -70,6 +73,7 @@ rule.match('/news/146/?nondecl=42'); // -> {postId: '146', date: undefined}
 rule.match('/news/146/?date=31-12-14'); // -> {postId: '146', date: '31-12-14'}
 rule.match('/forum/'); // -> null
 ```
+
 ###```String rule.build([Object args])```
 Builds url from rule.
 
@@ -82,8 +86,10 @@ rule.build({postId: 146, date: 42}); // -> /news/146/?date=42
 ```
 ##[core/matcher](core/matcher.js)
 ```Matcher``` is a set of rules that gives an interface to manage rules e.g. adding, deleting, matching.
+
 ###```Matcher new Matcher([Object options])```
 Creates new ```matcher``` object. ```options``` is a general options for all rules.
+
 ###```Rule matcher.addRule(String ruleString[, Object ruleData])```
 Adds a ```rule``` to ```matcher```.
 ```ruleString``` is a rule declaration that I mentioned above.
@@ -95,6 +101,7 @@ var rule = matcher.addRule('/', {name: 'index', foo: 42});
 rule.data.name // -> 'index'
 rule.data.foo // -> 42
 ```
+
 ###```Rule|null matcher.delRule(String name)```
 Deletes the rule from set
 
@@ -103,6 +110,7 @@ var matcher = new Matcher();
 var rule = matcher.addRule('/', {name: 'index'});
 assert.strictEqual(rule, matcher.delRule('index'));
 ```
+
 ###```Rule|void matcher.getRule(String name)```
 Returns the ```rule``` by ```name```
 
@@ -111,6 +119,7 @@ var matcher = new Matcher();
 var rule = matcher.addRule('/', {name: 'index'});
 assert.strictEqual(rule, matcher.getRule('index'));
 ```
+
 ###```Array<Rule> matcher.matchAll(String url)```
 Returns all matched rules
 
@@ -131,7 +140,9 @@ assert.deepEqual([
     }
 ], matcher.matchAll('/news/'));
 ```
+
 ##Features
+
 ###Parameter types
 Let me add the types to parameters
 
@@ -147,6 +158,7 @@ Now the rule is valid for ```/news/42/``` but not for ```/news/foo/```.
 Builtin types:
  * ```Segment```- default for pathname arguments (```[^/]+?```).
  * ```Free```  - default for query arguments (```[\s\S]+?```).
+
 ###Combined parameters
 The parameters could describe where values must be placed in arguments object.
 
