@@ -139,7 +139,6 @@ Rule.prototype.build = function (args) {
  * */
 Rule.prototype.match = function (subj) {
     var args;
-    var hasPathArgs = false;
     var i;
     var l;
     var match = this._matchRegExp.exec(subj);
@@ -165,7 +164,6 @@ Rule.prototype.match = function (subj) {
     args = {};
 
     for (i = 0; i < l; i += 1) {
-        hasPathArgs = true;
         val = match[i + 1];
 
         if (typeof val === 'string') {
@@ -175,7 +173,7 @@ Rule.prototype.match = function (subj) {
         this._query.addValue(args, pathArgsOrder[i], val);
     }
 
-    if (hasPathArgs) {
+    if (l) {
         args = this._query.deeper(args);
     }
 
