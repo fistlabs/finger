@@ -35,7 +35,7 @@ Router.prototype.constructor = Router;
  * @returns {Boolean}
  * */
 Router.prototype.isImplemented = function (verb) {
-    return verb in this._implemented;
+    return verb.toUpperCase() in this._implemented;
 };
 
 /**

@@ -19,6 +19,7 @@ describe('core/router', function () {
             router.addRule('POST /upload/', {name: 'upload'});
             router.addRule('POST /upload2/', {name: 'upload2'});
             assert.ok(router.isImplemented('POST'));
+            assert.ok(router.isImplemented('post'));
             router.delRule('upload');
             assert.ok(router.isImplemented('POST'));
             router.delRule('upload2');
