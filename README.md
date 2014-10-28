@@ -59,7 +59,7 @@ var rule = new Rule('/news/', {
 
 For this rule both ```/news/``` and ```/NeWs/``` urls are valid.
 
-###```Object|null Rule.prototype.match(String url)```
+###```Object|null rule.match(String url)```
 Matches the url to the rule. Returns the set of values according to described arguments.
 
 ```js
@@ -70,7 +70,7 @@ rule.match('/news/146/?nondecl=42'); // -> {postId: '146', date: undefined}
 rule.match('/news/146/?date=31-12-14'); // -> {postId: '146', date: '31-12-14'}
 rule.match('/forum/'); // -> null
 ```
-###```String Rule.prototype.build([Object args])```
+###```String rule.build([Object args])```
 Builds url from rule.
 
 ```js
@@ -84,7 +84,7 @@ rule.build({postId: 146, date: 42}); // -> /news/146/?date=42
 ```Matcher``` is a set of rules that gives an interface to manage rules e.g. adding, deleting, matching.
 ###```Matcher new Matcher([Object options])```
 Creates new ```matcher``` object. ```options``` is a general options for all rules.
-###```Rule Matcher.prototype.addRule(String ruleString[, Object ruleData])```
+###```Rule matcher.addRule(String ruleString[, Object ruleData])```
 Adds a ```rule``` to ```matcher```.
 ```ruleString``` is a rule declaration that I mentioned above.
 ```ruleData``` is an object that will be associated with rule. ```ruleData.name``` is required, it will be random generated if omitted.
@@ -95,7 +95,7 @@ var rule = matcher.addRule('/', {name: 'index', foo: 42});
 rule.data.name // -> 'index'
 rule.data.foo // -> 42
 ```
-###```Rule|null Matcher.prototype.delRule(String name)```
+###```Rule|null matcher.delRule(String name)```
 Deletes the rule from set
 
 ```js
@@ -103,7 +103,7 @@ var matcher = new Matcher();
 var rule = matcher.addRule('/', {name: 'index'});
 assert.strictEqual(rule, matcher.delRule('index'));
 ```
-###```Rule|void Matcher.prototype.getRule(String name)```
+###```Rule|void matcher.getRule(String name)```
 Returns the ```rule``` by ```name```
 
 ```js
@@ -111,7 +111,7 @@ var matcher = new Matcher();
 var rule = matcher.addRule('/', {name: 'index'});
 assert.strictEqual(rule, matcher.getRule('index'));
 ```
-###```Array<Rule> Matcher.prototype.matchAll(String url)```
+###```Array<Rule> matcher.matchAll(String url)```
 Returns all matched rules
 
 ```js
