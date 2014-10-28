@@ -66,18 +66,12 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
  * @returns {Rule|null}
  * */
 Matcher.prototype.delRule = function (name) {
-    var i;
     var rule = null;
 
-    for (i = this._rules.length - 1; i >= 0; i -= 1) {
-        if (this._rules[i].data.name === name) {
-            rule = this._rules.splice(i, 1)[0];
-
-            break;
-        }
+    if (name in this._index) {
+        rule = this._rules.splice(this._index[name], 1)[0];
+        this._index = this._createIndex();
     }
-
-    this._index = this._createIndex();
 
     return rule;
 };
