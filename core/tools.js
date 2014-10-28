@@ -21,7 +21,7 @@ function Tools(ruleString) {
     /**
      * @protected
      * @memberOf {Tools}
-     * @property _pathRule
+     * @property
      * @type {RuleSeq}
      * */
     this._pathRule = this._compilePathRule();
