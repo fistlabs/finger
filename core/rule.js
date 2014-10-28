@@ -798,10 +798,7 @@ Rule.prototype._compilePathRule = function () {
         }
 
         if (!hasProperty.call(types, rule.kind)) {
-            name = 'Unknown argument rule type %j';
-            name = util.format(name, rule.kind);
-
-            throw new TypeError(name);
+            throw new TypeError(util.format('Unknown %j parameter type %j', name, rule.kind));
         }
 
         if (used[name] === void 0) {
