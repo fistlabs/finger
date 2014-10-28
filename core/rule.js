@@ -632,6 +632,7 @@ Rule.prototype.__compileMatchRegExp = function () {
  *
  * @param {Object} part
  * @param {Boolean} stackPop
+ * @param {Number} n
  *
  * @returns {Object}
  * */
