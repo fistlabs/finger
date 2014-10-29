@@ -110,20 +110,6 @@ Query.prototype.parse = function (queryString) {
  * @memberOf {Query}
  * @method
  *
- * @param {Object} deepArgs
- *
- * @returns {Object}
- * */
-Query.prototype.flatten = function (deepArgs) {
-
-    return flatten({}, '', deepArgs);
-};
-
-/**
- * @public
- * @memberOf {Query}
- * @method
- *
  * @param {Object} flatArgs
  *
  * @returns {Object}
@@ -226,30 +212,6 @@ function deepPush(deepArgs, valuePath, value) {
     deepArgs[part] = value;
 
     return deepArgs[part];
-}
-
-function flatten(flatArgs, accum, deepArgs) {
-    var value;
-    var valuePath;
-
-    for (valuePath in deepArgs) {
-        if (hasProperty.call(deepArgs, valuePath)) {
-            value = deepArgs[valuePath];
-            valuePath = valuePath.replace(/[.\\]/g, '\\$&');
-
-            if (accum) {
-                valuePath = accum + '.' + valuePath;
-            }
-
-            if (value && typeof value === 'object' && !Array.isArray(value)) {
-                flatArgs = flatten(flatArgs, valuePath, value);
-            } else {
-                flatArgs[valuePath] = value;
-            }
-        }
-    }
-
-    return flatArgs;
 }
 
 module.exports = Query;
