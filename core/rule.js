@@ -6,6 +6,7 @@ var RuleArg = /** @type RuleArg */ require('./parser/rule-arg');
 var RuleSep = /** @type RuleSep */ require('./parser/rule-sep');
 var RuleSeq = /** @type RuleSeq */ require('./parser/rule-seq');
 
+var Obus = /** @type Obus */ require('obus');
 var Query = /** @type Query */ require('./query');
 
 var Tools = /** @type Tools */ require('./tools');
@@ -157,7 +158,7 @@ Rule.prototype.constructor = Rule;
  * @returns {String}
  * */
 Rule.prototype.build = function (args) {
-    return this._builderFunc(args ? this._query.flatten(args) : {});
+    return this._builderFunc(args);
 };
 
 /**
@@ -289,17 +290,8 @@ Rule.prototype.__compileBuilderFunc = function () {
         }
 
         body.push(
-            //  value = undefined;
-            this.__createAstPresetResetValue(),
-            //  if (hasProperty.call(args, `part.name`)) {
-            this.__createAstPresetIfArgsHas(part.name,
-                [
-                    //  value = args[`part.name`];
-                    this.__createAstPresetGetArgsValue(part.name),
-                    //  if (Array.isArray(value)) {
-                    //      value = value[`part.used`];
-                    // }
-                    this.__createAstPresetGetNthValueIfArray(part.used)]));
+            this.__createAstPresetValueGetter(part.name),
+            this.__createAstPresetGetNthValueIfArray(part.used));
 
         if (n > 1) {
             body.push(
@@ -326,6 +318,7 @@ Rule.prototype.__compileBuilderFunc = function () {
         }
     });
 
+    //  building query
     body.push(
         //  pathname = part;
         this.__createAstTypeExpressionStatement(
@@ -340,18 +333,8 @@ Rule.prototype.__compileBuilderFunc = function () {
         part = args[i];
 
         body.push(
-            //  value = undefined;
-            this.__createAstPresetResetValue(),
-            //  if (hasProperty.call(args, `part.name`)) {
-            this.__createAstPresetIfArgsHas(part.name,
-                [
-                    //  value = args[`part.name`];
-                    //  if (Array.isArray(value)) {
-                    //      value = value[`part.used`];
-                    //  }
-                    this.__createAstPresetGetArgsValue(part.name),
-                    this.__createAstPresetGetNthValueIfArray(part.used)
-                ]));
+            this.__createAstPresetValueGetter(part.name),
+            this.__createAstPresetGetNthValueIfArray(part.used));
 
         if (part.required) {
             body.push(
@@ -519,12 +502,9 @@ Rule.prototype.__compileMatcherFunc = function () {
             this.__createAstTypeIfStatement(
                 //  if (typeof value === 'string') {
                 this.__createAstTypeBinaryExpression('===',
-                    {
-                        type: 'UnaryExpression',
-                        operator: 'typeof',
-                        argument: this.__createAstTypeIdentifier('value'),
-                        prefix: true
-                    },
+                    this.__createAstTypeUnaryExpression('typeof',
+                        this.__createAstTypeIdentifier('value'),
+                    true),
                     this.__createAstTypeLiteral('string')),
                 [
                     //  value = this._query.unescape(value);
@@ -955,6 +935,100 @@ Rule.prototype.__createAstPresetValueCheckExpression = function (logicalOp, bina
         this.__createAstTypeBinaryExpression(binaryOp,
             this.__createAstTypeIdentifier('value'),
             this.__createAstTypeLiteral('')));
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} path
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__createAstPresetValueGetter = function (path) {
+    var parts = Obus.parse(path);
+    var i;
+    var l;
+    var body = [];
+    //  VALUE_GETTER: {
+    var getter = this.__createAstTypeLabeledStatement('VALUE_GETTER', body);
+    //  value = args;
+    body.push(
+        this.__createAstTypeExpressionStatement(
+            this.__createAstTypeAssignmentExpression('=',
+                this.__createAstTypeIdentifier('value'),
+                this.__createAstTypeIdentifier('args'))));
+
+    var breakCode = [
+        //  value = undefined;
+        this.__createAstTypeExpressionStatement(
+            this.__createAstTypeAssignmentExpression('=',
+                this.__createAstTypeIdentifier('value'),
+                this.__createAstTypeIdentifier('undefined'))),
+        //  break VALUE_GETTER;
+        this.__createAstTypeBreakStatement('VALUE_GETTER')];
+
+    for (i = 0, l = parts.length; i < l; i += 1) {
+
+        //  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        body.push(
+            this.__createAstTypeIfStatement(
+                this.__createAstTypeLogicalExpression('||',
+                    this.__createAstTypeLogicalExpression('||',
+                        this.__createAstTypeUnaryExpression('!',
+                            this.__createAstTypeIdentifier('value'),
+                            true),
+                        this.__createAstTypeBinaryExpression('!==',
+                            this.__createAstTypeUnaryExpression('typeof',
+                                this.__createAstTypeIdentifier('value'),
+                                true),
+                            this.__createAstTypeLiteral('object'))),
+                    this.__createAstPresetIsValueArray()),
+                breakCode));
+
+        body.push(
+            //  if (!hasProperty.call(value, `parts[i]`)) {
+            this.__createAstTypeIfStatement(
+                this.__createAstTypeUnaryExpression('!',
+                    this.__createAstTypeCallExpression(
+                        this.__createAstTypeMemberExpression(
+                            this.__createAstTypeIdentifier('hasProperty'),
+                            this.__createAstTypeIdentifier('call')),
+                        [
+                            this.__createAstTypeIdentifier('value'),
+                            this.__createAstTypeLiteral(parts[i])]),
+                    true),
+                breakCode));
+
+        //  value = value[`parts[i]`];
+        body.push(
+            this.__createAstTypeExpressionStatement(
+                this.__createAstTypeAssignmentExpression('=',
+                    this.__createAstTypeIdentifier('value'),
+                    this.__createAstTypeMemberExpression(
+                        this.__createAstTypeIdentifier('value'),
+                        this.__createAstTypeLiteral(parts[i]),
+                        true))));
+    }
+
+    body.push(
+        //  if (value && typeof value === 'object' && !Array.isArray(value)) {
+        this.__createAstTypeIfStatement(
+            this.__createAstTypeLogicalExpression('&&',
+                this.__createAstTypeLogicalExpression('&&',
+                    this.__createAstTypeIdentifier('value'),
+                    this.__createAstTypeBinaryExpression('===',
+                        this.__createAstTypeUnaryExpression('typeof',
+                            this.__createAstTypeIdentifier('value'),
+                            true),
+                        this.__createAstTypeLiteral('object'))),
+            this.__createAstTypeUnaryExpression('!',
+                this.__createAstPresetIsValueArray(),
+                true)),
+            breakCode));
+
+    return getter;
 };
 
 /**
@@ -1401,10 +1475,29 @@ Rule.prototype.__createAstTypeArrayExpression = function (elements) {
  * @returns {Object}
  * */
 Rule.prototype.__createAstTypeObjectExpression = function (properties) {
-
     return {
         type: 'ObjectExpression',
         properties: properties
+    };
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} operator
+ * @param {*} argument
+ * @param {Boolean} [prefix]
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__createAstTypeUnaryExpression = function (operator, argument, prefix) {
+    return {
+        type: 'UnaryExpression',
+        operator: operator,
+        argument: argument,
+        prefix: Boolean(prefix)
     };
 };
 
