@@ -172,20 +172,19 @@ Matcher.prototype._createRule = function (ruleString, params) {
  * @returns {Array}
  * */
 Matcher.prototype.matchAll = function (url) {
-    var matches = [];
     var args;
     var i;
     var l;
-    var rule;
+    var matches = [];
+    var rules = this._rules;
 
-    for (i = 0, l = this._rules.length; i < l; i += 1) {
-        rule = this._rules[i];
-        args = rule.match(url);
+    for (i = 0, l = rules.length; i < l; i += 1) {
+        args = rules[i].match(url);
 
         if (args) {
             matches[matches.length] = {
                 args: args,
-                name: rule.data.name
+                name: rules[i].data.name
             };
         }
     }

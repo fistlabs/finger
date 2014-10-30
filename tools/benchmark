@@ -9,83 +9,123 @@ Benchmark.options.minSamples = 100;
 
 var SusaninRouter = require('susanin');
 var FingerMatcher = require('../core/matcher');
-var FingerRule = require('../core/rule');
-var SusaninRoute = SusaninRouter.Route;
 
 var susaninRouter = new SusaninRouter();
 var fingerMatcher = new FingerMatcher();
 
-susaninRouter.addRoute('/');
-susaninRouter.addRoute('/news/(<postId>/)');
-susaninRouter.addRoute('/upload/');
-susaninRouter.addRoute('/forum/');
+susaninRouter.addRoute({pattern : '/', name: 'r1'});
+susaninRouter.addRoute({pattern : '/a/', name: 'r2'});
+susaninRouter.addRoute({pattern : '/a/(<b>/)', name: 'r3'});
+susaninRouter.addRoute({pattern : '/a/(<b>/c/)', name: 'r4'});
+susaninRouter.addRoute({pattern : '/a/(<b>/c/(<d>/))', name: 'r5'});
+susaninRouter.addRoute({pattern : '/a/(<b>/c/(<d>/e/))', name: 'r6'});
+susaninRouter.addRoute({pattern : '/a/(<b>/c/(<d>/e/(<f>/)))', name: 'r7'});
 
-fingerMatcher.addRule('/');
-fingerMatcher.addRule('/news/(<postId>/)');
-fingerMatcher.addRule('/upload/');
-fingerMatcher.addRule('/forum/');
+fingerMatcher.addRule('/', {name: 'r1'});
+fingerMatcher.addRule('/a/', {name: 'r2'});
+fingerMatcher.addRule('/a/(<b>/)', {name: 'r3'});
+fingerMatcher.addRule('/a/(<b>/c/)', {name: 'r4'});
+fingerMatcher.addRule('/a/(<b>/c/(<d>/))', {name: 'r5'});
+fingerMatcher.addRule('/a/(<b>/c/(<d>/e/))', {name: 'r6'});
+fingerMatcher.addRule('/a/(<b>/c/(<d>/e/(<f>/)))', {name: 'r7'});
 
-var susaninRoute = new SusaninRoute('/news/(<postId>/)');
-var fingerRule = new FingerRule('/news/(<postId>/)');
+var susaninRoute = susaninRouter.getRouteByName('r7');
+var fingerRule = fingerMatcher.getRule('r7');
 
 function benchSusaninRouteMatch() {
-    global.__test__ = susaninRoute.match('/foo/bar/');
-    global.__test__ = susaninRoute.match('/news/42/');
-    global.__test__ = susaninRoute.match('/news/42/?a=42');
-    global.__test__ = susaninRoute.match('/news/');
-    global.__test__ = susaninRoute.match('/news/?a=42');
+    global.__test__ = susaninRoute.match('/');
+    global.__test__ = susaninRoute.match('/a/');
+    global.__test__ = susaninRoute.match('/a/b/');
+    global.__test__ = susaninRoute.match('/a/b/c/');
+    global.__test__ = susaninRoute.match('/a/b/c/d/');
+    global.__test__ = susaninRoute.match('/a/b/c/d/e/');
+    global.__test__ = susaninRoute.match('/a/b/c/d/e/f/');
 }
 
 function benchFingerRuleMatch() {
-    global.__test__ = fingerRule.match('/foo/bar/');
-    global.__test__ = fingerRule.match('/news/42/');
-    global.__test__ = fingerRule.match('/news/42/?a=42');
-    global.__test__ = fingerRule.match('/news/');
-    global.__test__ = fingerRule.match('/news/?a=42');
+    global.__test__ = fingerRule.match('/');
+    global.__test__ = fingerRule.match('/a/');
+    global.__test__ = fingerRule.match('/a/b/');
+    global.__test__ = fingerRule.match('/a/b/c/');
+    global.__test__ = fingerRule.match('/a/b/c/d/');
+    global.__test__ = fingerRule.match('/a/b/c/d/e/');
+    global.__test__ = fingerRule.match('/a/b/c/d/e/f/');
 }
 
 function benchSusaninRouteBuild() {
     global.__test__ = susaninRoute.build();
+    global.__test__ = susaninRoute.build({});
     global.__test__ = susaninRoute.build({
-        postId: 42
+        b: 1
     });
     global.__test__ = susaninRoute.build({
-        x: 43
+        b: 1,
+        d: 2
     });
     global.__test__ = susaninRoute.build({
-        postId: 42,
-        x: 43
+        b: 1,
+        d: 2,
+        f: 3
+    });
+    global.__test__ = susaninRoute.build({
+        b: 1,
+        f: 3
+    });
+    global.__test__ = susaninRoute.build({
+        d: 2,
+        f: 3
+    });
+    global.__test__ = susaninRoute.build({
+        f: 3
     });
 }
 
 function benchFingerRuleBuild() {
     global.__test__ = fingerRule.build();
+    global.__test__ = fingerRule.build({});
     global.__test__ = fingerRule.build({
-        postId: 42
+        b: 1
     });
     global.__test__ = fingerRule.build({
-        x: 43
+        b: 1,
+        d: 2
     });
     global.__test__ = fingerRule.build({
-        postId: 42,
-        x: 43
+        b: 1,
+        d: 2,
+        f: 3
+    });
+    global.__test__ = fingerRule.build({
+        b: 1,
+        f: 3
+    });
+    global.__test__ = fingerRule.build({
+        d: 2,
+        f: 3
+    });
+    global.__test__ = fingerRule.build({
+        f: 3
     });
 }
 
 function benchSusaninRouterFind() {
     global.__test__ = susaninRouter.find('/');
-    global.__test__ = susaninRouter.find('/news/');
-    global.__test__ = susaninRouter.find('/news/42/');
-    global.__test__ = susaninRouter.find('/upload/');
-    global.__test__ = susaninRouter.find('/forum/');
+    global.__test__ = susaninRouter.find('/a/');
+    global.__test__ = susaninRouter.find('/a/b/');
+    global.__test__ = susaninRouter.find('/a/b/c/');
+    global.__test__ = susaninRouter.find('/a/b/c/d/');
+    global.__test__ = susaninRouter.find('/a/b/c/d/e/');
+    global.__test__ = susaninRouter.find('/a/b/c/d/e/f/');
 }
 
 function benchFingerMatcherMatchAll() {
     global.__test__ = fingerMatcher.matchAll('/');
-    global.__test__ = fingerMatcher.matchAll('/news/');
-    global.__test__ = fingerMatcher.matchAll('/news/42/');
-    global.__test__ = fingerMatcher.matchAll('/upload/');
-    global.__test__ = fingerMatcher.matchAll('/forum/');
+    global.__test__ = fingerMatcher.matchAll('/a/');
+    global.__test__ = fingerMatcher.matchAll('/a/b/');
+    global.__test__ = fingerMatcher.matchAll('/a/b/c/');
+    global.__test__ = fingerMatcher.matchAll('/a/b/c/d/');
+    global.__test__ = fingerMatcher.matchAll('/a/b/c/d/e/');
+    global.__test__ = fingerMatcher.matchAll('/a/b/c/d/e/f/');
 }
 
 //  Warm up!

@@ -162,12 +162,13 @@ Router.prototype.matchVerbs = function (url) {
  * */
 Router.prototype.matchAll = function (verb, url) {
     var matches = [];
-    var rules;
+    var names;
     var rule;
     var i;
-    var name;
     var l;
     var args;
+    var rules = this._rules;
+    var index = this._index;
 
     verb = verb.toUpperCase();
 
@@ -176,11 +177,10 @@ Router.prototype.matchAll = function (verb, url) {
     //      return matches;
     //  }
 
-    rules = this._implemented[verb];
+    names = this._implemented[verb];
 
-    for (i = 0, l = rules.length; i < l; i += 1) {
-        name = rules[i];
-        rule = this._rules[this._index[name]];
+    for (i = 0, l = names.length; i < l; i += 1) {
+        rule = rules[index[names[i]]];
         args = rule.match(url);
 
         if (args) {
