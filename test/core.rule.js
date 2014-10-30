@@ -603,6 +603,22 @@ describe('core/rule', function () {
                         }
                     ]
                 ]
+            ],
+            //  SO SPECIAL
+            [
+                [
+                    '/?\\post.t\\ype'
+                ],
+                [
+                    [
+                        '/?post.type=42',
+                        {
+                            post: {
+                                type: '42'
+                            }
+                        }
+                    ]
+                ]
             ]
         ];
 
