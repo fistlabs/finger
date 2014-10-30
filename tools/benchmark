@@ -29,63 +29,63 @@ var susaninRoute = new SusaninRoute('/news/(<postId>/)');
 var fingerRule = new FingerRule('/news/(<postId>/)');
 
 function benchSusaninRouteMatch() {
-    susaninRoute.match('/foo/bar/');
-    susaninRoute.match('/news/42/');
-    susaninRoute.match('/news/42/?a=42');
-    susaninRoute.match('/news/');
-    susaninRoute.match('/news/?a=42');
+    global.__test__ = susaninRoute.match('/foo/bar/');
+    global.__test__ = susaninRoute.match('/news/42/');
+    global.__test__ = susaninRoute.match('/news/42/?a=42');
+    global.__test__ = susaninRoute.match('/news/');
+    global.__test__ = susaninRoute.match('/news/?a=42');
 }
 
 function benchFingerRuleMatch() {
-    fingerRule.match('/foo/bar/');
-    fingerRule.match('/news/42/');
-    fingerRule.match('/news/42/?a=42');
-    fingerRule.match('/news/');
-    fingerRule.match('/news/?a=42');
+    global.__test__ = fingerRule.match('/foo/bar/');
+    global.__test__ = fingerRule.match('/news/42/');
+    global.__test__ = fingerRule.match('/news/42/?a=42');
+    global.__test__ = fingerRule.match('/news/');
+    global.__test__ = fingerRule.match('/news/?a=42');
 }
 
 function benchSusaninRouteBuild() {
-    susaninRoute.build();
-    susaninRoute.build({
+    global.__test__ = susaninRoute.build();
+    global.__test__ = susaninRoute.build({
         postId: 42
     });
-    susaninRoute.build({
+    global.__test__ = susaninRoute.build({
         x: 43
     });
-    susaninRoute.build({
+    global.__test__ = susaninRoute.build({
         postId: 42,
         x: 43
     });
 }
 
 function benchFingerRuleBuild() {
-    fingerRule.build();
-    fingerRule.build({
+    global.__test__ = fingerRule.build();
+    global.__test__ = fingerRule.build({
         postId: 42
     });
-    fingerRule.build({
+    global.__test__ = fingerRule.build({
         x: 43
     });
-    fingerRule.build({
+    global.__test__ = fingerRule.build({
         postId: 42,
         x: 43
     });
 }
 
 function benchSusaninRouterFind() {
-    susaninRouter.find('/');
-    susaninRouter.find('/news/');
-    susaninRouter.find('/news/42/');
-    susaninRouter.find('/upload/');
-    susaninRouter.find('/forum/');
+    global.__test__ = susaninRouter.find('/');
+    global.__test__ = susaninRouter.find('/news/');
+    global.__test__ = susaninRouter.find('/news/42/');
+    global.__test__ = susaninRouter.find('/upload/');
+    global.__test__ = susaninRouter.find('/forum/');
 }
 
 function benchFingerMatcherMatchAll() {
-    fingerMatcher.matchAll('/');
-    fingerMatcher.matchAll('/news/');
-    fingerMatcher.matchAll('/news/42/');
-    fingerMatcher.matchAll('/upload/');
-    fingerMatcher.matchAll('/forum/');
+    global.__test__ = fingerMatcher.matchAll('/');
+    global.__test__ = fingerMatcher.matchAll('/news/');
+    global.__test__ = fingerMatcher.matchAll('/news/42/');
+    global.__test__ = fingerMatcher.matchAll('/upload/');
+    global.__test__ = fingerMatcher.matchAll('/forum/');
 }
 
 //  Warm up!
