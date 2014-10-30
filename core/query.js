@@ -164,29 +164,6 @@ Query.prototype.stringifyPathArg = function (v) {
     return this.stringifyQueryArg(v).replace(/%2F/g, '/');
 };
 
-/**
- * @public
- * @memberOf {Query}
- * @method
- *
- * @param {Object} args
- * @param {String} key
- * @param {*} val
- *
- * @returns {Object}
- * */
-Query.prototype.addValue = function (args, key, val) {
-    if (!hasProperty.call(args, key)) {
-        args[key] = val;
-    } else if (Array.isArray(args[key])) {
-        args[key].push(val);
-    } else {
-        args[key] = [args[key], val];
-    }
-
-    return args;
-};
-
 function deepPush(deepArgs, valuePath, value) {
     var i;
     var l;
@@ -209,7 +186,9 @@ function deepPush(deepArgs, valuePath, value) {
 
     part = parts[l];
 
-    deepArgs[part] = value;
+    if (!hasProperty.call(deepArgs, part)) {
+        deepArgs[part] = value;
+    }
 
     return deepArgs[part];
 }

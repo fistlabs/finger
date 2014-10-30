@@ -219,6 +219,17 @@ describe('core/query', function () {
                         }
                     }
                 }
+            ],
+            [
+                {
+                    'a.b': 42,
+                    a: 11
+                },
+                {
+                    a: {
+                        b: 42
+                    }
+                }
             ]
         ];
         var query = new Query();
@@ -232,30 +243,6 @@ describe('core/query', function () {
             shouldText = util.format(shouldText, s[0], s[1]);
             it(shouldText, function () {
                 assert.deepEqual(query.deeper(s[0]), s[1]);
-            });
-        });
-    });
-
-    describe('{Query}.addValue', function () {
-        it('Should have own method "addValue"', function () {
-            var query = new Query();
-            assert.strictEqual(typeof query.addValue, 'function');
-        });
-
-        it('Should add value to object', function () {
-            var query = new Query();
-            var o = {};
-            query.addValue(o, 'test', 1);
-            assert.deepEqual(o, {
-                test: 1
-            });
-            query.addValue(o, 'test', 2);
-            assert.deepEqual(o, {
-                test: [1, 2]
-            });
-            query.addValue(o, 'test', 3);
-            assert.deepEqual(o, {
-                test: [1, 2, 3]
             });
         });
     });
