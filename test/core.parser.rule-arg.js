@@ -43,9 +43,9 @@ describe('core/parser/rule-arg', function () {
             assert.ok(rule.hasOwnProperty('name'));
         });
 
-        it('Should be a String', function () {
+        it('Should be an Array', function () {
             var rule = new RuleArg();
-            assert.strictEqual(typeof rule.name, 'string');
+            assert.ok(Array.isArray(rule.name));
         });
     });
 
@@ -75,37 +75,25 @@ describe('core/parser/rule-arg', function () {
         });
     });
 
-    describe('RuleArg.normalizeName', function () {
+    describe('{RuleArg}.setName', function () {
 
-        it('Should have static method "normalizeName"', function () {
-            assert.strictEqual(typeof RuleArg.normalizeName, 'function');
-        });
-
-        it('Should unescape all chars except "."', function () {
-            assert.strictEqual(RuleArg.normalizeName('\\a.b\\.c'), 'a.b\\.c');
-            assert.strictEqual(RuleArg.normalizeName('\\a\\.b\\.c'), 'a\\.b\\.c');
-        });
-    });
-
-    describe('{RuleArg}.addText', function () {
-
-        it('Should have own method "addText"', function () {
+        it('Should have own method "setName"', function () {
             var rule = new RuleArg();
-            assert.strictEqual(typeof rule.addText, 'function');
+            assert.strictEqual(typeof rule.setName, 'function');
         });
 
         it('Should add text to {RuleArg}.name', function () {
             var rule = new RuleArg();
-            assert.strictEqual(rule.name, '');
-            rule.addText('a');
-            assert.strictEqual(rule.name, 'a');
-            rule.addText('.b\\.\\c');
-            assert.strictEqual(rule.name, 'a.b\\.c');
+            assert.strictEqual(rule.getName(), '');
+            rule.setName('a');
+            assert.strictEqual(rule.getName(), 'a');
+            rule.setName('a.b\\.\\c');
+            assert.strictEqual(rule.getName(), 'a.b\\.c');
         });
 
         it('Should return {RuleArg} (self)', function () {
             var rule = new RuleArg();
-            assert.strictEqual(rule.addText('x'), rule);
+            assert.strictEqual(rule.setName('x'), rule);
         });
     });
 
@@ -146,6 +134,17 @@ describe('core/parser/rule-arg', function () {
         it('Should return {RuleArg} (self)', function () {
             var rule = new RuleArg();
             assert.strictEqual(rule.setRequired(true), rule);
+        });
+    });
+
+    describe('RuleArg.build', function () {
+        it('Should have static method "build"', function () {
+            assert.strictEqual(typeof RuleArg.build, 'function');
+        });
+
+        it('Should correctly build name', function () {
+            assert.strictEqual(RuleArg.build(['a', 'b']), 'a.b');
+            assert.strictEqual(RuleArg.build(['a.b\\.c', 'd']), 'a\\.b\\\\\\.c.d');
         });
     });
 

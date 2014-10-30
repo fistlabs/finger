@@ -1,5 +1,6 @@
 'use strict';
 
+var Obus = require('obus');
 var RuleAny = /** @type RuleAny */ require('./rule-any');
 
 /**
@@ -19,9 +20,9 @@ function RuleArg() {
      * @public
      * @memberOf {RuleArg}
      * @property
-     * @type {String}
+     * @type {Array}
      * */
-    this.name = '';
+    this.name = [];
 
     /**
      * @public
@@ -54,16 +55,36 @@ RuleArg.TYPE = 'RULE_ARG';
  * @memberOf {RuleArg}
  * @method
  *
- * @param {String} text
+ * @param {String} name
  *
  * @returns {RuleArg}
  * */
-RuleArg.prototype.addText = function (text) {
-    text = RuleArg.normalizeName(text);
-
-    this.name += text;
+RuleArg.prototype.setName = function (name) {
+    this.name = RuleArg.parse(name);
 
     return this;
+};
+
+/**
+ * @public
+ * @memberOf {RuleArg}
+ * @method
+ *
+ * @returns {String}
+ * */
+RuleArg.prototype.getName = function () {
+    return RuleArg.build(this.name);
+};
+
+/**
+ * @public
+ * @memberOf {RuleArg}
+ * @method
+ *
+ * @returns {String}
+ * */
+RuleArg.prototype.getRawName = function () {
+    return RuleAny.unBackSlash(this.getName());
 };
 
 /**
@@ -98,19 +119,13 @@ RuleArg.prototype.setKind = function (type) {
     return this;
 };
 
-/**
- * @public
- * @static
- * @memberOf {RuleArg}
- * @method
- *
- * @param {String} name
- *
- * @returns {String}
- * */
-RuleArg.normalizeName = function (name) {
+RuleArg.escape = Obus.escape;
 
-    return name.replace(/\\([^.])/g, '$1');
+RuleArg.parse = Obus.parse;
+
+RuleArg.build = function (parts) {
+
+    return parts.map(RuleArg.escape).join('.');
 };
 
 module.exports = RuleArg;

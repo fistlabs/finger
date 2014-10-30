@@ -1,9 +1,12 @@
 /*global describe, it*/
+/*eslint no-extend-native: 0*/
 'use strict';
 
 var _ = require('lodash-node');
 var assert = require('assert');
 var util = require('util');
+
+Object.prototype.bug = 42;
 
 describe('core/query', function () {
     /*eslint max-nested-callbacks: 0*/

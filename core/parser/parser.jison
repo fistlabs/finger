@@ -111,7 +111,7 @@ KIND :
 
 NAME :
     ALL {
-        $$ = yy.createRuleArg().addText($1);
+        $$ = yy.createRuleArg().setName($1);
     }
     ;
 

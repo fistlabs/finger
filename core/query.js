@@ -1,6 +1,6 @@
 'use strict';
 
-var Obus = /** @type Obus */ require('obus');
+var RuleArg = require('./parser/rule-arg');
 
 var hasProperty = Object.prototype.hasOwnProperty;
 
@@ -165,7 +165,7 @@ function deepPush(deepArgs, valuePath, value) {
     var i;
     var l;
     var part;
-    var parts = Obus.parse(valuePath);
+    var parts = RuleArg.parse(valuePath);
 
     for (i = 0, l = parts.length - 1; i < l; i += 1) {
         part = parts[i];
