@@ -1,7 +1,6 @@
 'use strict';
 
 var Obus = /** @type Obus */ require('obus');
-var RuleArg = /** @type RuleArg */ require('./parser/rule-arg');
 
 var hasProperty = Object.prototype.hasOwnProperty;
 
@@ -92,8 +91,6 @@ Query.prototype.parse = function (queryString) {
             key = this.unescape(pair.substr(0, eqIndex));
             val = this.unescape(pair.substr(eqIndex + 1));
         }
-
-        key = RuleArg.normalizeName(key);
 
         if (hasProperty.call(queryObject, key)) {
             queryObject[key].push(val);

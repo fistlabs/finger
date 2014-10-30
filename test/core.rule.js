@@ -448,12 +448,7 @@ describe('core/rule', function () {
                     ],
                     [
                         '/foo/?\\page.n\\ame=bar',
-                        {
-                            page: {
-                                type: 'foo',
-                                name: 'bar'
-                            }
-                        }
+                        null
                     ]
                 ]
             ],

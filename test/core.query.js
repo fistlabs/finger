@@ -110,7 +110,7 @@ describe('core/query', function () {
             [
                 '\\a.b=42',
                 {
-                    'a.b': ['42']
+                    '\\a.b': ['42']
                 }
             ],
             [
