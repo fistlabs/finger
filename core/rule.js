@@ -328,7 +328,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                     //  if (value === undefined || value === null || value === '') {
                     this.__createAstPresetValueCheckExpression('||', '==='),
                     [
-                        //  part[part.length] = `this._query.escape(part.getName())`;
+                        //  part[part.length] = `this._query.escape(part.getRawName())`;
                         this.__createAstTypeExpressionStatement(
                             this.__createAstTypeAssignmentExpression('=',
                                 this.__createAstTypeMemberExpression(
@@ -339,23 +339,23 @@ Rule.prototype.__compileBuilderFunc = function () {
                                     ),
                                     true
                                 ),
-                                this.__createAstTypeLiteral(this._query.escape(part.getName()))
+                                this.__createAstTypeLiteral(this._query.escape(part.getRawName()))
                             )
                         )],
                     //  else
                     [
-                        //  part[part.length] = `this._query.escape(part.getName()) +
+                        //  part[part.length] = `this._query.escape(part.getRawName()) +
                         //      this._query.params.eq` + this._query.stringifyQueryArg(value);
-                        this.__createAstPresetAddQueryArg(part.getName())]));
+                        this.__createAstPresetAddQueryArg(part.getRawName())]));
         } else {
             body.push(
                 this.__createAstTypeIfStatement(
                     //  if (value !== undefined && value !== null && value !== '') {
                     this.__createAstPresetValueCheckExpression('&&', '!=='),
                     [
-                        //  part += `this._query.escape(part.getName() + query.params.eq` +
+                        //  part += `this._query.escape(part.getRawName() + query.params.eq` +
                         //      this._query.stringifyQueryArg(value);
-                        this.__createAstPresetAddQueryArg(part.getName())]));
+                        this.__createAstPresetAddQueryArg(part.getRawName())]));
 
         }
     }

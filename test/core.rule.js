@@ -902,6 +902,44 @@ describe('core/rule', function () {
                         }
                     ]
                 ]
+            ],
+            //  SPECIAL CASES
+
+            [
+                '/<foo.bar>/?foo\\.bar',
+                [
+                    [
+                        '/foo/?foo.bar=42',
+                        {
+                            foo: {
+                                bar: 'foo'
+                            },
+                            'foo.bar': '42'
+                        }
+                    ]
+                ]
+            ],
+            [
+                '/<\\foo\\.ba\\r>/&f\\oo\\.bar',
+                [
+                    [
+                        '/foo/?foo.bar=42',
+                        {
+                            'foo.bar': ['foo', '42']
+                        }
+                    ]
+                ]
+            ],
+            [
+                '/?f\\\\oo\\.bar',
+                [
+                    [
+                        '/?f%5Coo.bar=42',
+                        {
+                            'f\\oo.bar': '42'
+                        }
+                    ]
+                ]
             ]
         ];
 
