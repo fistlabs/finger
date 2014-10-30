@@ -39,7 +39,7 @@ function Type(name, source) {
      * @property
      * @type {RegExp}
      * */
-    this.__checkRegExp = new RegExp('^' + source + '$');
+    this.__checkRegExp = new RegExp('^(?:' + source + ')$');
 }
 
 Type.prototype.name = 'Empty';
