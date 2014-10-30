@@ -109,6 +109,14 @@ function Rule(ruleString, params) {
      * @protected
      * @memberOf {Rule}
      * @property
+     * @type {Object}
+     * */
+    this._emptyArgs = this.__compileEmptyArgs();
+
+    /**
+     * @protected
+     * @memberOf {Rule}
+     * @property
      * @type {Function}
      * */
     this._matcherFunc = this.__compileMatcherFunc();
@@ -425,9 +433,8 @@ Rule.prototype.__compileMatcherFunc = function () {
     var l = pathArgsOrder.length;
 
     body.push(
-        //  var args = null;
-        this.__createAstTypeVarDeclaration('args',
-            this.__createAstTypeLiteral(null)),
+        //  var args;
+        this.__createAstTypeVarDeclaration('args'),
         //  var match = this._matchRegExp.exec(url);
         this.__createAstTypeVarDeclaration('match',
             this.__createAstTypeCallExpression(
@@ -453,34 +460,7 @@ Rule.prototype.__compileMatcherFunc = function () {
             [
                 //  return null;
                 this.__createAstTypeReturnStatement(
-                    this.__createAstTypeIdentifier('args'))]));
-
-    //  Need to match query
-    if (this._pathRule.args.length) {
-        body.push(
-            //  queryObject = this.matchQueryString(match[`l + 1`]);
-            this.__createAstTypeExpressionStatement(
-                this.__createAstTypeAssignmentExpression('=',
-                    this.__createAstTypeIdentifier('queryObject'),
-                    this.__createAstTypeCallExpression(
-                        this.__createAstTypeMemberExpression(
-                            this.__createAstTypeIdentifier('this'),
-                            this.__createAstTypeIdentifier('matchQueryString')),
-                        [
-                            this.__createAstTypeMemberExpression(
-                                this.__createAstTypeIdentifier('match'),
-                                this.__createAstTypeLiteral(l + 1),
-                                true)]))),
-            //  if (queryObject === null) {
-            this.__createAstTypeIfStatement(
-                this.__createAstTypeBinaryExpression('===',
-                    this.__createAstTypeIdentifier('queryObject'),
-                    this.__createAstTypeLiteral(null)),
-                [
-                    //  return null;
-                    this.__createAstTypeReturnStatement(
-                        this.__createAstTypeIdentifier('args'))]));
-    }
+                    this.__createAstTypeLiteral(null))]));
 
     //  args = {};
     body.push(
@@ -552,6 +532,30 @@ Rule.prototype.__compileMatcherFunc = function () {
     }
 
     if (this._pathRule.args.length) {
+        body.push(
+            //  queryObject = this.matchQueryString(match[`l + 1`]);
+            this.__createAstTypeExpressionStatement(
+                this.__createAstTypeAssignmentExpression('=',
+                    this.__createAstTypeIdentifier('queryObject'),
+                    this.__createAstTypeCallExpression(
+                        this.__createAstTypeMemberExpression(
+                            this.__createAstTypeIdentifier('this'),
+                            this.__createAstTypeIdentifier('matchQueryString')),
+                        [
+                            this.__createAstTypeMemberExpression(
+                                this.__createAstTypeIdentifier('match'),
+                                this.__createAstTypeLiteral(l + 1),
+                                true)]))),
+            //  if (queryObject === null) {
+            this.__createAstTypeIfStatement(
+                this.__createAstTypeBinaryExpression('===',
+                    this.__createAstTypeIdentifier('queryObject'),
+                    this.__createAstTypeLiteral(null)),
+                [
+                    //  return null;
+                    this.__createAstTypeReturnStatement(
+                        this.__createAstTypeLiteral(null))]));
+
         body.push(
             //  queryObject = this._query.deeper(queryObject);
             this.__createAstTypeExpressionStatement(
@@ -911,7 +915,158 @@ Rule.prototype.__compileQueryMatcherFunc = function () {
     return new Function('hasProperty', 'return ' + func)(hasProperty);
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} path
+ *
+ * @returns {Boolean}
+ * */
+Rule.prototype.__hasParameterValue = function (path) {
+    var args = this._emptyArgs;
+    var parts = Obus.parse(path);
+    var i;
+    var l;
+    var part;
+
+    for (i = 0, l = args.length; i < l; i += 1) {
+        part = parts[i];
+
+        if (Object(args) === args && hasProperty.call(args, part)) {
+            args = args[part];
+            continue;
+        }
+
+        return false;
+    }
+
+    return true;
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__compileEmptyArgs = function () {
+    var i;
+    var l;
+    var pArgs = this._pathArgsOrder;
+    var qArgs = this._pathRule.args.map(function (rule) {
+        return rule.name;
+    });
+    var pEmptyArgs = {};
+    var qEmptyArgs = {};
+
+    for (i = 0, l = pArgs.length; i < l; i += 1) {
+        if (!hasProperty.call(pEmptyArgs, pArgs[i])) {
+            pEmptyArgs[pArgs[i]] = void 0;
+        } else if (Array.isArray(pEmptyArgs[pArgs[i]])) {
+            pEmptyArgs[pArgs[i]].push(void 0);
+        } else {
+            pEmptyArgs[pArgs[i]] = [pEmptyArgs[pArgs[i]], void 0];
+        }
+    }
+
+    pEmptyArgs = this._query.deeper(pEmptyArgs);
+
+    for (i = 0, l = qArgs.length; i < l; i += 1) {
+        if (!hasProperty.call(qEmptyArgs, qArgs[i])) {
+            qEmptyArgs[qArgs[i]] = void 0;
+        } else if (Array.isArray(qEmptyArgs[qArgs[i]])) {
+            qEmptyArgs[qArgs[i]].push(qArgs[i]);
+        } else {
+            qEmptyArgs[qArgs[i]] = [qEmptyArgs[qArgs[i]], void 0];
+        }
+    }
+
+    qEmptyArgs = this._query.deeper(qEmptyArgs);
+
+    return this.__mergeArgs(pEmptyArgs, qEmptyArgs);
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__createAstPresetEmptyArgs = function () {
+    var emptyArgs = this._emptyArgs;
+    return this.__createAstObjectByObject(emptyArgs);
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {Object} obj
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__createAstObjectByObject = function (obj) {
+    var ast;
+    var i;
+    var undef;
+    var value;
+
+    if (Object(obj) !== obj || Array.isArray(obj)) {
+        undef = this.__createAstTypeIdentifier('undefined');
+
+        if (Array.isArray(obj)) {
+            value = new Array(obj.length).join('|').split('|').map(function () {
+                return undef;
+            }, this);
+            return this.__createAstTypeArrayExpression(value);
+        }
+
+        return undef;
+    }
+
+    ast = this.__createAstTypeObjectExpression([]);
+
+    for (i in obj) {
+        if (hasProperty.call(obj, i)) {
+            value = {
+                type: 'Property',
+                key: this.__createAstTypeIdentifier(i),
+                value: this.__createAstObjectByObject(obj[i])
+            };
+            ast.properties.push(value);
+        }
+    }
+
+    return ast;
+};
+
 //  Ast presets
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} name
+ * @param {Array<String>} parts
+ * */
+Rule.prototype.__createAstPresetDeepAccessor = function (name, parts) {
+    var object = this.__createAstTypeIdentifier(name);
+    var i;
+    var l;
+
+    for (i = 0, l = parts.length; i < l; i += 1) {
+        object = this.__createAstTypeMemberExpression(object,
+            this.__createAstTypeLiteral(parts[i]), true);
+    }
+
+    return object;
+};
 
 /**
  * @private
@@ -1314,7 +1469,6 @@ Rule.prototype.__createAstTypeCallExpression = function (callee, args) {
  * @returns {Object}
  * */
 Rule.prototype.__createAstTypeIfStatement = function (test, consequent, alternate) {
-
     return {
         type: 'IfStatement',
         test: test,

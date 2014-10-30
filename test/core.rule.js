@@ -176,94 +176,6 @@ describe('core/rule', function () {
         });
     });
 
-    describe('{Rule}.matchQueryString', function () {
-        it('Should have own "matchQueryString" method', function () {
-            var rule = new Rule('/');
-            assert.strictEqual(typeof rule.matchQueryString, 'function');
-        });
-
-        var samples = [
-            [
-                '/?a',
-                [
-                    [
-                        'a=42',
-                        {
-                            a: '42'
-                        }
-                    ],
-                    [
-                        'a=42&a=43',
-                        {
-                            a: '42'
-                        }
-                    ],
-                    [
-                        'a',
-                        null
-                    ],
-                    [
-                        '',
-                        {
-                            a: void 0
-                        }
-                    ]
-                ]
-            ],
-            [
-                '/&a?a',
-                [
-                    [
-                        'a=42&a=43',
-                        {
-                            a: ['42', '43']
-                        }
-                    ],
-                    [
-                        'a=42',
-                        {
-                            a: ['42', void 0]
-                        }
-                    ],
-                    [
-                        'a',
-                        null
-                    ],
-                    [
-                        'a=42&b=43&a=44',
-                        {
-                            a: ['42', '44']
-                        }
-                    ]
-                ]
-            ],
-            [
-                '/<foo>/?foo?foo',
-                [
-                    [
-                        'foo=42',
-                        {
-                            foo: ['42', void 0]
-                        }
-                    ]
-                ]
-            ]
-        ];
-
-        _.forEach(samples, function (sample) {
-            var title = 'Should match %j and return %j';
-            var rule = new Rule(sample[0]);
-            describe(sample[0], function () {
-                _.forEach(sample[1], function (s) {
-                    var shouldText = util.format(title, s[0], s[1]);
-                    it(shouldText, function () {
-                        assert.deepEqual(rule.matchQueryString(s[0]), s[1]);
-                    });
-                });
-            });
-        });
-    });
-
     describe('{Rule}.match', function () {
         var samples = [
             //  sample example
@@ -403,8 +315,79 @@ describe('core/rule', function () {
                 ]
             ],
             /*
-            * + QUERY_ARGS
-            * */
+             * + QUERY_ARGS
+             * */
+            [
+                [
+                    '/?a'
+                ],
+                [
+                    [
+                        '/?a=42',
+                        {
+                            a: '42'
+                        }
+                    ],
+                    [
+                        '/?a=42&a=43',
+                        {
+                            a: '42'
+                        }
+                    ],
+                    [
+                        '/?a',
+                        null
+                    ],
+                    [
+                        '/',
+                        {
+                            a: void 0
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/&a?a'
+                ],
+                [
+                    [
+                        '/?a=42&a=43',
+                        {
+                            a: ['42', '43']
+                        }
+                    ],
+                    [
+                        '/?a=42',
+                        {
+                            a: ['42', void 0]
+                        }
+                    ],
+                    [
+                        '/?a',
+                        null
+                    ],
+                    [
+                        '/?a=42&b=43&a=44',
+                        {
+                            a: ['42', '44']
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<foo>/?foo?foo'
+                ],
+                [
+                    [
+                        '/news/?foo=42',
+                        {
+                            foo: ['news', '42', void 0]
+                        }
+                    ]
+                ]
+            ],
             [
                 [
                     '/'
@@ -576,6 +559,22 @@ describe('core/rule', function () {
                         '/bar/?foo=baz&foo=zot',
                         {
                             foo: ['bar', 'baz', 'zot']
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/news/<post.id>/?post.tag?post.tag?post'
+                ],
+                [
+                    [
+                        '/news/42/',
+                        {
+                            post: {
+                                id: '42',
+                                tag: [void 0, void 0]
+                            }
                         }
                     ]
                 ]

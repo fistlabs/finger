@@ -209,7 +209,9 @@ function deepPush(deepArgs, valuePath, value) {
 
     part = parts[l];
 
-    deepArgs[part] = value;
+    if (!hasProperty.call(deepArgs, part)) {
+        deepArgs[part] = value;
+    }
 
     return deepArgs[part];
 }

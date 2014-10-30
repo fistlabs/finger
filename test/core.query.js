@@ -219,6 +219,17 @@ describe('core/query', function () {
                         }
                     }
                 }
+            ],
+            [
+                {
+                    'a.b': 42,
+                    a: 11
+                },
+                {
+                    a: {
+                        b: 42
+                    }
+                }
             ]
         ];
         var query = new Query();
