@@ -76,7 +76,7 @@ describe('core/parser/parser', function () {
                     parts: [
                         {
                             type: RuleArg.TYPE,
-                            name: 'foo',
+                            name: ['foo'],
                             kind: '',
                             required: true
                         }
@@ -104,7 +104,7 @@ describe('core/parser/parser', function () {
                             parts: [
                                 {
                                     type: RuleArg.TYPE,
-                                    name: 'postId',
+                                    name: ['postId'],
                                     kind: '',
                                     required: true
                                 },
@@ -130,7 +130,7 @@ describe('core/parser/parser', function () {
                     args: [
                         {
                             type: RuleArg.TYPE,
-                            name: 'a',
+                            name: ['a'],
                             kind: '',
                             required: true
                         }
@@ -144,7 +144,7 @@ describe('core/parser/parser', function () {
                     parts: [
                         {
                             type: RuleArg.TYPE,
-                            name: 'name',
+                            name: ['name'],
                             kind: 'kind',
                             required: true
                         }
@@ -162,7 +162,7 @@ describe('core/parser/parser', function () {
                         },
                         {
                             type: RuleArg.TYPE,
-                            name: 'name',
+                            name: ['name'],
                             kind: '',
                             required: true
                         }
@@ -170,13 +170,13 @@ describe('core/parser/parser', function () {
                     args: [
                         {
                             type: RuleArg.TYPE,
-                            name: 'type',
+                            name: ['type'],
                             kind: '',
                             required: true
                         },
                         {
                             type: RuleArg.TYPE,
-                            name: 'value',
+                            name: ['value'],
                             kind: '',
                             required: false
                         }

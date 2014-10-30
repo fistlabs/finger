@@ -6,7 +6,6 @@ var RuleArg = /** @type RuleArg */ require('./parser/rule-arg');
 var RuleSep = /** @type RuleSep */ require('./parser/rule-sep');
 var RuleSeq = /** @type RuleSeq */ require('./parser/rule-seq');
 
-var Obus = /** @type Obus */ require('obus');
 var Query = /** @type Query */ require('./query');
 
 var Tools = /** @type Tools */ require('./tools');
@@ -277,7 +276,7 @@ Rule.prototype.__compileBuilderFunc = function () {
         }
 
         body.push(
-            this.__createAstPresetValueGetter(part.name),
+            this.__createAstPresetValueGetter(part.getName()),
             this.__createAstPresetGetNthValueIfArray(part.used));
 
         if (n > 1) {
@@ -320,7 +319,7 @@ Rule.prototype.__compileBuilderFunc = function () {
         part = args[i];
 
         body.push(
-            this.__createAstPresetValueGetter(part.name),
+            this.__createAstPresetValueGetter(part.getName()),
             this.__createAstPresetGetNthValueIfArray(part.used));
 
         if (part.required) {
@@ -329,7 +328,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                     //  if (value === undefined || value === null || value === '') {
                     this.__createAstPresetValueCheckExpression('||', '==='),
                     [
-                        //  part[part.length] = `this._query.escape(part.name)`;
+                        //  part[part.length] = `this._query.escape(part.getRawName())`;
                         this.__createAstTypeExpressionStatement(
                             this.__createAstTypeAssignmentExpression('=',
                                 this.__createAstTypeMemberExpression(
@@ -340,23 +339,23 @@ Rule.prototype.__compileBuilderFunc = function () {
                                     ),
                                     true
                                 ),
-                                this.__createAstTypeLiteral(this._query.escape(part.name))
+                                this.__createAstTypeLiteral(this._query.escape(part.getRawName()))
                             )
                         )],
                     //  else
                     [
-                        //  part[part.length] = `this._query.escape(part.name) +
+                        //  part[part.length] = `this._query.escape(part.getRawName()) +
                         //      this._query.params.eq` + this._query.stringifyQueryArg(value);
-                        this.__createAstPresetAddQueryArg(part.name)]));
+                        this.__createAstPresetAddQueryArg(part.getRawName())]));
         } else {
             body.push(
                 this.__createAstTypeIfStatement(
                     //  if (value !== undefined && value !== null && value !== '') {
                     this.__createAstPresetValueCheckExpression('&&', '!=='),
                     [
-                        //  part += `this._query.escape(part.name) + query.params.eq` +
+                        //  part += `this._query.escape(part.getRawName() + query.params.eq` +
                         //      this._query.stringifyQueryArg(value);
-                        this.__createAstPresetAddQueryArg(part.name)]));
+                        this.__createAstPresetAddQueryArg(part.getRawName())]));
 
         }
     }
@@ -450,7 +449,7 @@ Rule.prototype.__compileMatcherFunc = function () {
 
     for (i = 0, l = pathParams.length; i < l; i += 1) {
         rule = pathParams[i];
-        name = rule.name;
+        name = rule.getName();
         if (!this.__hasParameterValue(name)) {
             continue;
         }
@@ -529,13 +528,13 @@ Rule.prototype.__compileMatcherFunc = function () {
 
         for (i = 0, l = this._pathRule.args.length; i < l; i += 1) {
             rule = this._pathRule.args[i];
-            name = rule.name;
+            name = rule.getName();
 
             body.push(
                 this.__createAstPresetResetValue(),
-                this.__createAstPresetIfQueryHas(name,
+                this.__createAstPresetIfQueryHas(rule.getRawName(),
                     [
-                        this.__createAstPresetGetQueryValue(name),
+                        this.__createAstPresetGetQueryValue(rule.getRawName()),
                         this.__createAstPresetGetNthValueIfArray(queryParamsCounter[name])]),
                 this.__createAstTypeExpressionStatement(
                     this.__createAstTypeAssignmentExpression('=',
@@ -721,18 +720,18 @@ Rule.prototype.__compileMatchRegExpPartStatic = function (part) {
  * @returns {Object}
  * */
 Rule.prototype.__compileTypes = function () {
-    var name;
+    var kind;
     var types = {};
 
-    for (name in Rule.builtinTypes) {
-        if (hasProperty.call(Rule.builtinTypes, name)) {
-            types[name] = new Type(name, Rule.builtinTypes[name]);
+    for (kind in Rule.builtinTypes) {
+        if (hasProperty.call(Rule.builtinTypes, kind)) {
+            types[kind] = new Type(kind, Rule.builtinTypes[kind]);
         }
     }
 
-    for (name in this.params.types) {
-        if (hasProperty.call(this.params.types, name)) {
-            types[name] = new Type(name, this.params.types[name]);
+    for (kind in this.params.types) {
+        if (hasProperty.call(this.params.types, kind)) {
+            types[kind] = new Type(kind, this.params.types[kind]);
         }
     }
 
@@ -751,26 +750,29 @@ Rule.prototype.__createParamsIndex = function () {
     var l;
     var order = this._pathParams;
     var index = Object.create(null);
+    var name;
 
     for (i = 0, l = order.length; i < l; i += 1) {
-        if (index[order[i].name]) {
-            index[order[i].name] += 1;
+        name = order[i].getName();
+        if (index[name]) {
+            index[name] += 1;
 
             continue;
         }
 
-        index[order[i].name] = 1;
+        index[name] = 1;
     }
 
     order = this._pathRule.args;
 
     for (i = 0, l = order.length; i < l; i += 1) {
-        if (index[order[i].name]) {
-            index[order[i].name] += 1;
+        name = order[i].getName();
+        if (index[name]) {
+            index[name] += 1;
             continue;
         }
 
-        index[order[i].name] = 1;
+        index[name] = 1;
     }
 
     return index;
@@ -790,7 +792,7 @@ Rule.prototype.__createQueryParamsCounter = function () {
     var order = this._pathRule.args;
 
     for (i = 0, l = order.length; i < l; i += 1) {
-        index[order[i].name] = 0;
+        index[order[i].getName()] = 0;
     }
 
     return index;
@@ -829,7 +831,7 @@ Rule.prototype._compilePathRule = function () {
     var defaultType = 'Segment';
 
     function useArg(rule) {
-        var name = rule.name;
+        var name = rule.getName();
 
         if (!rule.kind) {
             rule.kind = defaultType;
@@ -874,7 +876,7 @@ Rule.prototype._compilePathRule = function () {
  * */
 Rule.prototype.__hasParameterValue = function (path) {
     var args = this._emptyArgs;
-    var parts = Obus.parse(path);
+    var parts = RuleArg.parse(path);
     var i;
     var l;
     var part;
@@ -910,7 +912,7 @@ Rule.prototype.__compileEmptyArgs = function () {
     var name;
 
     for (i = 0, l = pArgs.length; i < l; i += 1) {
-        name = pArgs[i].name;
+        name = pArgs[i].getName();
         if (!hasProperty.call(pEmptyArgs, name)) {
             pEmptyArgs[name] = void 0;
         } else if (Array.isArray(pEmptyArgs[name])) {
@@ -923,7 +925,7 @@ Rule.prototype.__compileEmptyArgs = function () {
     pEmptyArgs = this._query.deeper(pEmptyArgs);
 
     for (i = 0, l = qArgs.length; i < l; i += 1) {
-        name = qArgs[i].name;
+        name = qArgs[i].getName();
         if (!hasProperty.call(qEmptyArgs, name)) {
             qEmptyArgs[name] = void 0;
         } else if (Array.isArray(qEmptyArgs[name])) {
@@ -1007,7 +1009,7 @@ Rule.prototype.__createAstObjectByObject = function (obj) {
  * @returns {Object}
  * */
 Rule.prototype.__createAstPresetDeepAccessor = function (name, path) {
-    var parts = Obus.parse(path);
+    var parts = RuleArg.parse(path);
     var object = this.__createAstTypeIdentifier(name);
     var i;
     var l;
@@ -1054,7 +1056,7 @@ Rule.prototype.__createAstPresetValueCheckExpression = function (logicalOp, bina
  * @returns {Object}
  * */
 Rule.prototype.__createAstPresetValueGetter = function (path) {
-    var parts = Obus.parse(path);
+    var parts = RuleArg.parse(path);
     var i;
     var l;
     var body = [];

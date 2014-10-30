@@ -79,7 +79,7 @@ describe('core/rule', function () {
                         type: RuleArg.TYPE,
                         kind: 'Segment',
                         used: 0,
-                        name: 'foo',
+                        name: ['foo'],
                         required: true
                     }
                 ],
@@ -88,7 +88,7 @@ describe('core/rule', function () {
                         type: RuleArg.TYPE,
                         kind: 'Free',
                         used: 0,
-                        name: 'bar',
+                        name: ['bar'],
                         required: false
                     }
                 ]
@@ -103,7 +103,7 @@ describe('core/rule', function () {
             it('Should create path args order', function () {
                 var pathArgsOrder = rule.getPathArgsOrder();
                 assert.deepEqual(pathArgsOrder.map(function (rule) {
-                    return rule.name;
+                    return rule.getName();
                 }), [
                     'a',
                     'a',
@@ -448,12 +448,7 @@ describe('core/rule', function () {
                     ],
                     [
                         '/foo/?\\page.n\\ame=bar',
-                        {
-                            page: {
-                                type: 'foo',
-                                name: 'bar'
-                            }
-                        }
+                        null
                     ]
                 ]
             ],
@@ -608,6 +603,92 @@ describe('core/rule', function () {
                         }
                     ]
                 ]
+            ],
+            //  SO SPECIAL
+            [
+                [
+                    '/?\\post.t\\ype'
+                ],
+                [
+                    [
+                        '/?post.type=42',
+                        {
+                            post: {
+                                type: '42'
+                            }
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/?post\\.type'
+                ],
+                [
+                    [
+                        '/?post.type=42',
+                        {
+                            'post.type': '42'
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/?a\\.b.c'
+                ],
+                [
+                    [
+                        '/?a.b.c=42',
+                        {
+                            'a.b': {
+                                c: '42'
+                            }
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<\\foo\\.bar>/?f\\oo\\.bar'
+                ],
+                [
+                    [
+                        '/bar/?foo.bar=baz',
+                        {
+                            'foo.bar': ['bar', 'baz']
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<foo.bar>/?foo\\.bar'
+                ],
+                [
+                    [
+                        '/bar/?foo.bar=baz',
+                        {
+                            foo: {
+                                bar: 'bar'
+                            },
+                            'foo.bar': 'baz'
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/?f\\\\oo\\.bar'
+                ],
+                [
+                    [
+                        '/?f\\oo.bar=42',
+                        {
+                            'f\\oo.bar': '42'
+                        }
+                    ]
+                ]
             ]
         ];
 
@@ -633,6 +714,13 @@ describe('core/rule', function () {
 
                     it(shouldText, function () {
                         assert.deepEqual(rule.match(s[0]), s[1]);
+                        //  try {
+                        //
+                        //      assert.deepEqual(rule.match(s[0]), s[1]);
+                        //  } catch (err) {
+                        //      console.log(rule._matcherFunc + '');
+                        //      throw err;
+                        //  }
                     });
                 });
             });
@@ -811,6 +899,44 @@ describe('core/rule', function () {
                         {
                             pathname: '/foo/bar/',
                             renderer: '/foo/'
+                        }
+                    ]
+                ]
+            ],
+            //  SPECIAL CASES
+
+            [
+                '/<foo.bar>/?foo\\.bar',
+                [
+                    [
+                        '/foo/?foo.bar=42',
+                        {
+                            foo: {
+                                bar: 'foo'
+                            },
+                            'foo.bar': '42'
+                        }
+                    ]
+                ]
+            ],
+            [
+                '/<\\foo\\.ba\\r>/&f\\oo\\.bar',
+                [
+                    [
+                        '/foo/?foo.bar=42',
+                        {
+                            'foo.bar': ['foo', '42']
+                        }
+                    ]
+                ]
+            ],
+            [
+                '/?f\\\\oo\\.bar',
+                [
+                    [
+                        '/?f%5Coo.bar=42',
+                        {
+                            'f\\oo.bar': '42'
                         }
                     ]
                 ]
