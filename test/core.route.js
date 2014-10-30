@@ -1,10 +1,15 @@
 /*global describe, it*/
+/*eslint max-nested-callbacks: 0*/
 'use strict';
 
+var _ = require('lodash-node');
 var assert = require('assert');
+var util = require('util');
 
 describe('core/route', function () {
     var Route = require('../core/route');
+
+    Route.parseRequestRule = Route._parseRequestRule;
 
     describe('{Route}.params', function () {
         it('Should clone should support flags', function () {
@@ -15,6 +20,22 @@ describe('core/route', function () {
             assert.ok(!route.params.ignoreCase);
             assert.ok(route.params.z);
             assert.ok(!route.params.X);
+        });
+    });
+
+    describe('Route._parseRequestRule', function () {
+        var title = 'Should parse %j to %j';
+        var samples = [
+            [
+                '/<page>/?page',
+                ['', '/<page>/?page', '']
+            ]
+        ];
+        _.forEach(samples, function (s) {
+            var shouldText = util.format(title, s[0], s[1]);
+            it(shouldText, function () {
+                assert.deepEqual(Route.parseRequestRule(s[0]), s[1]);
+            });
         });
     });
 

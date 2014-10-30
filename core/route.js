@@ -1,6 +1,6 @@
 'use strict';
 
-var R_ADVANCED_PATTERN = /^\s*(?:([a-z]+(?:\s*,\s*[a-z]+)*)\s+)?([\s\S]+?)(?:\s*([a-z]+))?\s*$/i;
+var R_ADVANCED_PATTERN = /^\s*(?:([a-z]+(?:\s*,\s*[a-z]+)*)\s+)?([\s\S]+?)(?:\s+([a-z]+))?\s*$/i;
 
 var Rule = /** @type Rule */ require('./rule');
 var hasProperty = Object.prototype.hasOwnProperty;
