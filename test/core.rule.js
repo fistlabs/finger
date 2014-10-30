@@ -25,11 +25,11 @@ describe('core/rule', function () {
     };
 
     Rule.prototype.getPathArgsOrder = function () {
-        return this._pathArgsOrder;
+        return this._pathParams;
     };
 
     Rule.prototype.getPathArgsIndex = function () {
-        return this._pathArgsIndex;
+        return this._paramsIndex;
     };
 
     Rule.prototype.getMatchRegExp = function () {
@@ -102,7 +102,9 @@ describe('core/rule', function () {
         describe('Expecting path args order', function () {
             it('Should create path args order', function () {
                 var pathArgsOrder = rule.getPathArgsOrder();
-                assert.deepEqual(pathArgsOrder, [
+                assert.deepEqual(pathArgsOrder.map(function (rule) {
+                    return rule.name;
+                }), [
                     'a',
                     'a',
                     'b',
@@ -575,6 +577,34 @@ describe('core/rule', function () {
                                 id: '42',
                                 tag: [void 0, void 0]
                             }
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<post>/<post.id>/?post?post.id'
+                ],
+                [
+                    [
+                        '/foo/42/?post=bar&post.id=43',
+                        {
+                            post: {
+                                id: ['42', '43']
+                            }
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<foo>/?foo?foo?foo'
+                ],
+                [
+                    [
+                        '/bar/?foo=baz&foo=zot&foo=poo',
+                        {
+                            foo: ['bar', 'baz', 'zot', 'poo']
                         }
                     ]
                 ]

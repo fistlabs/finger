@@ -247,28 +247,4 @@ describe('core/query', function () {
         });
     });
 
-    describe('{Query}.addValue', function () {
-        it('Should have own method "addValue"', function () {
-            var query = new Query();
-            assert.strictEqual(typeof query.addValue, 'function');
-        });
-
-        it('Should add value to object', function () {
-            var query = new Query();
-            var o = {};
-            query.addValue(o, 'test', 1);
-            assert.deepEqual(o, {
-                test: 1
-            });
-            query.addValue(o, 'test', 2);
-            assert.deepEqual(o, {
-                test: [1, 2]
-            });
-            query.addValue(o, 'test', 3);
-            assert.deepEqual(o, {
-                test: [1, 2, 3]
-            });
-        });
-    });
-
 });
