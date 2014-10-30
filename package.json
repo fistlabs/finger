@@ -19,7 +19,7 @@
         "lodash-node": "2.4.1",
         "glob": "4.0.6",
         "benchmark": "1.0.0",
-        "susanin": "0.1.11",
+        "susanin": "git://github.com/nodules/susanin#1.0.0",
         "gulp": "3.8.9",
         "gulp-mocha": "1.1.1",
         "gulp-istanbul": "0.3.1",
