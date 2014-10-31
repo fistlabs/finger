@@ -583,8 +583,7 @@ Rule.prototype.__compileMatcherFunc = function () {
                                         this.__createAstTypeIdentifier('value')]),
                                 this.__createAstTypeLiteral(false))),
                         [
-                            this.__createAstTypeReturnStatement(
-                                this.__createAstTypeLiteral(null))]));
+                            this.__createAstPresetResetValue()]));
             }
 
             if (this.__hasParameterValue(name)) {
