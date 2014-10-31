@@ -320,48 +320,44 @@ Rule.prototype.__compileBuilderFunc = function () {
         this.__createAstPresetAssignPart(
             this.__createAstTypeArrayExpression([])));
 
-    this._pathRule.args.forEach(function (rule) {
-
-        body.push(
-            this.__createAstPresetValueGetter(rule.getName()),
-            this.__createAstPresetGetNthValueIfArray(rule.used));
-
-        if (rule.required) {
+    Object.keys(this._queryParams).forEach(function (name) {
+        this._queryParams[name].forEach(function (rule) {
             body.push(
-                this.__createAstTypeIfStatement(
-                    //  if (value === undefined || value === null || value === '') {
-                    this.__createAstPresetValueCheckExpression('||', '==='),
-                    [
-                        //  part[part.length] = `this._query.escape(part.getRawName())`;
-                        this.__createAstTypeExpressionStatement(
-                            this.__createAstTypeAssignmentExpression('=',
-                                this.__createAstTypeMemberExpression(
-                                    this.__createAstTypeIdentifier('part'),
+                this.__createAstPresetValueGetter(rule.getName()),
+                this.__createAstPresetGetNthValueIfArray(rule.used));
+
+            if (rule.required) {
+                body.push(
+                    this.__createAstTypeIfStatement(
+                        //  if (value === undefined || value === null || value === '') {
+                        this.__createAstPresetValueCheckExpression('||', '==='),
+                        [
+                            //  part[part.length] = `this._query.escape(part.getRawName())`;
+                            this.__createAstTypeExpressionStatement(
+                                this.__createAstTypeAssignmentExpression('=',
                                     this.__createAstTypeMemberExpression(
                                         this.__createAstTypeIdentifier('part'),
-                                        this.__createAstTypeIdentifier('length')
-                                    ),
-                                    true
-                                ),
-                                this.__createAstTypeLiteral(this._query.escape(rule.getRawName()))
-                            )
-                        )],
-                    //  else
-                    [
-                        //  part[part.length] = `this._query.escape(part.getRawName()) +
-                        //      this._query.params.eq` + this._query.stringifyQueryArg(value);
-                        this.__createAstPresetAddQueryArg(rule.getRawName())]));
-        } else {
-            body.push(
-                this.__createAstTypeIfStatement(
-                    //  if (value !== undefined && value !== null && value !== '') {
-                    this.__createAstPresetValueCheckExpression('&&', '!=='),
-                    [
-                        //  part += `this._query.escape(part.getRawName() + query.params.eq` +
-                        //      this._query.stringifyQueryArg(value);
-                        this.__createAstPresetAddQueryArg(rule.getRawName())]));
-
-        }
+                                        this.__createAstTypeMemberExpression(
+                                            this.__createAstTypeIdentifier('part'),
+                                            this.__createAstTypeIdentifier('length')),
+                                        true),
+                                    this.__createAstTypeLiteral(this._query.escape(rule.getRawName()))))],
+                        //  else
+                        [
+                            //  part[part.length] = `this._query.escape(part.getRawName()) +
+                            //      this._query.params.eq` + this._query.stringifyQueryArg(value);
+                            this.__createAstPresetAddQueryArg(rule.getRawName())]));
+            } else {
+                body.push(
+                    this.__createAstTypeIfStatement(
+                        //  if (value !== undefined && value !== null && value !== '') {
+                        this.__createAstPresetValueCheckExpression('&&', '!=='),
+                        [
+                            //  part += `this._query.escape(part.getRawName() + query.params.eq` +
+                            //      this._query.stringifyQueryArg(value);
+                            this.__createAstPresetAddQueryArg(rule.getRawName())]));
+            }
+        }, this);
     }, this);
 
     body.push(
