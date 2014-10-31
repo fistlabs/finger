@@ -153,8 +153,9 @@ matcher.addRule('/news/<Alnum:postId>/');
 ```
 Now the rule is valid for ```/news/42/``` but not for ```/news/foo/```.
 Builtin types:
- * ```Segment```- default for pathname parameters (```[^/]+?```).
- * ```Free```  - default for query parameters (```[\s\S]+?```).
+ * ```Seg```- default for pathname parameters, ```[^/?&]+?```
+ * ```Seq```  - ```[^?&]+?```
+ * ```Str```  - default for query parameters, ```[\s\S]+?```
 
 ###Combined parameters
 The parameters could describe where values must be placed in arguments object.

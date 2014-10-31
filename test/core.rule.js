@@ -77,7 +77,7 @@ describe('core/rule', function () {
                 parts: [
                     {
                         type: RuleArg.TYPE,
-                        kind: 'Segment',
+                        kind: 'Seg',
                         used: 0,
                         name: ['foo'],
                         required: true
@@ -86,7 +86,7 @@ describe('core/rule', function () {
                 args: [
                     {
                         type: RuleArg.TYPE,
-                        kind: 'Free',
+                        kind: 'Str',
                         used: 0,
                         name: ['bar'],
                         required: false
@@ -137,11 +137,11 @@ describe('core/rule', function () {
             ],
             [
                 '/<page>/',
-                /^\/([^/]+?)\/(?:\?([\s\S]*))?$/
+                /^\/([^/?&]+?)\/(?:\?([\s\S]*))?$/
             ],
             [
                 '/<page>/',
-                /^\/([^/]+?)\/(?:\?([\s\S]*))?$/
+                /^\/([^/?&]+?)\/(?:\?([\s\S]*))?$/
             ],
             [
                 '/foo/',
@@ -297,7 +297,7 @@ describe('core/rule', function () {
             ],
             [
                 [
-                    '/i<Free:path>?sk'
+                    '/i<Seq:path>?sk'
                 ],
                 [
                     [
@@ -892,7 +892,7 @@ describe('core/rule', function () {
                 ]
             ],
             [
-                '<Free:pathname>?renderer',
+                '<Seq:pathname>?renderer',
                 [
                     [
                         '/foo/bar/?renderer=%2Ffoo%2F',
