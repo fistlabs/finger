@@ -75,6 +75,19 @@ describe('core/parser/rule-arg', function () {
         });
     });
 
+    describe('{RuleArg}.multiple', function () {
+
+        it('Should have own member "multiple"', function () {
+            var rule = new RuleArg();
+            assert.ok(rule.hasOwnProperty('multiple'));
+        });
+
+        it('Should be a Boolean', function () {
+            var rule = new RuleArg();
+            assert.strictEqual(typeof rule.multiple, 'boolean');
+        });
+    });
+
     describe('{RuleArg}.setName', function () {
 
         it('Should have own method "setName"', function () {
@@ -134,6 +147,26 @@ describe('core/parser/rule-arg', function () {
         it('Should return {RuleArg} (self)', function () {
             var rule = new RuleArg();
             assert.strictEqual(rule.setRequired(true), rule);
+        });
+    });
+
+    describe('{RuleArg}.setMultiple', function () {
+
+        it('Should have own method "setMultiple"', function () {
+            var rule = new RuleArg();
+            assert.strictEqual(typeof rule.setMultiple, 'function');
+        });
+
+        it('Should set {RuleArg}.multiple', function () {
+            var rule = new RuleArg();
+            assert.strictEqual(rule.multiple, false);
+            rule.setMultiple(true);
+            assert.strictEqual(rule.multiple, true);
+        });
+
+        it('Should return {RuleArg} (self)', function () {
+            var rule = new RuleArg();
+            assert.strictEqual(rule.setMultiple(true), rule);
         });
     });
 

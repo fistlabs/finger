@@ -78,7 +78,8 @@ describe('core/parser/parser', function () {
                             type: RuleArg.TYPE,
                             name: ['foo'],
                             kind: '',
-                            required: true
+                            required: true,
+                            multiple: false
                         }
                     ],
                     args: []
@@ -106,7 +107,8 @@ describe('core/parser/parser', function () {
                                     type: RuleArg.TYPE,
                                     name: ['postId'],
                                     kind: '',
-                                    required: true
+                                    required: true,
+                                    multiple: false
                                 },
                                 {
                                     type: RuleSep.TYPE
@@ -132,7 +134,8 @@ describe('core/parser/parser', function () {
                             type: RuleArg.TYPE,
                             name: ['a'],
                             kind: '',
-                            required: true
+                            required: true,
+                            multiple: false
                         }
                     ]
                 }
@@ -146,7 +149,8 @@ describe('core/parser/parser', function () {
                             type: RuleArg.TYPE,
                             name: ['name'],
                             kind: 'kind',
-                            required: true
+                            required: true,
+                            multiple: false
                         }
                     ],
                     args: []
@@ -164,7 +168,8 @@ describe('core/parser/parser', function () {
                             type: RuleArg.TYPE,
                             name: ['name'],
                             kind: '',
-                            required: true
+                            required: true,
+                            multiple: false
                         }
                     ],
                     args: [
@@ -172,13 +177,15 @@ describe('core/parser/parser', function () {
                             type: RuleArg.TYPE,
                             name: ['type'],
                             kind: '',
-                            required: true
+                            required: true,
+                            multiple: false
                         },
                         {
                             type: RuleArg.TYPE,
                             name: ['value'],
                             kind: '',
-                            required: false
+                            required: false,
+                            multiple: false
                         }
                     ]
                 }

@@ -39,6 +39,14 @@ function RuleArg() {
      * @type {Boolean}
      * */
     this.required = true;
+
+    /**
+     * @public
+     * @memberOf {RuleArg}
+     * @property
+     * @type {Boolean}
+     * */
+    this.multiple = false;
 }
 
 /**
@@ -98,6 +106,21 @@ RuleArg.prototype.getRawName = function () {
  * */
 RuleArg.prototype.setRequired = function (required) {
     this.required = Boolean(required);
+
+    return this;
+};
+
+/**
+ * @public
+ * @memberOf {RuleArg}
+ * @method
+ *
+ * @param {Boolean} multiple
+ *
+ * @returns {RuleArg}
+ * */
+RuleArg.prototype.setMultiple = function (multiple) {
+    this.multiple = Boolean(multiple);
 
     return this;
 };
