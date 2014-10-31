@@ -121,8 +121,9 @@ function Rule(ruleString, params) {
  * @type {Object}
  * */
 Rule.builtinTypes = {
-    Segment: '[^/]+?',
-    Free: '[\\s\\S]+?'
+    Seg: '[^/?&]+?',
+    Seq: '[^?&]+?',
+    Str: '[\\s\\S]+?'
 };
 
 /**
@@ -828,7 +829,7 @@ Rule.prototype._compilePathRule = function () {
     var rule = Tools.prototype._compilePathRule.call(this);
     var used = Object.create(null);
     var types = this._types;
-    var defaultType = 'Segment';
+    var defaultType = 'Seg';
 
     function useArg(rule) {
         var name = rule.getName();
@@ -858,7 +859,7 @@ Rule.prototype._compilePathRule = function () {
 
     });
 
-    defaultType = 'Free';
+    defaultType = 'Str';
 
     rule.args.forEach(useArg);
 
