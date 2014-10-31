@@ -338,7 +338,9 @@ describe('core/rule', function () {
                     ],
                     [
                         '/?a',
-                        null
+                        {
+                            a: void 0
+                        }
                     ],
                     [
                         '/',
@@ -977,11 +979,12 @@ describe('core/rule', function () {
     });
 
     describe('Custom types', function () {
-        var rule = new Rule('/post/<Number:postId>/', {
+        var params = {
             types: {
                 Number: '\\d+'
             }
-        });
+        };
+        var rule = new Rule('/post/<Number:postId>/', params);
 
         it('Should match "/post/{Number}/"', function () {
             assert.deepEqual(rule.match('/post/42/'), {
@@ -991,6 +994,13 @@ describe('core/rule', function () {
 
         it('Should not match "/post/foo/"', function () {
             assert.strictEqual(rule.match('/post/foo/'), null);
+        });
+
+        it('Should correctly handle unmatched optional query args', function () {
+            var rule = new Rule('/?Number:page', params);
+            assert.deepEqual(rule.match('/?page=foo'), {
+                page: void 0
+            });
         });
     });
 });
