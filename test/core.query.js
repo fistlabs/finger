@@ -12,25 +12,6 @@ describe('core/query', function () {
     /*eslint max-nested-callbacks: 0*/
     var Query = require('../core/query');
 
-    describe('{Query}.params', function () {
-
-        it('Should have own property "params"', function () {
-            var query = new Query();
-            assert.ok(query.hasOwnProperty('params'));
-        });
-
-        it('Should be an Object', function () {
-            var query = new Query();
-            assert.strictEqual(Object(query.params), query.params);
-        });
-
-        it('Should support custom params', function () {
-            var params = {foo: 'bar'};
-            var query = new Query(params);
-            assert.strictEqual(query.params, params);
-        });
-    });
-
     describe('{Query}.escape', function () {
         it('Should have own method "escape"', function () {
             var query = new Query();
@@ -99,10 +80,7 @@ describe('core/query', function () {
     });
 
     describe('{Query}.parse', function () {
-        var query = new Query({
-            eq: '=',
-            sep: '&'
-        });
+        var query = new Query();
         var samples = [
             [
                 'a=5',
@@ -144,7 +122,7 @@ describe('core/query', function () {
             var shouldText = 'Should parse %j to %j';
             shouldText = util.format(shouldText, s[0], s[1]);
             it(shouldText, function () {
-                assert.deepEqual(query.parse(s[0]), s[1]);
+                assert.deepEqual(query.parse(s[0], '&', '='), s[1]);
             });
         });
     });

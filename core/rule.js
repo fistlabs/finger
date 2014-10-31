@@ -13,6 +13,7 @@ var Type = /** @type Type */ require('./type');
 
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
+var query = /** @type {Query} */ new Query();
 var regesc = require('regesc');
 var util = require('util');
 
@@ -79,14 +80,6 @@ function Rule(ruleString, params) {
      * @type {Object}
      * */
     this._paramsIndex = this.__createParamsIndex();
-
-    /**
-     * @protected
-     * @memberOf {Rule}
-     * @property
-     * @type {Query}
-     * */
-    this._query =  this.__createQueryHelper();
 
     /**
      * @protected
@@ -187,20 +180,6 @@ Rule.prototype.match = function (url) {
  * @memberOf {Rule}
  * @method
  *
- * @returns {Query}
- * */
-Rule.prototype.__createQueryHelper = function () {
-    return new Query({
-        eq: this.params.queryEq,
-        sep: this.params.querySep
-    });
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
  * @returns {Function}
  * */
 Rule.prototype.__compileBuilderFunc = function () {
@@ -294,7 +273,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                         this.__createAstPresetResetPart(),
                         //  break RULE_SEQ_`n - 1`;
                         this.__createAstTypeBreakStatement('RULE_SEQ_' + (n - 1))]),
-                //  part += this._query.stringifyQueryArg(value);
+                //  part += query.stringifyQueryArg(value);
                 this.__createAstPresetPartSelfPlus(
                     this.__createAstPresetQueryEscapeValue4Pathname()));
         } else {
@@ -303,7 +282,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                     //  if (value !== undefined && value !== null && value !== '') {
                     this.__createAstPresetValueCheckExpression('&&', '!=='),
                     [
-                        //  part += this._query.stringifyQueryArg(value);
+                        //  part += query.stringifyQueryArg(value);
                         this.__createAstPresetPartSelfPlus(
                             this.__createAstPresetQueryEscapeValue4Pathname())]));
         }
@@ -332,7 +311,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                         //  if (value === undefined || value === null || value === '') {
                         this.__createAstPresetValueCheckExpression('||', '==='),
                         [
-                            //  part[part.length] = `this._query.escape(part.getRawName())`;
+                            //  part[part.length] = `query.escape(part.getRawName())`;
                             this.__createAstTypeExpressionStatement(
                                 this.__createAstTypeAssignmentExpression('=',
                                     this.__createAstTypeMemberExpression(
@@ -341,11 +320,11 @@ Rule.prototype.__compileBuilderFunc = function () {
                                             this.__createAstTypeIdentifier('part'),
                                             this.__createAstTypeIdentifier('length')),
                                         true),
-                                    this.__createAstTypeLiteral(this._query.escape(rule.getRawName()))))],
+                                    this.__createAstTypeLiteral(query.escape(rule.getRawName()))))],
                         //  else
                         [
-                            //  part[part.length] = `this._query.escape(part.getRawName()) +
-                            //      this._query.params.eq` + this._query.stringifyQueryArg(value);
+                            //  part[part.length] = `query.escape(part.getRawName()) +
+                            //      query.params.eq` + query.stringifyQueryArg(value);
                             this.__createAstPresetAddQueryArg(rule.getRawName())]));
             } else {
                 body.push(
@@ -353,8 +332,8 @@ Rule.prototype.__compileBuilderFunc = function () {
                         //  if (value !== undefined && value !== null && value !== '') {
                         this.__createAstPresetValueCheckExpression('&&', '!=='),
                         [
-                            //  part += `this._query.escape(part.getRawName() + query.params.eq` +
-                            //      this._query.stringifyQueryArg(value);
+                            //  part += `query.escape(part.getRawName() + query.params.eq` +
+                            //      query.stringifyQueryArg(value);
                             this.__createAstPresetAddQueryArg(rule.getRawName())]));
             }
         }, this);
@@ -385,12 +364,12 @@ Rule.prototype.__compileBuilderFunc = function () {
                         this.__createAstTypeIdentifier('part'),
                         this.__createAstTypeIdentifier('join')),
                     [
-                        this.__createAstTypeLiteral(this._query.params.sep)]))));
+                        this.__createAstTypeLiteral(this.params.querySep)]))));
 
     func = escodegen.generate(func);
 
-    return new Function('hasProperty', 'undefined',
-        'return ' + func)(hasProperty, void 0);
+    return new Function('hasProperty', 'query', 'undefined',
+        'return ' + func)(hasProperty, query, void 0);
 };
 
 /**
@@ -465,15 +444,13 @@ Rule.prototype.__compileMatcherFunc = function () {
                         true),
                     this.__createAstTypeLiteral('string')),
                 [
-                    //  value = this._query.unescape(value);
+                    //  value = query.unescape(value);
                     this.__createAstTypeExpressionStatement(
                         this.__createAstTypeAssignmentExpression('=',
                             this.__createAstTypeIdentifier('value'),
                             this.__createAstTypeCallExpression(
                                 this.__createAstTypeMemberExpression(
-                                    this.__createAstTypeMemberExpression(
-                                        this.__createAstTypeIdentifier('this'),
-                                        this.__createAstTypeIdentifier('_query')),
+                                    this.__createAstTypeIdentifier('query'),
                                     this.__createAstTypeIdentifier('unescape')),
                                 [
                                     this.__createAstTypeIdentifier('value')])))]));
@@ -501,22 +478,22 @@ Rule.prototype.__compileMatcherFunc = function () {
     }, this);
 
     if (this._pathRule.args.length) {
-        //  queryObject = this._query.parse(match[`l + 1`]);
+        //  queryObject = query.parse(match[`l + 1`]);
         body.push(
             this.__createAstTypeExpressionStatement(
                 this.__createAstTypeAssignmentExpression('=',
                     this.__createAstTypeIdentifier('queryObject'),
                     this.__createAstTypeCallExpression(
                         this.__createAstTypeMemberExpression(
-                            this.__createAstTypeMemberExpression(
-                                this.__createAstTypeIdentifier('this'),
-                                this.__createAstTypeIdentifier('_query')),
+                            this.__createAstTypeIdentifier('query'),
                             this.__createAstTypeIdentifier('parse')),
                         [
                             this.__createAstTypeMemberExpression(
                                 this.__createAstTypeIdentifier('match'),
                                 this.__createAstTypeLiteral(this._pathParams.length + 1),
-                                true)]))));
+                                true),
+                            this.__createAstTypeLiteral(this.params.querySep),
+                            this.__createAstTypeLiteral(this.params.queryEq)]))));
 
         Object.keys(this._queryParams).forEach(function (name) {
             this._queryParams[name].forEach(function (rule, i) {
@@ -611,7 +588,7 @@ Rule.prototype.__compileMatcherFunc = function () {
 
     func = escodegen.generate(func);
 
-    return new Function('hasProperty', 'return ' + func)(hasProperty);
+    return new Function('hasProperty', 'query', 'return ' + func)(hasProperty, query);
 };
 
 /**
@@ -690,7 +667,7 @@ Rule.prototype.__compileMatchRegExpPartStatic = function (part) {
     for (i = 0, l = text.length; i < l; i += 1) {
         char = text.charAt(i);
 
-        if (char === this._query.escape(char)) {
+        if (char === query.escape(char)) {
             result += regesc(char);
 
             continue;
@@ -698,13 +675,13 @@ Rule.prototype.__compileMatchRegExpPartStatic = function (part) {
 
         if (this.params.ignoreCase) {
             result += '(?:' + regesc(char) + '|' +
-            this._query.escape(char.toLowerCase()) + '|' +
-            this._query.escape(char.toUpperCase()) + ')';
+            query.escape(char.toLowerCase()) + '|' +
+            query.escape(char.toUpperCase()) + ')';
 
             continue;
         }
 
-        result += '(?:' + regesc(char) + '|' + this._query.escape(char) + ')';
+        result += '(?:' + regesc(char) + '|' + query.escape(char) + ')';
     }
 
     return result;
@@ -906,7 +883,7 @@ Rule.prototype.__compileEmptyArgs = function () {
         }
     });
 
-    pEmptyArgs = this._query.deeper(pEmptyArgs);
+    pEmptyArgs = query.deeper(pEmptyArgs);
 
     this._pathRule.args.forEach(function (rule) {
         var name = rule.getName();
@@ -919,7 +896,7 @@ Rule.prototype.__compileEmptyArgs = function () {
         }
     });
 
-    qEmptyArgs = this._query.deeper(qEmptyArgs);
+    qEmptyArgs = query.deeper(qEmptyArgs);
 
     return this.__mergeArgs(pEmptyArgs, qEmptyArgs);
 };
@@ -1126,10 +1103,7 @@ Rule.prototype.__createAstPresetValueGetter = function (path) {
 Rule.prototype.__createAstPresetQueryEscapeValue4Pathname = function () {
     return this.__createAstTypeCallExpression(
         this.__createAstTypeMemberExpression(
-            this.__createAstTypeMemberExpression(
-                this.__createAstTypeIdentifier('this'),
-                this.__createAstTypeIdentifier('_query')
-            ),
+            this.__createAstTypeIdentifier('query'),
             this.__createAstTypeIdentifier('stringifyPathArg')),
         [
             this.__createAstTypeIdentifier('value')]);
@@ -1145,10 +1119,7 @@ Rule.prototype.__createAstPresetQueryEscapeValue4Pathname = function () {
 Rule.prototype.__createAstPresetQueryEscapeValue4Query = function () {
     return this.__createAstTypeCallExpression(
         this.__createAstTypeMemberExpression(
-            this.__createAstTypeMemberExpression(
-                this.__createAstTypeIdentifier('this'),
-                this.__createAstTypeIdentifier('_query')
-            ),
+            this.__createAstTypeIdentifier('query'),
             this.__createAstTypeIdentifier('stringifyQueryArg')),
         [
             this.__createAstTypeIdentifier('value')]);
@@ -1295,7 +1266,7 @@ Rule.prototype.__createAstPresetAddQueryArg = function (name) {
                 ),
                 true),
             this.__createAstTypeBinaryExpression('+',
-                this.__createAstTypeLiteral(this._query.escape(name) + this._query.params.eq),
+                this.__createAstTypeLiteral(query.escape(name) + this.params.queryEq),
                 this.__createAstPresetQueryEscapeValue4Query())
         ));
 };
