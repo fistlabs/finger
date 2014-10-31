@@ -70,6 +70,14 @@ function Rule(ruleString, params) {
      * @property
      * @type {Object}
      * */
+    this._queryParams = this.__findQueryParams();
+
+    /**
+     * @protected
+     * @memberOf {Rule}
+     * @property
+     * @type {Object}
+     * */
     this._paramsIndex = this.__createParamsIndex();
 
     /**
@@ -196,15 +204,11 @@ Rule.prototype.__createQueryHelper = function () {
  * @returns {Function}
  * */
 Rule.prototype.__compileBuilderFunc = function () {
-    var args = this._pathRule.args;
-    var i;
-    var l;
     var body = [];
     //  function _builderFunc(args) {
     var func = this.__createAstTypeFunctionDeclaration('_builderFunc', body, [
         this.__createAstTypeIdentifier('args')
     ]);
-    var part;
     var stack = [];
 
     body.push(
@@ -316,14 +320,13 @@ Rule.prototype.__compileBuilderFunc = function () {
         this.__createAstPresetAssignPart(
             this.__createAstTypeArrayExpression([])));
 
-    for (i = 0, l = args.length; i < l; i += 1) {
-        part = args[i];
+    this._pathRule.args.forEach(function (rule) {
 
         body.push(
-            this.__createAstPresetValueGetter(part.getName()),
-            this.__createAstPresetGetNthValueIfArray(part.used));
+            this.__createAstPresetValueGetter(rule.getName()),
+            this.__createAstPresetGetNthValueIfArray(rule.used));
 
-        if (part.required) {
+        if (rule.required) {
             body.push(
                 this.__createAstTypeIfStatement(
                     //  if (value === undefined || value === null || value === '') {
@@ -340,14 +343,14 @@ Rule.prototype.__compileBuilderFunc = function () {
                                     ),
                                     true
                                 ),
-                                this.__createAstTypeLiteral(this._query.escape(part.getRawName()))
+                                this.__createAstTypeLiteral(this._query.escape(rule.getRawName()))
                             )
                         )],
                     //  else
                     [
                         //  part[part.length] = `this._query.escape(part.getRawName()) +
                         //      this._query.params.eq` + this._query.stringifyQueryArg(value);
-                        this.__createAstPresetAddQueryArg(part.getRawName())]));
+                        this.__createAstPresetAddQueryArg(rule.getRawName())]));
         } else {
             body.push(
                 this.__createAstTypeIfStatement(
@@ -356,10 +359,10 @@ Rule.prototype.__compileBuilderFunc = function () {
                     [
                         //  part += `this._query.escape(part.getRawName() + query.params.eq` +
                         //      this._query.stringifyQueryArg(value);
-                        this.__createAstPresetAddQueryArg(part.getRawName())]));
+                        this.__createAstPresetAddQueryArg(rule.getRawName())]));
 
         }
-    }
+    }, this);
 
     body.push(
         this.__createAstTypeIfStatement(
@@ -407,13 +410,7 @@ Rule.prototype.__compileMatcherFunc = function () {
     var func = this.__createAstTypeFunctionDeclaration('_matcherFunc', body, [
         this.__createAstTypeIdentifier('url')
     ]);
-    var pathParams = this._pathParams;
     var paramsIndex = this._paramsIndex;
-    var queryParamsCounter;
-    var i;
-    var l;
-    var name;
-    var rule;
 
     body.push(
         //  var args;
@@ -448,11 +445,11 @@ Rule.prototype.__compileMatcherFunc = function () {
                 this.__createAstTypeReturnStatement(
                     this.__createAstTypeLiteral(null))]));
 
-    for (i = 0, l = pathParams.length; i < l; i += 1) {
-        rule = pathParams[i];
-        name = rule.getName();
+    this._pathParams.forEach(function (rule, i) {
+        var name = rule.getName();
+
         if (!this.__hasParameterValue(name)) {
-            continue;
+            return;
         }
 
         body.push(
@@ -505,7 +502,7 @@ Rule.prototype.__compileMatcherFunc = function () {
                             true),
                         this.__createAstTypeIdentifier('value'))));
         }
-    }
+    }, this);
 
     if (this._pathRule.args.length) {
         //  queryObject = this._query.parse(match[`l + 1`]);
@@ -522,89 +519,86 @@ Rule.prototype.__compileMatcherFunc = function () {
                         [
                             this.__createAstTypeMemberExpression(
                                 this.__createAstTypeIdentifier('match'),
-                                this.__createAstTypeLiteral(l + 1),
+                                this.__createAstTypeLiteral(this._pathParams.length + 1),
                                 true)]))));
 
-        queryParamsCounter = this.__createQueryParamsCounter();
+        Object.keys(this._queryParams).forEach(function (name) {
+            this._queryParams[name].forEach(function (rule, i) {
 
-        for (i = 0, l = this._pathRule.args.length; i < l; i += 1) {
-            rule = this._pathRule.args[i];
-            name = rule.getName();
-
-            body.push(
-                this.__createAstPresetResetValue(),
-                this.__createAstPresetIfQueryHas(rule.getRawName(),
-                    [
-                        this.__createAstPresetGetQueryValue(rule.getRawName()),
-                        this.__createAstPresetGetNthValueIfArray(queryParamsCounter[name])]),
-                this.__createAstTypeExpressionStatement(
-                    this.__createAstTypeAssignmentExpression('=',
-                        this.__createAstTypeIdentifier('type'),
-                        this.__createAstTypeMemberExpression(
+                body.push(
+                    this.__createAstPresetResetValue(),
+                    this.__createAstPresetIfQueryHas(rule.getRawName(),
+                        [
+                            this.__createAstPresetGetQueryValue(rule.getRawName()),
+                            this.__createAstPresetGetNthValueIfArray(i)]),
+                    this.__createAstTypeExpressionStatement(
+                        this.__createAstTypeAssignmentExpression('=',
+                            this.__createAstTypeIdentifier('type'),
                             this.__createAstTypeMemberExpression(
-                                this.__createAstTypeIdentifier('this'),
-                                this.__createAstTypeIdentifier('_types')),
-                            this.__createAstTypeLiteral(rule.kind),
-                            true))));
+                                this.__createAstTypeMemberExpression(
+                                    this.__createAstTypeIdentifier('this'),
+                                    this.__createAstTypeIdentifier('_types')),
+                                this.__createAstTypeLiteral(rule.kind),
+                                true))));
 
-            queryParamsCounter[name] += 1;
-
-            if (rule.required) {
-                body.push(
-                    this.__createAstTypeIfStatement(
-                        this.__createAstTypeLogicalExpression('||',
-                            this.__createAstTypeBinaryExpression('===',
-                                this.__createAstTypeIdentifier('value'),
-                                this.__createAstTypeIdentifier('undefined')),
-                            this.__createAstTypeBinaryExpression('===',
-                                this.__createAstTypeCallExpression(
-                                    this.__createAstTypeMemberExpression(
-                                        this.__createAstTypeIdentifier('type'),
-                                        this.__createAstTypeIdentifier('check')),
-                                    [
-                                        this.__createAstTypeIdentifier('value')]),
-                                this.__createAstTypeLiteral(false))),
-                        [
-                            this.__createAstTypeReturnStatement(
-                                this.__createAstTypeLiteral(null))]));
-            } else {
-                body.push(
-                    this.__createAstTypeIfStatement(
-                        this.__createAstTypeLogicalExpression('&&',
-                            this.__createAstTypeBinaryExpression('!==',
-                                this.__createAstTypeIdentifier('value'),
-                                this.__createAstTypeIdentifier('undefined')),
-                            this.__createAstTypeBinaryExpression('===',
-                                this.__createAstTypeCallExpression(
-                                    this.__createAstTypeMemberExpression(
-                                        this.__createAstTypeIdentifier('type'),
-                                        this.__createAstTypeIdentifier('check')),
-                                    [
-                                        this.__createAstTypeIdentifier('value')]),
-                                this.__createAstTypeLiteral(false))),
-                        [
-                            this.__createAstPresetResetValue()]));
-            }
-
-            if (this.__hasParameterValue(name)) {
-                if (paramsIndex[name] === 1) {
+                if (rule.required) {
                     body.push(
-                        this.__createAstTypeExpressionStatement(
-                            this.__createAstTypeAssignmentExpression('=',
-                                this.__createAstPresetDeepAccessor('args', name),
-                                this.__createAstTypeIdentifier('value'))));
+                        this.__createAstTypeIfStatement(
+                            this.__createAstTypeLogicalExpression('||',
+                                this.__createAstTypeBinaryExpression('===',
+                                    this.__createAstTypeIdentifier('value'),
+                                    this.__createAstTypeIdentifier('undefined')),
+                                this.__createAstTypeBinaryExpression('===',
+                                    this.__createAstTypeCallExpression(
+                                        this.__createAstTypeMemberExpression(
+                                            this.__createAstTypeIdentifier('type'),
+                                            this.__createAstTypeIdentifier('check')),
+                                        [
+                                            this.__createAstTypeIdentifier('value')]),
+                                    this.__createAstTypeLiteral(false))),
+                            [
+                                this.__createAstTypeReturnStatement(
+                                    this.__createAstTypeLiteral(null))]));
                 } else {
                     body.push(
-                        this.__createAstTypeExpressionStatement(
-                            this.__createAstTypeAssignmentExpression('=',
-                                this.__createAstTypeMemberExpression(
-                                    this.__createAstPresetDeepAccessor('args', name),
-                                    this.__createAstTypeLiteral(rule.used),
-                                    true),
-                                this.__createAstTypeIdentifier('value'))));
+                        this.__createAstTypeIfStatement(
+                            this.__createAstTypeLogicalExpression('&&',
+                                this.__createAstTypeBinaryExpression('!==',
+                                    this.__createAstTypeIdentifier('value'),
+                                    this.__createAstTypeIdentifier('undefined')),
+                                this.__createAstTypeBinaryExpression('===',
+                                    this.__createAstTypeCallExpression(
+                                        this.__createAstTypeMemberExpression(
+                                            this.__createAstTypeIdentifier('type'),
+                                            this.__createAstTypeIdentifier('check')),
+                                        [
+                                            this.__createAstTypeIdentifier('value')]),
+                                    this.__createAstTypeLiteral(false))),
+                            [
+                                this.__createAstPresetResetValue()]));
                 }
-            }
-        }
+
+                if (this.__hasParameterValue(name)) {
+                    if (paramsIndex[name] === 1) {
+                        body.push(
+                            this.__createAstTypeExpressionStatement(
+                                this.__createAstTypeAssignmentExpression('=',
+                                    this.__createAstPresetDeepAccessor('args', name),
+                                    this.__createAstTypeIdentifier('value'))));
+                    } else {
+                        body.push(
+                            this.__createAstTypeExpressionStatement(
+                                this.__createAstTypeAssignmentExpression('=',
+                                    this.__createAstTypeMemberExpression(
+                                        this.__createAstPresetDeepAccessor('args', name),
+                                        this.__createAstTypeLiteral(rule.used),
+                                        true),
+                                    this.__createAstTypeIdentifier('value'))));
+                    }
+                }
+
+            }, this);
+        }, this);
     }
 
     body.push(
@@ -746,54 +740,25 @@ Rule.prototype.__compileTypes = function () {
  * @returns {Object}
  * */
 Rule.prototype.__createParamsIndex = function () {
-    var i;
-    var l;
-    var order = this._pathParams;
     var index = Object.create(null);
-    var name;
 
-    for (i = 0, l = order.length; i < l; i += 1) {
-        name = order[i].getName();
+    this._pathParams.forEach(function (rule) {
+        var name = rule.getName();
         if (index[name]) {
             index[name] += 1;
-
-            continue;
+        } else {
+            index[name] = 1;
         }
+    });
 
-        index[name] = 1;
-    }
-
-    order = this._pathRule.args;
-
-    for (i = 0, l = order.length; i < l; i += 1) {
-        name = order[i].getName();
+    Object.keys(this._queryParams).forEach(function (name) {
+        var length = this._queryParams[name].length;
         if (index[name]) {
-            index[name] += 1;
-            continue;
+            index[name] += length;
+        } else {
+            index[name] = length;
         }
-
-        index[name] = 1;
-    }
-
-    return index;
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype.__createQueryParamsCounter = function () {
-    var i;
-    var l;
-    var index = Object.create(null);
-    var order = this._pathRule.args;
-
-    for (i = 0, l = order.length; i < l; i += 1) {
-        index[order[i].getName()] = 0;
-    }
+    }, this);
 
     return index;
 };
@@ -815,6 +780,26 @@ Rule.prototype.__findPathParams = function () {
     });
 
     return order;
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__findQueryParams = function () {
+    var params = Object.create(null);
+    this._pathRule.args.forEach(function (rule) {
+        var name = rule.getName();
+        if (params[name]) {
+            params[name].push(rule);
+        } else {
+            params[name] = [rule];
+        }
+    });
+    return params;
 };
 
 /**
@@ -903,16 +888,11 @@ Rule.prototype.__hasParameterValue = function (path) {
  * @returns {Object}
  * */
 Rule.prototype.__compileEmptyArgs = function () {
-    var i;
-    var l;
-    var pArgs = this._pathParams;
-    var qArgs = this._pathRule.args;
     var pEmptyArgs = {};
     var qEmptyArgs = {};
-    var name;
 
-    for (i = 0, l = pArgs.length; i < l; i += 1) {
-        name = pArgs[i].getName();
+    this._pathParams.forEach(function (rule) {
+        var name = rule.getName();
         if (!hasProperty.call(pEmptyArgs, name)) {
             pEmptyArgs[name] = void 0;
         } else if (Array.isArray(pEmptyArgs[name])) {
@@ -920,12 +900,12 @@ Rule.prototype.__compileEmptyArgs = function () {
         } else {
             pEmptyArgs[name] = [pEmptyArgs[name], void 0];
         }
-    }
+    });
 
     pEmptyArgs = this._query.deeper(pEmptyArgs);
 
-    for (i = 0, l = qArgs.length; i < l; i += 1) {
-        name = qArgs[i].getName();
+    this._pathRule.args.forEach(function (rule) {
+        var name = rule.getName();
         if (!hasProperty.call(qEmptyArgs, name)) {
             qEmptyArgs[name] = void 0;
         } else if (Array.isArray(qEmptyArgs[name])) {
@@ -933,7 +913,7 @@ Rule.prototype.__compileEmptyArgs = function () {
         } else {
             qEmptyArgs[name] = [qEmptyArgs[name], void 0];
         }
-    }
+    });
 
     qEmptyArgs = this._query.deeper(qEmptyArgs);
 
@@ -963,7 +943,6 @@ Rule.prototype.__createAstPresetEmptyArgs = function () {
  * */
 Rule.prototype.__createAstObjectByObject = function (obj) {
     var ast;
-    var i;
     var undef;
     var value;
 
@@ -982,16 +961,14 @@ Rule.prototype.__createAstObjectByObject = function (obj) {
 
     ast = this.__createAstTypeObjectExpression([]);
 
-    for (i in obj) {
-        if (hasProperty.call(obj, i)) {
-            value = {
-                type: 'Property',
-                key: this.__createAstTypeLiteral(i),
-                value: this.__createAstObjectByObject(obj[i])
-            };
-            ast.properties.push(value);
-        }
-    }
+    Object.keys(obj).forEach(function (i) {
+        value = {
+            type: 'Property',
+            key: this.__createAstTypeLiteral(i),
+            value: this.__createAstObjectByObject(obj[i])
+        };
+        ast.properties.push(value);
+    }, this);
 
     return ast;
 };
@@ -1009,17 +986,14 @@ Rule.prototype.__createAstObjectByObject = function (obj) {
  * @returns {Object}
  * */
 Rule.prototype.__createAstPresetDeepAccessor = function (name, path) {
-    var parts = RuleArg.parse(path);
-    var object = this.__createAstTypeIdentifier(name);
-    var i;
-    var l;
+    var self = this;
 
-    for (i = 0, l = parts.length; i < l; i += 1) {
-        object = this.__createAstTypeMemberExpression(object,
-            this.__createAstTypeLiteral(parts[i]), true);
-    }
+    return RuleArg.parse(path).reduce(function (object, part) {
 
-    return object;
+        return self.__createAstTypeMemberExpression(object,
+            self.__createAstTypeLiteral(part), true);
+
+    }, this.__createAstTypeIdentifier(name));
 };
 
 /**
@@ -1057,8 +1031,6 @@ Rule.prototype.__createAstPresetValueCheckExpression = function (logicalOp, bina
  * */
 Rule.prototype.__createAstPresetValueGetter = function (path) {
     var parts = RuleArg.parse(path);
-    var i;
-    var l;
     var body = [];
     //  VALUE_GETTER: {
     var getter = this.__createAstTypeLabeledStatement('VALUE_GETTER', body);
@@ -1078,7 +1050,7 @@ Rule.prototype.__createAstPresetValueGetter = function (path) {
         //  break VALUE_GETTER;
         this.__createAstTypeBreakStatement('VALUE_GETTER')];
 
-    for (i = 0, l = parts.length; i < l; i += 1) {
+    parts.forEach(function (part) {
 
         //  if (!value || typeof value !== 'object' || Array.isArray(value)) {
         body.push(
@@ -1106,7 +1078,7 @@ Rule.prototype.__createAstPresetValueGetter = function (path) {
                             this.__createAstTypeIdentifier('call')),
                         [
                             this.__createAstTypeIdentifier('value'),
-                            this.__createAstTypeLiteral(parts[i])]),
+                            this.__createAstTypeLiteral(part)]),
                     true),
                 breakCode));
 
@@ -1117,9 +1089,9 @@ Rule.prototype.__createAstPresetValueGetter = function (path) {
                     this.__createAstTypeIdentifier('value'),
                     this.__createAstTypeMemberExpression(
                         this.__createAstTypeIdentifier('value'),
-                        this.__createAstTypeLiteral(parts[i]),
+                        this.__createAstTypeLiteral(part),
                         true))));
-    }
+    }, this);
 
     body.push(
         //  if (value && typeof value === 'object' && !Array.isArray(value)) {
