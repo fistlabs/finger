@@ -529,8 +529,16 @@ Rule.prototype.__compileMatcherFunc = function () {
                     this.__createAstPresetResetValue(),
                     this.__createAstPresetIfQueryHas(rule.getRawName(),
                         [
-                            this.__createAstPresetGetQueryValue(rule.getRawName()),
-                            this.__createAstPresetGetNthValueIfArray(i)]),
+                            this.__createAstTypeExpressionStatement(
+                                this.__createAstTypeAssignmentExpression('=',
+                                    this.__createAstTypeIdentifier('value'),
+                                    this.__createAstTypeMemberExpression(
+                                        this.__createAstTypeMemberExpression(
+                                            this.__createAstTypeIdentifier('queryObject'),
+                                            this.__createAstTypeLiteral(rule.getRawName()),
+                                            true),
+                                        this.__createAstTypeLiteral(i),
+                                        true)))]),
                     this.__createAstTypeExpressionStatement(
                         this.__createAstTypeAssignmentExpression('=',
                             this.__createAstTypeIdentifier('type'),
@@ -1199,25 +1207,6 @@ Rule.prototype.__createAstPresetGetNthValueIfArray = function (nth) {
         this.__createAstPresetIsValueArray(),
         [
             this.__createAstPresetGetNthValue(nth)]);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} name
- *
- * @returns {Object}
- * */
-Rule.prototype.__createAstPresetGetQueryValue = function (name) {
-    return this.__createAstTypeExpressionStatement(
-        this.__createAstTypeAssignmentExpression('=',
-            this.__createAstTypeIdentifier('value'),
-            this.__createAstTypeMemberExpression(
-                this.__createAstTypeIdentifier('queryObject'),
-                this.__createAstTypeLiteral(name),
-                true)));
 };
 
 /**
