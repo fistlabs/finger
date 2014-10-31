@@ -6,20 +6,8 @@ var hasProperty = Object.prototype.hasOwnProperty;
 
 /**
  * @class Query
- * @param {Object} params
- * @param {String} params.eq
- * @param {String} params.sep
  * */
-function Query(params) {
-
-    /**
-     * @public
-     * @memberOf {Query}
-     * @property
-     * @type {Object}
-     * */
-    this.params = Object(params);
-}
+function Query() {}
 
 /**
  * @public
@@ -59,11 +47,13 @@ Query.prototype.unescape = function (subj) {
  * @memberOf {Query}
  * @method
  *
- * @param {Object} queryString
+ * @param {String} queryString
+ * @param {String} sep
+ * @param {String} eq
  *
  * @returns {Object}
  * */
-Query.prototype.parse = function (queryString) {
+Query.prototype.parse = function (queryString, sep, eq) {
     var eqIndex;
     var i;
     var key;
@@ -78,11 +68,11 @@ Query.prototype.parse = function (queryString) {
     }
 
     queryString = queryString.replace(/\+/g, '%20');
-    pairs = queryString.split(this.params.sep);
+    pairs = queryString.split(sep);
 
     for (i = 0, l = pairs.length; i < l; i += 1) {
         pair = pairs[i];
-        eqIndex = pair.indexOf(this.params.eq);
+        eqIndex = pair.indexOf(eq);
 
         if (eqIndex === -1) {
             key = this.unescape(pair);
