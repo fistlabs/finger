@@ -312,7 +312,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                         //  else
                         [
                             //  part[part.length] = `query.escape(part.getRawName()) +
-                            //      query.params.eq` + query.stringifyQueryArg(value);
+                            //      this.params.queryEq` + query.stringifyQueryArg(value);
                             this.__astPresetAddQueryArg(rule.getRawName())]));
             } else {
                 body.push(
@@ -320,7 +320,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                         //  if (value !== undefined && value !== null && value !== '') {
                         this.__astPresetValueCheckExpression('&&', '!=='),
                         [
-                            //  part += `query.escape(part.getRawName() + query.params.eq` +
+                            //  part += `query.escape(part.getRawName() + this.params.querySep` +
                             //      query.stringifyQueryArg(value);
                             this.__astPresetAddQueryArg(rule.getRawName())]));
             }
@@ -391,11 +391,8 @@ Rule.prototype.__compileMatcherFunc = function () {
                     this.__astTypeIdentifier('url')])),
         //  var queryObject;
         this.__astTypeVarDeclaration('queryObject'),
-        //  var types;
-        this.__astTypeVarDeclaration('type'),
         //  var value;
-        this.__astTypeVarDeclaration('value')
-    );
+        this.__astTypeVarDeclaration('value'));
 
     //  if (match === null) {
     body.push(
@@ -452,7 +449,6 @@ Rule.prototype.__compileMatcherFunc = function () {
                         this.__astTypeIdentifier('value'))));
 
         } else {
-            //  ??
             //  args[`path`][`i - 1`] = value
             body.push(
                 this.__astTypeExpressionStatement(
@@ -498,16 +494,7 @@ Rule.prototype.__compileMatcherFunc = function () {
                                             this.__astTypeLiteral(rule.getRawName()),
                                             true),
                                         this.__astTypeLiteral(i),
-                                        true)))]),
-                    this.__astTypeExpressionStatement(
-                        this.__astTypeAssignmentExpression('=',
-                            this.__astTypeIdentifier('type'),
-                            this.__astTypeMemberExpression(
-                                this.__astTypeMemberExpression(
-                                    this.__astTypeIdentifier('this'),
-                                    this.__astTypeIdentifier('_types')),
-                                this.__astTypeLiteral(rule.kind),
-                                true))));
+                                        true)))]));
 
                 if (rule.required) {
                     body.push(
@@ -515,14 +502,9 @@ Rule.prototype.__compileMatcherFunc = function () {
                             this.__astTypeLogicalExpression('||',
                                 this.__astTypeBinaryExpression('===',
                                     this.__astTypeIdentifier('value'),
-                                    this.__astTypeIdentifier('undefined')),
+                                    this.__astPresetUndef()),
                                 this.__astTypeBinaryExpression('===',
-                                    this.__astTypeCallExpression(
-                                        this.__astTypeMemberExpression(
-                                            this.__astTypeIdentifier('type'),
-                                            this.__astTypeIdentifier('check')),
-                                        [
-                                            this.__astTypeIdentifier('value')]),
+                                    this.__astPresetTypeCheck(rule.kind),
                                     this.__astTypeLiteral(false))),
                             [
                                 this.__astTypeReturnStatement(
@@ -533,14 +515,9 @@ Rule.prototype.__compileMatcherFunc = function () {
                             this.__astTypeLogicalExpression('&&',
                                 this.__astTypeBinaryExpression('!==',
                                     this.__astTypeIdentifier('value'),
-                                    this.__astTypeIdentifier('undefined')),
+                                    this.__astPresetUndef()),
                                 this.__astTypeBinaryExpression('===',
-                                    this.__astTypeCallExpression(
-                                        this.__astTypeMemberExpression(
-                                            this.__astTypeIdentifier('type'),
-                                            this.__astTypeIdentifier('check')),
-                                        [
-                                            this.__astTypeIdentifier('value')]),
+                                    this.__astPresetTypeCheck(rule.kind),
                                     this.__astTypeLiteral(false))),
                             [
                                 this.__astPresetResetValue()]));
@@ -568,9 +545,7 @@ Rule.prototype.__compileMatcherFunc = function () {
         }, this);
     }
 
-    body.push(
-        this.__astTypeReturnStatement(
-            this.__astTypeIdentifier('args')));
+    body.push(this.__astTypeReturnStatement(this.__astTypeIdentifier('args')));
 
     func = escodegen.generate(func);
 
@@ -881,6 +856,29 @@ Rule.prototype.__compileEmptyArgs = function () {
  * @memberOf {Rule}
  * @method
  *
+ * @param {String} type
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__astPresetTypeCheck = function (type) {
+    return this.__astTypeCallExpression(
+        this.__astTypeMemberExpression(
+            this.__astTypeMemberExpression(
+                this.__astTypeMemberExpression(
+                    this.__astTypeIdentifier('this'),
+                    this.__astTypeIdentifier('_types')),
+                this.__astTypeLiteral(type),
+                true),
+            this.__astTypeIdentifier('check')),
+        [
+            this.__astTypeIdentifier('value')]);
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
  * @returns {Object}
  * */
 Rule.prototype.__astPresetUndef = function () {
@@ -914,22 +912,21 @@ Rule.prototype.__astObjectByObject = function (obj) {
 
     if (Object(obj) !== obj || Array.isArray(obj)) {
         if (Array.isArray(obj)) {
-            value = new Array(obj.length).join('|').split('|').map(this.__astPresetUndef, this);
+            value = _.map(new Array(obj.length), this.__astPresetUndef, this);
             return this.__astTypeArrayExpression(value);
         }
 
-        return this.__astTypeIdentifier('undefined');
+        return this.__astPresetUndef();
     }
 
     ast = this.__astTypeObjectExpression([]);
 
-    Object.keys(obj).forEach(function (i) {
-        value = {
+    _.forOwn(obj, function (obj, key) {
+        ast.properties.push({
             type: 'Property',
-            key: this.__astTypeLiteral(i),
-            value: this.__astObjectByObject(obj[i])
-        };
-        ast.properties.push(value);
+            key: this.__astTypeLiteral(key),
+            value: this.__astObjectByObject(obj)
+        });
     }, this);
 
     return ast;
@@ -970,10 +967,10 @@ Rule.prototype.__astPresetValueCheckExpression = function (logicalOp, binaryOp) 
         this.__astTypeLogicalExpression(logicalOp,
             this.__astTypeBinaryExpression(binaryOp,
                 this.__astTypeIdentifier('value'),
-                this.__astTypeIdentifier('undefined')),
+                this.__astPresetUndef()),
             this.__astTypeBinaryExpression(binaryOp,
                 this.__astTypeIdentifier('value'),
-                this.__astTypeIdentifier('null'))),
+                this.__astTypeLiteral(null))),
         this.__astTypeBinaryExpression(binaryOp,
             this.__astTypeIdentifier('value'),
             this.__astTypeLiteral('')));
@@ -1005,7 +1002,7 @@ Rule.prototype.__astPresetValueGetter = function (path) {
         this.__astTypeExpressionStatement(
             this.__astTypeAssignmentExpression('=',
                 this.__astTypeIdentifier('value'),
-                this.__astTypeIdentifier('undefined'))),
+                this.__astPresetUndef())),
         //  break VALUE_GETTER;
         this.__astTypeBreakStatement('VALUE_GETTER')];
 
@@ -1031,13 +1028,9 @@ Rule.prototype.__astPresetValueGetter = function (path) {
             //  if (!hasProperty.call(value, `parts[i]`)) {
             this.__astTypeIfStatement(
                 this.__astTypeUnaryExpression('!',
-                    this.__astTypeCallExpression(
-                        this.__astTypeMemberExpression(
-                            this.__astTypeIdentifier('hasProperty'),
-                            this.__astTypeIdentifier('call')),
-                        [
-                            this.__astTypeIdentifier('value'),
-                            this.__astTypeLiteral(part)]),
+                    this.__astPresetHasPropertyCall([
+                        this.__astTypeIdentifier('value'),
+                        this.__astTypeLiteral(part)]),
                     true),
                 breakCode));
 
@@ -1069,6 +1062,23 @@ Rule.prototype.__astPresetValueGetter = function (path) {
             breakCode));
 
     return getter;
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {Array} args
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__astPresetHasPropertyCall = function (args) {
+    return this.__astTypeCallExpression(
+        this.__astTypeMemberExpression(
+            this.__astTypeIdentifier('hasProperty'),
+            this.__astTypeIdentifier('call')),
+        args);
 };
 
 /**
@@ -1199,13 +1209,9 @@ Rule.prototype.__astPresetAssignPart = function (assign) {
  * */
 Rule.prototype.__astPresetIfQueryHas = function (name, consequent, alternate) {
     return this.__astTypeIfStatement(
-        this.__astTypeCallExpression(
-            this.__astTypeMemberExpression(
-                this.__astTypeIdentifier('hasProperty'),
-                this.__astTypeIdentifier('call')),
-            [
-                this.__astTypeIdentifier('queryObject'),
-                this.__astTypeLiteral(name)]),
+        this.__astPresetHasPropertyCall([
+            this.__astTypeIdentifier('queryObject'),
+            this.__astTypeLiteral(name)]),
         consequent,
         alternate);
 };
@@ -1221,7 +1227,7 @@ Rule.prototype.__astPresetResetValue = function () {
     return this.__astTypeExpressionStatement(
         this.__astTypeAssignmentExpression('=',
             this.__astTypeIdentifier('value'),
-            this.__astTypeIdentifier('undefined')));
+            this.__astPresetUndef()));
 };
 
 /**
