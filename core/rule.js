@@ -11,6 +11,7 @@ var Query = /** @type Query */ require('./query');
 var Tools = /** @type Tools */ require('./tools');
 var Type = /** @type Type */ require('./type');
 
+var _ = require('lodash-node');
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
 var query = /** @type {Query} */ new Query();
@@ -25,7 +26,6 @@ var util = require('util');
  * @param {Object} [params]
  * */
 function Rule(ruleString, params) {
-    var i;
 
     /**
      * @public
@@ -33,19 +33,7 @@ function Rule(ruleString, params) {
      * @property
      * @type {Object}
      * */
-    this.params = {};
-
-    for (i in Rule.defaultParams) {
-        if (hasProperty.call(Rule.defaultParams, i)) {
-            this.params[i] = Rule.defaultParams[i];
-        }
-    }
-
-    for (i in params) {
-        if (hasProperty.call(params, i)) {
-            this.params[i] = params[i];
-        }
-    }
+    this.params = _.extend({}, Rule.defaultParams, params);
 
     /**
      * @protected
@@ -185,30 +173,30 @@ Rule.prototype.match = function (url) {
 Rule.prototype.__compileBuilderFunc = function () {
     var body = [];
     //  function _builderFunc(args) {
-    var func = this.__createAstTypeFunctionDeclaration('_builderFunc', body, [
-        this.__createAstTypeIdentifier('args')
+    var func = this.__astTypeFunctionDeclaration('_builderFunc', body, [
+        this.__astTypeIdentifier('args')
     ]);
     var stack = [];
 
     body.push(
         //  var part = '';'
-        this.__createAstTypeVarDeclaration('part',
-            this.__createAstTypeLiteral('')),
+        this.__astTypeVarDeclaration('part',
+            this.__astTypeLiteral('')),
         //  var stack = [];
-        this.__createAstTypeVarDeclaration('stack',
-            this.__createAstTypeArrayExpression([])),
+        this.__astTypeVarDeclaration('stack',
+            this.__astTypeArrayExpression([])),
         //  var value;
-        this.__createAstTypeVarDeclaration('value'),
+        this.__astTypeVarDeclaration('value'),
         //  var pathname;
-        this.__createAstTypeVarDeclaration('pathname'));
+        this.__astTypeVarDeclaration('pathname'));
 
     this.inspectRule(function (part, stackPop, n) {
 
         if (part.type === RuleSep.TYPE) {
             //  part += '/';
             body.push(
-                this.__createAstPresetPartSelfPlus(
-                    this.__createAstTypeLiteral('/')));
+                this.__astPresetPartSelfPlus(
+                    this.__astTypeLiteral('/')));
 
             return;
         }
@@ -216,8 +204,8 @@ Rule.prototype.__compileBuilderFunc = function () {
         if (part.type === RuleAny.TYPE) {
             body.push(
                 //  part += `encodeURIComponent(part.text)`;
-                this.__createAstPresetPartSelfPlus(
-                    this.__createAstTypeLiteral(encodeURIComponent(part.text))));
+                this.__astPresetPartSelfPlus(
+                    this.__astTypeLiteral(encodeURIComponent(part.text))));
 
             return;
         }
@@ -228,143 +216,143 @@ Rule.prototype.__compileBuilderFunc = function () {
                 body = stack.pop();
                 body.push(
                     //  part = stack[`n`] + part;
-                    this.__createAstPresetAssignPart(
-                        this.__createAstTypeBinaryExpression('+',
-                            this.__createAstTypeMemberExpression(
-                                this.__createAstTypeIdentifier('stack'),
-                                this.__createAstTypeLiteral(n),
+                    this.__astPresetAssignPart(
+                        this.__astTypeBinaryExpression('+',
+                            this.__astTypeMemberExpression(
+                                this.__astTypeIdentifier('stack'),
+                                this.__astTypeLiteral(n),
                                 true),
-                            this.__createAstTypeIdentifier('part'))));
+                            this.__astTypeIdentifier('part'))));
 
                 return;
             }
 
             body.push(
                 //  stack[`n`] = part;
-                this.__createAstTypeExpressionStatement(
-                    this.__createAstTypeAssignmentExpression('=',
-                        this.__createAstTypeMemberExpression(
-                            this.__createAstTypeIdentifier('stack'),
-                            this.__createAstTypeLiteral(n),
+                this.__astTypeExpressionStatement(
+                    this.__astTypeAssignmentExpression('=',
+                        this.__astTypeMemberExpression(
+                            this.__astTypeIdentifier('stack'),
+                            this.__astTypeLiteral(n),
                             true),
-                        this.__createAstTypeIdentifier('part'))),
+                        this.__astTypeIdentifier('part'))),
                 //  part = '';
-                this.__createAstPresetResetPart());
+                this.__astPresetResetPart());
 
             stack.push(body);
             //  RULE_SEQ_`n`: {
             body.push(
-                this.__createAstTypeLabeledStatement('RULE_SEQ_' + n, body = []));
+                this.__astTypeLabeledStatement('RULE_SEQ_' + n, body = []));
 
             return;
         }
 
         body.push(
-            this.__createAstPresetValueGetter(part.getName()),
-            this.__createAstPresetGetNthValueIfArray(part.used));
+            this.__astPresetValueGetter(part.getName()),
+            this.__astPresetGetNthValueIfArray(part.used));
 
         if (n > 1) {
             body.push(
-                this.__createAstTypeIfStatement(
+                this.__astTypeIfStatement(
                     //  if (value === undefined || value === null || value === ') {
-                    this.__createAstPresetValueCheckExpression('||', '==='),
+                    this.__astPresetValueCheckExpression('||', '==='),
                     [
                         //  part = '';
-                        this.__createAstPresetResetPart(),
+                        this.__astPresetResetPart(),
                         //  break RULE_SEQ_`n - 1`;
-                        this.__createAstTypeBreakStatement('RULE_SEQ_' + (n - 1))]),
+                        this.__astTypeBreakStatement('RULE_SEQ_' + (n - 1))]),
                 //  part += query.stringifyQueryArg(value);
-                this.__createAstPresetPartSelfPlus(
-                    this.__createAstPresetQueryEscapeValue4Pathname()));
+                this.__astPresetPartSelfPlus(
+                    this.__astPresetQueryEscapeValue4Pathname()));
         } else {
             body.push(
-                this.__createAstTypeIfStatement(
+                this.__astTypeIfStatement(
                     //  if (value !== undefined && value !== null && value !== '') {
-                    this.__createAstPresetValueCheckExpression('&&', '!=='),
+                    this.__astPresetValueCheckExpression('&&', '!=='),
                     [
                         //  part += query.stringifyQueryArg(value);
-                        this.__createAstPresetPartSelfPlus(
-                            this.__createAstPresetQueryEscapeValue4Pathname())]));
+                        this.__astPresetPartSelfPlus(
+                            this.__astPresetQueryEscapeValue4Pathname())]));
         }
     });
 
     //  building query
     body.push(
         //  pathname = part;
-        this.__createAstTypeExpressionStatement(
-            this.__createAstTypeAssignmentExpression('=',
-                this.__createAstTypeIdentifier('pathname'),
-                this.__createAstTypeIdentifier('part'))),
+        this.__astTypeExpressionStatement(
+            this.__astTypeAssignmentExpression('=',
+                this.__astTypeIdentifier('pathname'),
+                this.__astTypeIdentifier('part'))),
         //  part = [];
-        this.__createAstPresetAssignPart(
-            this.__createAstTypeArrayExpression([])));
+        this.__astPresetAssignPart(
+            this.__astTypeArrayExpression([])));
 
-    Object.keys(this._queryParams).forEach(function (name) {
-        this._queryParams[name].forEach(function (rule) {
+    _.forOwn(this._queryParams, function (rules, name) {
+        _.forEach(rules, function (rule) {
             body.push(
-                this.__createAstPresetValueGetter(rule.getName()),
-                this.__createAstPresetGetNthValueIfArray(rule.used));
+                this.__astPresetValueGetter(name),
+                this.__astPresetGetNthValueIfArray(rule.used));
 
             if (rule.required) {
                 body.push(
-                    this.__createAstTypeIfStatement(
+                    this.__astTypeIfStatement(
                         //  if (value === undefined || value === null || value === '') {
-                        this.__createAstPresetValueCheckExpression('||', '==='),
+                        this.__astPresetValueCheckExpression('||', '==='),
                         [
                             //  part[part.length] = `query.escape(part.getRawName())`;
-                            this.__createAstTypeExpressionStatement(
-                                this.__createAstTypeAssignmentExpression('=',
-                                    this.__createAstTypeMemberExpression(
-                                        this.__createAstTypeIdentifier('part'),
-                                        this.__createAstTypeMemberExpression(
-                                            this.__createAstTypeIdentifier('part'),
-                                            this.__createAstTypeIdentifier('length')),
+                            this.__astTypeExpressionStatement(
+                                this.__astTypeAssignmentExpression('=',
+                                    this.__astTypeMemberExpression(
+                                        this.__astTypeIdentifier('part'),
+                                        this.__astTypeMemberExpression(
+                                            this.__astTypeIdentifier('part'),
+                                            this.__astTypeIdentifier('length')),
                                         true),
-                                    this.__createAstTypeLiteral(query.escape(rule.getRawName()))))],
+                                    this.__astTypeLiteral(query.escape(rule.getRawName()))))],
                         //  else
                         [
                             //  part[part.length] = `query.escape(part.getRawName()) +
-                            //      query.params.eq` + query.stringifyQueryArg(value);
-                            this.__createAstPresetAddQueryArg(rule.getRawName())]));
+                            //      this.params.queryEq` + query.stringifyQueryArg(value);
+                            this.__astPresetAddQueryArg(rule.getRawName())]));
             } else {
                 body.push(
-                    this.__createAstTypeIfStatement(
+                    this.__astTypeIfStatement(
                         //  if (value !== undefined && value !== null && value !== '') {
-                        this.__createAstPresetValueCheckExpression('&&', '!=='),
+                        this.__astPresetValueCheckExpression('&&', '!=='),
                         [
-                            //  part += `query.escape(part.getRawName() + query.params.eq` +
+                            //  part += `query.escape(part.getRawName() + this.params.querySep` +
                             //      query.stringifyQueryArg(value);
-                            this.__createAstPresetAddQueryArg(rule.getRawName())]));
+                            this.__astPresetAddQueryArg(rule.getRawName())]));
             }
         }, this);
     }, this);
 
     body.push(
-        this.__createAstTypeIfStatement(
+        this.__astTypeIfStatement(
             //  if (part.length === 0) {
-            this.__createAstTypeBinaryExpression('===',
-                this.__createAstTypeMemberExpression(
-                    this.__createAstTypeIdentifier('part'),
-                    this.__createAstTypeIdentifier('length')),
-                this.__createAstTypeLiteral(0)),
+            this.__astTypeBinaryExpression('===',
+                this.__astTypeMemberExpression(
+                    this.__astTypeIdentifier('part'),
+                    this.__astTypeIdentifier('length')),
+                this.__astTypeLiteral(0)),
             [
                 //  return pathname;
-                this.__createAstTypeReturnStatement(
-                    this.__createAstTypeIdentifier('pathname'))]));
+                this.__astTypeReturnStatement(
+                    this.__astTypeIdentifier('pathname'))]));
 
     body.push(
         //  return pathname + '?' + part.join(`query.params.sep`);
-        this.__createAstTypeReturnStatement(
-            this.__createAstTypeBinaryExpression('+',
-                this.__createAstTypeBinaryExpression('+',
-                    this.__createAstTypeIdentifier('pathname'),
-                    this.__createAstTypeLiteral('?')),
-                this.__createAstTypeCallExpression(
-                    this.__createAstTypeMemberExpression(
-                        this.__createAstTypeIdentifier('part'),
-                        this.__createAstTypeIdentifier('join')),
+        this.__astTypeReturnStatement(
+            this.__astTypeBinaryExpression('+',
+                this.__astTypeBinaryExpression('+',
+                    this.__astTypeIdentifier('pathname'),
+                    this.__astTypeLiteral('?')),
+                this.__astTypeCallExpression(
+                    this.__astTypeMemberExpression(
+                        this.__astTypeIdentifier('part'),
+                        this.__astTypeIdentifier('join')),
                     [
-                        this.__createAstTypeLiteral(this.params.querySep)]))));
+                        this.__astTypeLiteral(this.params.querySep)]))));
 
     func = escodegen.generate(func);
 
@@ -382,45 +370,42 @@ Rule.prototype.__compileBuilderFunc = function () {
 Rule.prototype.__compileMatcherFunc = function () {
     var body = [];
     //  function __matcherFunc(url) {
-    var func = this.__createAstTypeFunctionDeclaration('_matcherFunc', body, [
-        this.__createAstTypeIdentifier('url')
+    var func = this.__astTypeFunctionDeclaration('_matcherFunc', body, [
+        this.__astTypeIdentifier('url')
     ]);
     var paramsIndex = this._paramsIndex;
 
     body.push(
         //  var args;
-        this.__createAstTypeVarDeclaration('args',
-            this.__createAstPresetEmptyArgs()),
+        this.__astTypeVarDeclaration('args',
+            this.__astPresetEmptyArgs()),
         //  var match = this._matchRegExp.exec(url);
-        this.__createAstTypeVarDeclaration('match',
-            this.__createAstTypeCallExpression(
-                this.__createAstTypeMemberExpression(
-                    this.__createAstTypeMemberExpression(
-                        this.__createAstTypeIdentifier('this'),
-                        this.__createAstTypeIdentifier('_matchRegExp')),
-                    this.__createAstTypeIdentifier('exec')),
+        this.__astTypeVarDeclaration('match',
+            this.__astTypeCallExpression(
+                this.__astTypeMemberExpression(
+                    this.__astTypeMemberExpression(
+                        this.__astTypeIdentifier('this'),
+                        this.__astTypeIdentifier('_matchRegExp')),
+                    this.__astTypeIdentifier('exec')),
                 [
-                    this.__createAstTypeIdentifier('url')])),
+                    this.__astTypeIdentifier('url')])),
         //  var queryObject;
-        this.__createAstTypeVarDeclaration('queryObject'),
-        //  var types;
-        this.__createAstTypeVarDeclaration('type'),
+        this.__astTypeVarDeclaration('queryObject'),
         //  var value;
-        this.__createAstTypeVarDeclaration('value')
-    );
+        this.__astTypeVarDeclaration('value'));
 
     //  if (match === null) {
     body.push(
-        this.__createAstTypeIfStatement(
-            this.__createAstTypeBinaryExpression('===',
-                this.__createAstTypeIdentifier('match'),
-                this.__createAstTypeLiteral(null)),
+        this.__astTypeIfStatement(
+            this.__astTypeBinaryExpression('===',
+                this.__astTypeIdentifier('match'),
+                this.__astTypeLiteral(null)),
             [
                 //  return null;
-                this.__createAstTypeReturnStatement(
-                    this.__createAstTypeLiteral(null))]));
+                this.__astTypeReturnStatement(
+                    this.__astTypeLiteral(null))]));
 
-    this._pathParams.forEach(function (rule, i) {
+    _.forEach(this._pathParams, function (rule, i) {
         var name = rule.getName();
 
         if (!this.__hasParameterValue(name)) {
@@ -429,162 +414,138 @@ Rule.prototype.__compileMatcherFunc = function () {
 
         body.push(
             //  value = match[`i + 1`]
-            this.__createAstTypeExpressionStatement(
-                this.__createAstTypeAssignmentExpression('=',
-                    this.__createAstTypeIdentifier('value'),
-                    this.__createAstTypeMemberExpression(
-                        this.__createAstTypeIdentifier('match'),
-                        this.__createAstTypeLiteral(i + 1),
+            this.__astTypeExpressionStatement(
+                this.__astTypeAssignmentExpression('=',
+                    this.__astTypeIdentifier('value'),
+                    this.__astTypeMemberExpression(
+                        this.__astTypeIdentifier('match'),
+                        this.__astTypeLiteral(i + 1),
                         true))),
-            this.__createAstTypeIfStatement(
+            this.__astTypeIfStatement(
                 //  if (typeof value === 'string') {
-                this.__createAstTypeBinaryExpression('===',
-                    this.__createAstTypeUnaryExpression('typeof',
-                        this.__createAstTypeIdentifier('value'),
+                this.__astTypeBinaryExpression('===',
+                    this.__astTypeUnaryExpression('typeof',
+                        this.__astTypeIdentifier('value'),
                         true),
-                    this.__createAstTypeLiteral('string')),
+                    this.__astTypeLiteral('string')),
                 [
                     //  value = query.unescape(value);
-                    this.__createAstTypeExpressionStatement(
-                        this.__createAstTypeAssignmentExpression('=',
-                            this.__createAstTypeIdentifier('value'),
-                            this.__createAstTypeCallExpression(
-                                this.__createAstTypeMemberExpression(
-                                    this.__createAstTypeIdentifier('query'),
-                                    this.__createAstTypeIdentifier('unescape')),
+                    this.__astTypeExpressionStatement(
+                        this.__astTypeAssignmentExpression('=',
+                            this.__astTypeIdentifier('value'),
+                            this.__astTypeCallExpression(
+                                this.__astTypeMemberExpression(
+                                    this.__astTypeIdentifier('query'),
+                                    this.__astTypeIdentifier('unescape')),
                                 [
-                                    this.__createAstTypeIdentifier('value')])))]));
+                                    this.__astTypeIdentifier('value')])))]));
 
         if (paramsIndex[name] === 1) {
             //  args[`path`] = value;
             body.push(
-                this.__createAstTypeExpressionStatement(
-                    this.__createAstTypeAssignmentExpression('=',
-                        this.__createAstPresetDeepAccessor('args', name),
-                        this.__createAstTypeIdentifier('value'))));
+                this.__astTypeExpressionStatement(
+                    this.__astTypeAssignmentExpression('=',
+                        this.__astPresetDeepAccessor('args', name),
+                        this.__astTypeIdentifier('value'))));
 
         } else {
-            //  ??
             //  args[`path`][`i - 1`] = value
             body.push(
-                this.__createAstTypeExpressionStatement(
-                    this.__createAstTypeAssignmentExpression('=',
-                        this.__createAstTypeMemberExpression(
-                            this.__createAstPresetDeepAccessor('args', name),
-                            this.__createAstTypeLiteral(rule.used),
+                this.__astTypeExpressionStatement(
+                    this.__astTypeAssignmentExpression('=',
+                        this.__astTypeMemberExpression(
+                            this.__astPresetDeepAccessor('args', name),
+                            this.__astTypeLiteral(rule.used),
                             true),
-                        this.__createAstTypeIdentifier('value'))));
+                        this.__astTypeIdentifier('value'))));
         }
     }, this);
 
     if (this._pathRule.args.length) {
         //  queryObject = query.parse(match[`l + 1`]);
         body.push(
-            this.__createAstTypeExpressionStatement(
-                this.__createAstTypeAssignmentExpression('=',
-                    this.__createAstTypeIdentifier('queryObject'),
-                    this.__createAstTypeCallExpression(
-                        this.__createAstTypeMemberExpression(
-                            this.__createAstTypeIdentifier('query'),
-                            this.__createAstTypeIdentifier('parse')),
+            this.__astTypeExpressionStatement(
+                this.__astTypeAssignmentExpression('=',
+                    this.__astTypeIdentifier('queryObject'),
+                    this.__astTypeCallExpression(
+                        this.__astTypeMemberExpression(
+                            this.__astTypeIdentifier('query'),
+                            this.__astTypeIdentifier('parse')),
                         [
-                            this.__createAstTypeMemberExpression(
-                                this.__createAstTypeIdentifier('match'),
-                                this.__createAstTypeLiteral(this._pathParams.length + 1),
+                            this.__astTypeMemberExpression(
+                                this.__astTypeIdentifier('match'),
+                                this.__astTypeLiteral(this._pathParams.length + 1),
                                 true),
-                            this.__createAstTypeLiteral(this.params.querySep),
-                            this.__createAstTypeLiteral(this.params.queryEq)]))));
+                            this.__astTypeLiteral(this.params.querySep),
+                            this.__astTypeLiteral(this.params.queryEq)]))));
 
-        Object.keys(this._queryParams).forEach(function (name) {
-            this._queryParams[name].forEach(function (rule, i) {
-
+        _.forOwn(this._queryParams, function (rules, name) {
+            _.forEach(rules, function (rule, i) {
                 body.push(
-                    this.__createAstPresetResetValue(),
-                    this.__createAstPresetIfQueryHas(rule.getRawName(),
+                    this.__astPresetResetValue(),
+                    this.__astPresetIfQueryHas(rule.getRawName(),
                         [
-                            this.__createAstTypeExpressionStatement(
-                                this.__createAstTypeAssignmentExpression('=',
-                                    this.__createAstTypeIdentifier('value'),
-                                    this.__createAstTypeMemberExpression(
-                                        this.__createAstTypeMemberExpression(
-                                            this.__createAstTypeIdentifier('queryObject'),
-                                            this.__createAstTypeLiteral(rule.getRawName()),
+                            this.__astTypeExpressionStatement(
+                                this.__astTypeAssignmentExpression('=',
+                                    this.__astTypeIdentifier('value'),
+                                    this.__astTypeMemberExpression(
+                                        this.__astTypeMemberExpression(
+                                            this.__astTypeIdentifier('queryObject'),
+                                            this.__astTypeLiteral(rule.getRawName()),
                                             true),
-                                        this.__createAstTypeLiteral(i),
-                                        true)))]),
-                    this.__createAstTypeExpressionStatement(
-                        this.__createAstTypeAssignmentExpression('=',
-                            this.__createAstTypeIdentifier('type'),
-                            this.__createAstTypeMemberExpression(
-                                this.__createAstTypeMemberExpression(
-                                    this.__createAstTypeIdentifier('this'),
-                                    this.__createAstTypeIdentifier('_types')),
-                                this.__createAstTypeLiteral(rule.kind),
-                                true))));
+                                        this.__astTypeLiteral(i),
+                                        true)))]));
 
                 if (rule.required) {
                     body.push(
-                        this.__createAstTypeIfStatement(
-                            this.__createAstTypeLogicalExpression('||',
-                                this.__createAstTypeBinaryExpression('===',
-                                    this.__createAstTypeIdentifier('value'),
-                                    this.__createAstTypeIdentifier('undefined')),
-                                this.__createAstTypeBinaryExpression('===',
-                                    this.__createAstTypeCallExpression(
-                                        this.__createAstTypeMemberExpression(
-                                            this.__createAstTypeIdentifier('type'),
-                                            this.__createAstTypeIdentifier('check')),
-                                        [
-                                            this.__createAstTypeIdentifier('value')]),
-                                    this.__createAstTypeLiteral(false))),
+                        this.__astTypeIfStatement(
+                            this.__astTypeLogicalExpression('||',
+                                this.__astTypeBinaryExpression('===',
+                                    this.__astTypeIdentifier('value'),
+                                    this.__astPresetUndef()),
+                                this.__astTypeBinaryExpression('===',
+                                    this.__astPresetTypeCheck(rule.kind),
+                                    this.__astTypeLiteral(false))),
                             [
-                                this.__createAstTypeReturnStatement(
-                                    this.__createAstTypeLiteral(null))]));
+                                this.__astTypeReturnStatement(
+                                    this.__astTypeLiteral(null))]));
                 } else {
                     body.push(
-                        this.__createAstTypeIfStatement(
-                            this.__createAstTypeLogicalExpression('&&',
-                                this.__createAstTypeBinaryExpression('!==',
-                                    this.__createAstTypeIdentifier('value'),
-                                    this.__createAstTypeIdentifier('undefined')),
-                                this.__createAstTypeBinaryExpression('===',
-                                    this.__createAstTypeCallExpression(
-                                        this.__createAstTypeMemberExpression(
-                                            this.__createAstTypeIdentifier('type'),
-                                            this.__createAstTypeIdentifier('check')),
-                                        [
-                                            this.__createAstTypeIdentifier('value')]),
-                                    this.__createAstTypeLiteral(false))),
+                        this.__astTypeIfStatement(
+                            this.__astTypeLogicalExpression('&&',
+                                this.__astTypeBinaryExpression('!==',
+                                    this.__astTypeIdentifier('value'),
+                                    this.__astPresetUndef()),
+                                this.__astTypeBinaryExpression('===',
+                                    this.__astPresetTypeCheck(rule.kind),
+                                    this.__astTypeLiteral(false))),
                             [
-                                this.__createAstPresetResetValue()]));
+                                this.__astPresetResetValue()]));
                 }
 
                 if (this.__hasParameterValue(name)) {
                     if (paramsIndex[name] === 1) {
                         body.push(
-                            this.__createAstTypeExpressionStatement(
-                                this.__createAstTypeAssignmentExpression('=',
-                                    this.__createAstPresetDeepAccessor('args', name),
-                                    this.__createAstTypeIdentifier('value'))));
+                            this.__astTypeExpressionStatement(
+                                this.__astTypeAssignmentExpression('=',
+                                    this.__astPresetDeepAccessor('args', name),
+                                    this.__astTypeIdentifier('value'))));
                     } else {
                         body.push(
-                            this.__createAstTypeExpressionStatement(
-                                this.__createAstTypeAssignmentExpression('=',
-                                    this.__createAstTypeMemberExpression(
-                                        this.__createAstPresetDeepAccessor('args', name),
-                                        this.__createAstTypeLiteral(rule.used),
+                            this.__astTypeExpressionStatement(
+                                this.__astTypeAssignmentExpression('=',
+                                    this.__astTypeMemberExpression(
+                                        this.__astPresetDeepAccessor('args', name),
+                                        this.__astTypeLiteral(rule.used),
                                         true),
-                                    this.__createAstTypeIdentifier('value'))));
+                                    this.__astTypeIdentifier('value'))));
                     }
                 }
-
             }, this);
         }, this);
     }
 
-    body.push(
-        this.__createAstTypeReturnStatement(
-            this.__createAstTypeIdentifier('args')));
+    body.push(this.__astTypeReturnStatement(this.__astTypeIdentifier('args')));
 
     func = escodegen.generate(func);
 
@@ -695,22 +656,11 @@ Rule.prototype.__compileMatchRegExpPartStatic = function (part) {
  * @returns {Object}
  * */
 Rule.prototype.__compileTypes = function () {
-    var kind;
-    var types = {};
+    var types = _.extend({}, Rule.builtinTypes, this.params.types);
 
-    for (kind in Rule.builtinTypes) {
-        if (hasProperty.call(Rule.builtinTypes, kind)) {
-            types[kind] = new Type(kind, Rule.builtinTypes[kind]);
-        }
-    }
-
-    for (kind in this.params.types) {
-        if (hasProperty.call(this.params.types, kind)) {
-            types[kind] = new Type(kind, this.params.types[kind]);
-        }
-    }
-
-    return types;
+    return _.mapValues(types, function (regexp, kind) {
+        return new Type(kind, regexp);
+    });
 };
 
 /**
@@ -723,17 +673,17 @@ Rule.prototype.__compileTypes = function () {
 Rule.prototype.__createParamsIndex = function () {
     var index = Object.create(null);
 
-    this._pathParams.forEach(function (rule) {
+    _.forEach(this._pathParams, function (rule) {
         var name = rule.getName();
         if (index[name]) {
             index[name] += 1;
         } else {
             index[name] = 1;
         }
-    });
+    }, this);
 
-    Object.keys(this._queryParams).forEach(function (name) {
-        var length = this._queryParams[name].length;
+    _.forOwn(this._queryParams, function (rules, name) {
+        var length = rules.length;
         if (index[name]) {
             index[name] += length;
         } else {
@@ -772,7 +722,7 @@ Rule.prototype.__findPathParams = function () {
  * */
 Rule.prototype.__findQueryParams = function () {
     var params = Object.create(null);
-    this._pathRule.args.forEach(function (rule) {
+    _.forEach(this._pathRule.args, function (rule) {
         var name = rule.getName();
         if (params[name]) {
             params[name].push(rule);
@@ -803,7 +753,7 @@ Rule.prototype._compilePathRule = function () {
             rule.kind = defaultType;
         }
 
-        if (!hasProperty.call(types, rule.kind)) {
+        if (!_.has(types, rule.kind)) {
             throw new TypeError(util.format('Unknown %j parameter type %j', name, rule.kind));
         }
 
@@ -826,7 +776,7 @@ Rule.prototype._compilePathRule = function () {
 
     defaultType = 'Str';
 
-    rule.args.forEach(useArg);
+    _.forEach(rule.args, useArg);
 
     return rule;
 };
@@ -850,7 +800,7 @@ Rule.prototype.__hasParameterValue = function (path) {
     for (i = 0, l = parts.length; i < l; i += 1) {
         part = parts[i];
 
-        if (Object(args) === args && !Array.isArray(args) && hasProperty.call(args, part)) {
+        if (_.isObject(args) && !_.isArray(args) && _.has(args, part)) {
             args = args[part];
             continue;
         }
@@ -858,7 +808,7 @@ Rule.prototype.__hasParameterValue = function (path) {
         return false;
     }
 
-    return Object(args) !== args || Array.isArray(args);
+    return !_.isObject(args) || _.isArray(args);
 };
 
 /**
@@ -872,7 +822,7 @@ Rule.prototype.__compileEmptyArgs = function () {
     var pEmptyArgs = {};
     var qEmptyArgs = {};
 
-    this._pathParams.forEach(function (rule) {
+    _.forEach(this._pathParams, function (rule) {
         var name = rule.getName();
         if (!hasProperty.call(pEmptyArgs, name)) {
             pEmptyArgs[name] = void 0;
@@ -885,7 +835,7 @@ Rule.prototype.__compileEmptyArgs = function () {
 
     pEmptyArgs = query.deeper(pEmptyArgs);
 
-    this._pathRule.args.forEach(function (rule) {
+    _.forEach(this._pathRule.args, function (rule) {
         var name = rule.getName();
         if (!hasProperty.call(qEmptyArgs, name)) {
             qEmptyArgs[name] = void 0;
@@ -906,11 +856,45 @@ Rule.prototype.__compileEmptyArgs = function () {
  * @memberOf {Rule}
  * @method
  *
+ * @param {String} type
+ *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetEmptyArgs = function () {
+Rule.prototype.__astPresetTypeCheck = function (type) {
+    return this.__astTypeCallExpression(
+        this.__astTypeMemberExpression(
+            this.__astTypeMemberExpression(
+                this.__astTypeMemberExpression(
+                    this.__astTypeIdentifier('this'),
+                    this.__astTypeIdentifier('_types')),
+                this.__astTypeLiteral(type),
+                true),
+            this.__astTypeIdentifier('check')),
+        [
+            this.__astTypeIdentifier('value')]);
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__astPresetUndef = function () {
+    return this.__astTypeIdentifier('undefined');
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__astPresetEmptyArgs = function () {
     var emptyArgs = this._emptyArgs;
-    return this.__createAstObjectByObject(emptyArgs);
+    return this.__astObjectByObject(emptyArgs);
 };
 
 /**
@@ -922,33 +906,27 @@ Rule.prototype.__createAstPresetEmptyArgs = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstObjectByObject = function (obj) {
+Rule.prototype.__astObjectByObject = function (obj) {
     var ast;
-    var undef;
     var value;
 
     if (Object(obj) !== obj || Array.isArray(obj)) {
-        undef = this.__createAstTypeIdentifier('undefined');
-
         if (Array.isArray(obj)) {
-            value = new Array(obj.length).join('|').split('|').map(function () {
-                return undef;
-            }, this);
-            return this.__createAstTypeArrayExpression(value);
+            value = _.map(new Array(obj.length), this.__astPresetUndef, this);
+            return this.__astTypeArrayExpression(value);
         }
 
-        return undef;
+        return this.__astPresetUndef();
     }
 
-    ast = this.__createAstTypeObjectExpression([]);
+    ast = this.__astTypeObjectExpression([]);
 
-    Object.keys(obj).forEach(function (i) {
-        value = {
+    _.forOwn(obj, function (obj, key) {
+        ast.properties.push({
             type: 'Property',
-            key: this.__createAstTypeLiteral(i),
-            value: this.__createAstObjectByObject(obj[i])
-        };
-        ast.properties.push(value);
+            key: this.__astTypeLiteral(key),
+            value: this.__astObjectByObject(obj)
+        });
     }, this);
 
     return ast;
@@ -966,15 +944,12 @@ Rule.prototype.__createAstObjectByObject = function (obj) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetDeepAccessor = function (name, path) {
-    var self = this;
-
-    return RuleArg.parse(path).reduce(function (object, part) {
-
-        return self.__createAstTypeMemberExpression(object,
-            self.__createAstTypeLiteral(part), true);
-
-    }, this.__createAstTypeIdentifier(name));
+Rule.prototype.__astPresetDeepAccessor = function (name, path) {
+    /** @this {Rule} */
+    return _.reduce(RuleArg.parse(path), function (object, part) {
+        return this.__astTypeMemberExpression(object,
+            this.__astTypeLiteral(part), true);
+    }, this.__astTypeIdentifier(name), this);
 };
 
 /**
@@ -987,18 +962,18 @@ Rule.prototype.__createAstPresetDeepAccessor = function (name, path) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetValueCheckExpression = function (logicalOp, binaryOp) {
-    return this.__createAstTypeLogicalExpression(logicalOp,
-        this.__createAstTypeLogicalExpression(logicalOp,
-            this.__createAstTypeBinaryExpression(binaryOp,
-                this.__createAstTypeIdentifier('value'),
-                this.__createAstTypeIdentifier('undefined')),
-            this.__createAstTypeBinaryExpression(binaryOp,
-                this.__createAstTypeIdentifier('value'),
-                this.__createAstTypeIdentifier('null'))),
-        this.__createAstTypeBinaryExpression(binaryOp,
-            this.__createAstTypeIdentifier('value'),
-            this.__createAstTypeLiteral('')));
+Rule.prototype.__astPresetValueCheckExpression = function (logicalOp, binaryOp) {
+    return this.__astTypeLogicalExpression(logicalOp,
+        this.__astTypeLogicalExpression(logicalOp,
+            this.__astTypeBinaryExpression(binaryOp,
+                this.__astTypeIdentifier('value'),
+                this.__astPresetUndef()),
+            this.__astTypeBinaryExpression(binaryOp,
+                this.__astTypeIdentifier('value'),
+                this.__astTypeLiteral(null))),
+        this.__astTypeBinaryExpression(binaryOp,
+            this.__astTypeIdentifier('value'),
+            this.__astTypeLiteral('')));
 };
 
 /**
@@ -1010,83 +985,79 @@ Rule.prototype.__createAstPresetValueCheckExpression = function (logicalOp, bina
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetValueGetter = function (path) {
+Rule.prototype.__astPresetValueGetter = function (path) {
     var parts = RuleArg.parse(path);
     var body = [];
     //  VALUE_GETTER: {
-    var getter = this.__createAstTypeLabeledStatement('VALUE_GETTER', body);
+    var getter = this.__astTypeLabeledStatement('VALUE_GETTER', body);
     //  value = args;
     body.push(
-        this.__createAstTypeExpressionStatement(
-            this.__createAstTypeAssignmentExpression('=',
-                this.__createAstTypeIdentifier('value'),
-                this.__createAstTypeIdentifier('args'))));
+        this.__astTypeExpressionStatement(
+            this.__astTypeAssignmentExpression('=',
+                this.__astTypeIdentifier('value'),
+                this.__astTypeIdentifier('args'))));
 
     var breakCode = [
         //  value = undefined;
-        this.__createAstTypeExpressionStatement(
-            this.__createAstTypeAssignmentExpression('=',
-                this.__createAstTypeIdentifier('value'),
-                this.__createAstTypeIdentifier('undefined'))),
+        this.__astTypeExpressionStatement(
+            this.__astTypeAssignmentExpression('=',
+                this.__astTypeIdentifier('value'),
+                this.__astPresetUndef())),
         //  break VALUE_GETTER;
-        this.__createAstTypeBreakStatement('VALUE_GETTER')];
+        this.__astTypeBreakStatement('VALUE_GETTER')];
 
     parts.forEach(function (part) {
 
         //  if (!value || typeof value !== 'object' || Array.isArray(value)) {
         body.push(
-            this.__createAstTypeIfStatement(
-                this.__createAstTypeLogicalExpression('||',
-                    this.__createAstTypeLogicalExpression('||',
-                        this.__createAstTypeUnaryExpression('!',
-                            this.__createAstTypeIdentifier('value'),
+            this.__astTypeIfStatement(
+                this.__astTypeLogicalExpression('||',
+                    this.__astTypeLogicalExpression('||',
+                        this.__astTypeUnaryExpression('!',
+                            this.__astTypeIdentifier('value'),
                             true),
-                        this.__createAstTypeBinaryExpression('!==',
-                            this.__createAstTypeUnaryExpression('typeof',
-                                this.__createAstTypeIdentifier('value'),
+                        this.__astTypeBinaryExpression('!==',
+                            this.__astTypeUnaryExpression('typeof',
+                                this.__astTypeIdentifier('value'),
                                 true),
-                            this.__createAstTypeLiteral('object'))),
-                    this.__createAstPresetIsValueArray()),
+                            this.__astTypeLiteral('object'))),
+                    this.__astPresetIsValueArray()),
                 breakCode));
 
         body.push(
             //  if (!hasProperty.call(value, `parts[i]`)) {
-            this.__createAstTypeIfStatement(
-                this.__createAstTypeUnaryExpression('!',
-                    this.__createAstTypeCallExpression(
-                        this.__createAstTypeMemberExpression(
-                            this.__createAstTypeIdentifier('hasProperty'),
-                            this.__createAstTypeIdentifier('call')),
-                        [
-                            this.__createAstTypeIdentifier('value'),
-                            this.__createAstTypeLiteral(part)]),
+            this.__astTypeIfStatement(
+                this.__astTypeUnaryExpression('!',
+                    this.__astPresetHasPropertyCall([
+                        this.__astTypeIdentifier('value'),
+                        this.__astTypeLiteral(part)]),
                     true),
                 breakCode));
 
         //  value = value[`parts[i]`];
         body.push(
-            this.__createAstTypeExpressionStatement(
-                this.__createAstTypeAssignmentExpression('=',
-                    this.__createAstTypeIdentifier('value'),
-                    this.__createAstTypeMemberExpression(
-                        this.__createAstTypeIdentifier('value'),
-                        this.__createAstTypeLiteral(part),
+            this.__astTypeExpressionStatement(
+                this.__astTypeAssignmentExpression('=',
+                    this.__astTypeIdentifier('value'),
+                    this.__astTypeMemberExpression(
+                        this.__astTypeIdentifier('value'),
+                        this.__astTypeLiteral(part),
                         true))));
     }, this);
 
     body.push(
         //  if (value && typeof value === 'object' && !Array.isArray(value)) {
-        this.__createAstTypeIfStatement(
-            this.__createAstTypeLogicalExpression('&&',
-                this.__createAstTypeLogicalExpression('&&',
-                    this.__createAstTypeIdentifier('value'),
-                    this.__createAstTypeBinaryExpression('===',
-                        this.__createAstTypeUnaryExpression('typeof',
-                            this.__createAstTypeIdentifier('value'),
+        this.__astTypeIfStatement(
+            this.__astTypeLogicalExpression('&&',
+                this.__astTypeLogicalExpression('&&',
+                    this.__astTypeIdentifier('value'),
+                    this.__astTypeBinaryExpression('===',
+                        this.__astTypeUnaryExpression('typeof',
+                            this.__astTypeIdentifier('value'),
                             true),
-                        this.__createAstTypeLiteral('object'))),
-            this.__createAstTypeUnaryExpression('!',
-                this.__createAstPresetIsValueArray(),
+                        this.__astTypeLiteral('object'))),
+            this.__astTypeUnaryExpression('!',
+                this.__astPresetIsValueArray(),
                 true)),
             breakCode));
 
@@ -1098,15 +1069,16 @@ Rule.prototype.__createAstPresetValueGetter = function (path) {
  * @memberOf {Rule}
  * @method
  *
+ * @param {Array} args
+ *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetQueryEscapeValue4Pathname = function () {
-    return this.__createAstTypeCallExpression(
-        this.__createAstTypeMemberExpression(
-            this.__createAstTypeIdentifier('query'),
-            this.__createAstTypeIdentifier('stringifyPathArg')),
-        [
-            this.__createAstTypeIdentifier('value')]);
+Rule.prototype.__astPresetHasPropertyCall = function (args) {
+    return this.__astTypeCallExpression(
+        this.__astTypeMemberExpression(
+            this.__astTypeIdentifier('hasProperty'),
+            this.__astTypeIdentifier('call')),
+        args);
 };
 
 /**
@@ -1116,13 +1088,13 @@ Rule.prototype.__createAstPresetQueryEscapeValue4Pathname = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetQueryEscapeValue4Query = function () {
-    return this.__createAstTypeCallExpression(
-        this.__createAstTypeMemberExpression(
-            this.__createAstTypeIdentifier('query'),
-            this.__createAstTypeIdentifier('stringifyQueryArg')),
+Rule.prototype.__astPresetQueryEscapeValue4Pathname = function () {
+    return this.__astTypeCallExpression(
+        this.__astTypeMemberExpression(
+            this.__astTypeIdentifier('query'),
+            this.__astTypeIdentifier('stringifyPathArg')),
         [
-            this.__createAstTypeIdentifier('value')]);
+            this.__astTypeIdentifier('value')]);
 };
 
 /**
@@ -1132,13 +1104,29 @@ Rule.prototype.__createAstPresetQueryEscapeValue4Query = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetIsValueArray = function () {
-    return this.__createAstTypeCallExpression(
-        this.__createAstTypeMemberExpression(
-            this.__createAstTypeIdentifier('Array'),
-            this.__createAstTypeIdentifier('isArray')),
+Rule.prototype.__astPresetQueryEscapeValue4Query = function () {
+    return this.__astTypeCallExpression(
+        this.__astTypeMemberExpression(
+            this.__astTypeIdentifier('query'),
+            this.__astTypeIdentifier('stringifyQueryArg')),
         [
-            this.__createAstTypeIdentifier('value')]);
+            this.__astTypeIdentifier('value')]);
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__astPresetIsValueArray = function () {
+    return this.__astTypeCallExpression(
+        this.__astTypeMemberExpression(
+            this.__astTypeIdentifier('Array'),
+            this.__astTypeIdentifier('isArray')),
+        [
+            this.__astTypeIdentifier('value')]);
 };
 
 /**
@@ -1150,13 +1138,13 @@ Rule.prototype.__createAstPresetIsValueArray = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetGetNthValue = function (nth) {
-    return this.__createAstTypeExpressionStatement(
-        this.__createAstTypeAssignmentExpression('=',
-            this.__createAstTypeIdentifier('value'),
-            this.__createAstTypeMemberExpression(
-                this.__createAstTypeIdentifier('value'),
-                this.__createAstTypeLiteral(nth),
+Rule.prototype.__astPresetGetNthValue = function (nth) {
+    return this.__astTypeExpressionStatement(
+        this.__astTypeAssignmentExpression('=',
+            this.__astTypeIdentifier('value'),
+            this.__astTypeMemberExpression(
+                this.__astTypeIdentifier('value'),
+                this.__astTypeLiteral(nth),
                 true)));
 };
 
@@ -1169,11 +1157,11 @@ Rule.prototype.__createAstPresetGetNthValue = function (nth) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetGetNthValueIfArray = function (nth) {
-    return this.__createAstTypeIfStatement(
-        this.__createAstPresetIsValueArray(),
+Rule.prototype.__astPresetGetNthValueIfArray = function (nth) {
+    return this.__astTypeIfStatement(
+        this.__astPresetIsValueArray(),
         [
-            this.__createAstPresetGetNthValue(nth)]);
+            this.__astPresetGetNthValue(nth)]);
 };
 
 /**
@@ -1185,10 +1173,10 @@ Rule.prototype.__createAstPresetGetNthValueIfArray = function (nth) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetPartSelfPlus = function (plus) {
-    return this.__createAstTypeExpressionStatement(
-        this.__createAstTypeAssignmentExpression('+=',
-            this.__createAstTypeIdentifier('part'),
+Rule.prototype.__astPresetPartSelfPlus = function (plus) {
+    return this.__astTypeExpressionStatement(
+        this.__astTypeAssignmentExpression('+=',
+            this.__astTypeIdentifier('part'),
             plus));
 };
 
@@ -1201,10 +1189,10 @@ Rule.prototype.__createAstPresetPartSelfPlus = function (plus) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetAssignPart = function (assign) {
-    return this.__createAstTypeExpressionStatement(
-        this.__createAstTypeAssignmentExpression('=',
-            this.__createAstTypeIdentifier('part'),
+Rule.prototype.__astPresetAssignPart = function (assign) {
+    return this.__astTypeExpressionStatement(
+        this.__astTypeAssignmentExpression('=',
+            this.__astTypeIdentifier('part'),
             assign));
 };
 
@@ -1219,15 +1207,11 @@ Rule.prototype.__createAstPresetAssignPart = function (assign) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetIfQueryHas = function (name, consequent, alternate) {
-    return this.__createAstTypeIfStatement(
-        this.__createAstTypeCallExpression(
-            this.__createAstTypeMemberExpression(
-                this.__createAstTypeIdentifier('hasProperty'),
-                this.__createAstTypeIdentifier('call')),
-            [
-                this.__createAstTypeIdentifier('queryObject'),
-                this.__createAstTypeLiteral(name)]),
+Rule.prototype.__astPresetIfQueryHas = function (name, consequent, alternate) {
+    return this.__astTypeIfStatement(
+        this.__astPresetHasPropertyCall([
+            this.__astTypeIdentifier('queryObject'),
+            this.__astTypeLiteral(name)]),
         consequent,
         alternate);
 };
@@ -1239,11 +1223,11 @@ Rule.prototype.__createAstPresetIfQueryHas = function (name, consequent, alterna
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetResetValue = function () {
-    return this.__createAstTypeExpressionStatement(
-        this.__createAstTypeAssignmentExpression('=',
-            this.__createAstTypeIdentifier('value'),
-            this.__createAstTypeIdentifier('undefined')));
+Rule.prototype.__astPresetResetValue = function () {
+    return this.__astTypeExpressionStatement(
+        this.__astTypeAssignmentExpression('=',
+            this.__astTypeIdentifier('value'),
+            this.__astPresetUndef()));
 };
 
 /**
@@ -1255,20 +1239,18 @@ Rule.prototype.__createAstPresetResetValue = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetAddQueryArg = function (name) {
-    return this.__createAstTypeExpressionStatement(
-        this.__createAstTypeAssignmentExpression('=',
-            this.__createAstTypeMemberExpression(
-                this.__createAstTypeIdentifier('part'),
-                this.__createAstTypeMemberExpression(
-                    this.__createAstTypeIdentifier('part'),
-                    this.__createAstTypeIdentifier('length')
-                ),
+Rule.prototype.__astPresetAddQueryArg = function (name) {
+    return this.__astTypeExpressionStatement(
+        this.__astTypeAssignmentExpression('=',
+            this.__astTypeMemberExpression(
+                this.__astTypeIdentifier('part'),
+                this.__astTypeMemberExpression(
+                    this.__astTypeIdentifier('part'),
+                    this.__astTypeIdentifier('length')),
                 true),
-            this.__createAstTypeBinaryExpression('+',
-                this.__createAstTypeLiteral(query.escape(name) + this.params.queryEq),
-                this.__createAstPresetQueryEscapeValue4Query())
-        ));
+            this.__astTypeBinaryExpression('+',
+                this.__astTypeLiteral(query.escape(name) + this.params.queryEq),
+                this.__astPresetQueryEscapeValue4Query())));
 };
 
 /**
@@ -1278,9 +1260,9 @@ Rule.prototype.__createAstPresetAddQueryArg = function (name) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstPresetResetPart = function () {
-    return this.__createAstPresetAssignPart(
-        this.__createAstTypeLiteral(''));
+Rule.prototype.__astPresetResetPart = function () {
+    return this.__astPresetAssignPart(
+        this.__astTypeLiteral(''));
 };
 
 //  Scalar ast helpers
@@ -1294,10 +1276,10 @@ Rule.prototype.__createAstPresetResetPart = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeBreakStatement = function (name) {
+Rule.prototype.__astTypeBreakStatement = function (name) {
     return {
         type: 'BreakStatement',
-        label: this.__createAstTypeIdentifier(name)
+        label: this.__astTypeIdentifier(name)
     };
 };
 
@@ -1312,7 +1294,7 @@ Rule.prototype.__createAstTypeBreakStatement = function (name) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeLogicalExpression = function (operator, left, right) {
+Rule.prototype.__astTypeLogicalExpression = function (operator, left, right) {
     return {
         type: 'LogicalExpression',
         operator: operator,
@@ -1331,7 +1313,7 @@ Rule.prototype.__createAstTypeLogicalExpression = function (operator, left, righ
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeCallExpression = function (callee, args) {
+Rule.prototype.__astTypeCallExpression = function (callee, args) {
     return {
         type: 'CallExpression',
         callee: callee,
@@ -1350,12 +1332,12 @@ Rule.prototype.__createAstTypeCallExpression = function (callee, args) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeIfStatement = function (test, consequent, alternate) {
+Rule.prototype.__astTypeIfStatement = function (test, consequent, alternate) {
     return {
         type: 'IfStatement',
         test: test,
-        consequent: this.__createAstTypeBlockStatement(consequent),
-        alternate: alternate && this.__createAstTypeBlockStatement(alternate)
+        consequent: this.__astTypeBlockStatement(consequent),
+        alternate: alternate && this.__astTypeBlockStatement(alternate)
     };
 };
 
@@ -1369,11 +1351,11 @@ Rule.prototype.__createAstTypeIfStatement = function (test, consequent, alternat
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeLabeledStatement = function (name, body) {
+Rule.prototype.__astTypeLabeledStatement = function (name, body) {
     return {
         type: 'LabeledStatement',
-        label: this.__createAstTypeIdentifier(name),
-        body: this.__createAstTypeBlockStatement(body)
+        label: this.__astTypeIdentifier(name),
+        body: this.__astTypeBlockStatement(body)
     };
 };
 
@@ -1386,7 +1368,7 @@ Rule.prototype.__createAstTypeLabeledStatement = function (name, body) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeExpressionStatement = function (expression) {
+Rule.prototype.__astTypeExpressionStatement = function (expression) {
     return {
         type: 'ExpressionStatement',
         expression: expression
@@ -1404,7 +1386,7 @@ Rule.prototype.__createAstTypeExpressionStatement = function (expression) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeAssignmentExpression = function (operator, left, right) {
+Rule.prototype.__astTypeAssignmentExpression = function (operator, left, right) {
     return {
         type: 'AssignmentExpression',
         operator: operator,
@@ -1424,12 +1406,12 @@ Rule.prototype.__createAstTypeAssignmentExpression = function (operator, left, r
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeFunctionDeclaration = function (name, body, params) {
+Rule.prototype.__astTypeFunctionDeclaration = function (name, body, params) {
     return {
         params: params,
         type: 'FunctionDeclaration',
-        id: this.__createAstTypeIdentifier(name),
-        body: this.__createAstTypeBlockStatement(body)
+        id: this.__astTypeIdentifier(name),
+        body: this.__astTypeBlockStatement(body)
     };
 };
 
@@ -1442,7 +1424,7 @@ Rule.prototype.__createAstTypeFunctionDeclaration = function (name, body, params
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeBlockStatement = function (body) {
+Rule.prototype.__astTypeBlockStatement = function (body) {
     return {
         type: 'BlockStatement',
         body: body
@@ -1460,7 +1442,7 @@ Rule.prototype.__createAstTypeBlockStatement = function (body) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeBinaryExpression = function (operator, left, right) {
+Rule.prototype.__astTypeBinaryExpression = function (operator, left, right) {
     return {
         type: 'BinaryExpression',
         operator: operator,
@@ -1478,7 +1460,7 @@ Rule.prototype.__createAstTypeBinaryExpression = function (operator, left, right
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeReturnStatement = function (argument) {
+Rule.prototype.__astTypeReturnStatement = function (argument) {
     return {
         type: 'ReturnStatement',
         argument: argument
@@ -1494,7 +1476,7 @@ Rule.prototype.__createAstTypeReturnStatement = function (argument) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeArrayExpression = function (elements) {
+Rule.prototype.__astTypeArrayExpression = function (elements) {
     return {
         type: 'ArrayExpression',
         elements: elements
@@ -1510,7 +1492,7 @@ Rule.prototype.__createAstTypeArrayExpression = function (elements) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeObjectExpression = function (properties) {
+Rule.prototype.__astTypeObjectExpression = function (properties) {
     return {
         type: 'ObjectExpression',
         properties: properties
@@ -1528,7 +1510,7 @@ Rule.prototype.__createAstTypeObjectExpression = function (properties) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeUnaryExpression = function (operator, argument, prefix) {
+Rule.prototype.__astTypeUnaryExpression = function (operator, argument, prefix) {
     return {
         type: 'UnaryExpression',
         operator: operator,
@@ -1615,7 +1597,7 @@ Rule.prototype.__mergeArgs = function (pathArgs, queryArgs) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeIdentifier = function (name) {
+Rule.prototype.__astTypeIdentifier = function (name) {
     return {
         type: 'Identifier',
         name: name
@@ -1632,13 +1614,13 @@ Rule.prototype.__createAstTypeIdentifier = function (name) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeVarDeclaration = function (name, init) {
+Rule.prototype.__astTypeVarDeclaration = function (name, init) {
     return {
         type: 'VariableDeclaration',
         declarations: [
             {
                 type: 'VariableDeclarator',
-                id: this.__createAstTypeIdentifier(name),
+                id: this.__astTypeIdentifier(name),
                 init: init
             }
         ],
@@ -1655,7 +1637,7 @@ Rule.prototype.__createAstTypeVarDeclaration = function (name, init) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeLiteral = function (value) {
+Rule.prototype.__astTypeLiteral = function (value) {
     return {
         type: 'Literal',
         value: value
@@ -1673,7 +1655,7 @@ Rule.prototype.__createAstTypeLiteral = function (value) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__createAstTypeMemberExpression = function (object, property, computed) {
+Rule.prototype.__astTypeMemberExpression = function (object, property, computed) {
     return {
         type: 'MemberExpression',
         object: object,
