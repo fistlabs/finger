@@ -11,6 +11,7 @@ var Query = /** @type Query */ require('./query');
 var Tools = /** @type Tools */ require('./tools');
 var Type = /** @type Type */ require('./type');
 
+var _ = require('lodash-node');
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
 var query = /** @type {Query} */ new Query();
@@ -25,7 +26,6 @@ var util = require('util');
  * @param {Object} [params]
  * */
 function Rule(ruleString, params) {
-    var i;
 
     /**
      * @public
@@ -33,19 +33,7 @@ function Rule(ruleString, params) {
      * @property
      * @type {Object}
      * */
-    this.params = {};
-
-    for (i in Rule.defaultParams) {
-        if (hasProperty.call(Rule.defaultParams, i)) {
-            this.params[i] = Rule.defaultParams[i];
-        }
-    }
-
-    for (i in params) {
-        if (hasProperty.call(params, i)) {
-            this.params[i] = params[i];
-        }
-    }
+    this.params = _.extend({}, Rule.defaultParams, params);
 
     /**
      * @protected
@@ -299,10 +287,10 @@ Rule.prototype.__compileBuilderFunc = function () {
         this.__astPresetAssignPart(
             this.__astTypeArrayExpression([])));
 
-    Object.keys(this._queryParams).forEach(function (name) {
-        this._queryParams[name].forEach(function (rule) {
+    _.forOwn(this._queryParams, function (rules, name) {
+        _.forEach(rules, function (rule) {
             body.push(
-                this.__astPresetValueGetter(rule.getName()),
+                this.__astPresetValueGetter(name),
                 this.__astPresetGetNthValueIfArray(rule.used));
 
             if (rule.required) {
@@ -420,7 +408,7 @@ Rule.prototype.__compileMatcherFunc = function () {
                 this.__astTypeReturnStatement(
                     this.__astTypeLiteral(null))]));
 
-    this._pathParams.forEach(function (rule, i) {
+    _.forEach(this._pathParams, function (rule, i) {
         var name = rule.getName();
 
         if (!this.__hasParameterValue(name)) {
@@ -495,9 +483,8 @@ Rule.prototype.__compileMatcherFunc = function () {
                             this.__astTypeLiteral(this.params.querySep),
                             this.__astTypeLiteral(this.params.queryEq)]))));
 
-        Object.keys(this._queryParams).forEach(function (name) {
-            this._queryParams[name].forEach(function (rule, i) {
-
+        _.forOwn(this._queryParams, function (rules, name) {
+            _.forEach(rules, function (rule, i) {
                 body.push(
                     this.__astPresetResetValue(),
                     this.__astPresetIfQueryHas(rule.getRawName(),
@@ -577,7 +564,6 @@ Rule.prototype.__compileMatcherFunc = function () {
                                     this.__astTypeIdentifier('value'))));
                     }
                 }
-
             }, this);
         }, this);
     }
@@ -695,22 +681,11 @@ Rule.prototype.__compileMatchRegExpPartStatic = function (part) {
  * @returns {Object}
  * */
 Rule.prototype.__compileTypes = function () {
-    var kind;
-    var types = {};
+    var types = _.extend({}, Rule.builtinTypes, this.params.types);
 
-    for (kind in Rule.builtinTypes) {
-        if (hasProperty.call(Rule.builtinTypes, kind)) {
-            types[kind] = new Type(kind, Rule.builtinTypes[kind]);
-        }
-    }
-
-    for (kind in this.params.types) {
-        if (hasProperty.call(this.params.types, kind)) {
-            types[kind] = new Type(kind, this.params.types[kind]);
-        }
-    }
-
-    return types;
+    return _.mapValues(types, function (regexp, kind) {
+        return new Type(kind, regexp);
+    });
 };
 
 /**
@@ -723,17 +698,17 @@ Rule.prototype.__compileTypes = function () {
 Rule.prototype.__createParamsIndex = function () {
     var index = Object.create(null);
 
-    this._pathParams.forEach(function (rule) {
+    _.forEach(this._pathParams, function (rule) {
         var name = rule.getName();
         if (index[name]) {
             index[name] += 1;
         } else {
             index[name] = 1;
         }
-    });
+    }, this);
 
-    Object.keys(this._queryParams).forEach(function (name) {
-        var length = this._queryParams[name].length;
+    _.forOwn(this._queryParams, function (rules, name) {
+        var length = rules.length;
         if (index[name]) {
             index[name] += length;
         } else {
@@ -772,7 +747,7 @@ Rule.prototype.__findPathParams = function () {
  * */
 Rule.prototype.__findQueryParams = function () {
     var params = Object.create(null);
-    this._pathRule.args.forEach(function (rule) {
+    _.forEach(this._pathRule.args, function (rule) {
         var name = rule.getName();
         if (params[name]) {
             params[name].push(rule);
@@ -803,7 +778,7 @@ Rule.prototype._compilePathRule = function () {
             rule.kind = defaultType;
         }
 
-        if (!hasProperty.call(types, rule.kind)) {
+        if (!_.has(types, rule.kind)) {
             throw new TypeError(util.format('Unknown %j parameter type %j', name, rule.kind));
         }
 
@@ -826,7 +801,7 @@ Rule.prototype._compilePathRule = function () {
 
     defaultType = 'Str';
 
-    rule.args.forEach(useArg);
+    _.forEach(rule.args, useArg);
 
     return rule;
 };
@@ -850,7 +825,7 @@ Rule.prototype.__hasParameterValue = function (path) {
     for (i = 0, l = parts.length; i < l; i += 1) {
         part = parts[i];
 
-        if (Object(args) === args && !Array.isArray(args) && hasProperty.call(args, part)) {
+        if (_.isObject(args) && !_.isArray(args) && _.has(args, part)) {
             args = args[part];
             continue;
         }
@@ -858,7 +833,7 @@ Rule.prototype.__hasParameterValue = function (path) {
         return false;
     }
 
-    return Object(args) !== args || Array.isArray(args);
+    return !_.isObject(args) || _.isArray(args);
 };
 
 /**
@@ -872,7 +847,7 @@ Rule.prototype.__compileEmptyArgs = function () {
     var pEmptyArgs = {};
     var qEmptyArgs = {};
 
-    this._pathParams.forEach(function (rule) {
+    _.forEach(this._pathParams, function (rule) {
         var name = rule.getName();
         if (!hasProperty.call(pEmptyArgs, name)) {
             pEmptyArgs[name] = void 0;
@@ -885,7 +860,7 @@ Rule.prototype.__compileEmptyArgs = function () {
 
     pEmptyArgs = query.deeper(pEmptyArgs);
 
-    this._pathRule.args.forEach(function (rule) {
+    _.forEach(this._pathRule.args, function (rule) {
         var name = rule.getName();
         if (!hasProperty.call(qEmptyArgs, name)) {
             qEmptyArgs[name] = void 0;
@@ -899,6 +874,17 @@ Rule.prototype.__compileEmptyArgs = function () {
     qEmptyArgs = query.deeper(qEmptyArgs);
 
     return this.__mergeArgs(pEmptyArgs, qEmptyArgs);
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__astPresetUndef = function () {
+    return this.__astTypeIdentifier('undefined');
 };
 
 /**
@@ -924,20 +910,15 @@ Rule.prototype.__astPresetEmptyArgs = function () {
  * */
 Rule.prototype.__astObjectByObject = function (obj) {
     var ast;
-    var undef;
     var value;
 
     if (Object(obj) !== obj || Array.isArray(obj)) {
-        undef = this.__astTypeIdentifier('undefined');
-
         if (Array.isArray(obj)) {
-            value = new Array(obj.length).join('|').split('|').map(function () {
-                return undef;
-            }, this);
+            value = new Array(obj.length).join('|').split('|').map(this.__astPresetUndef, this);
             return this.__astTypeArrayExpression(value);
         }
 
-        return undef;
+        return this.__astTypeIdentifier('undefined');
     }
 
     ast = this.__astTypeObjectExpression([]);
@@ -967,14 +948,11 @@ Rule.prototype.__astObjectByObject = function (obj) {
  * @returns {Object}
  * */
 Rule.prototype.__astPresetDeepAccessor = function (name, path) {
-    var self = this;
-
-    return RuleArg.parse(path).reduce(function (object, part) {
-
-        return self.__astTypeMemberExpression(object,
-            self.__astTypeLiteral(part), true);
-
-    }, this.__astTypeIdentifier(name));
+    /** @this {Rule} */
+    return _.reduce(RuleArg.parse(path), function (object, part) {
+        return this.__astTypeMemberExpression(object,
+            this.__astTypeLiteral(part), true);
+    }, this.__astTypeIdentifier(name), this);
 };
 
 /**
