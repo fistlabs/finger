@@ -1,21 +1,3 @@
-%lex
-
-%%
-
-"("                                     return '(';
-"<"                                     return '<';
-":"                                     return ':';
-">"                                     return '>';
-"/"                                     return '/';
-")"                                     return ')';
-"?"                                     return '?';
-"&"                                     return '&';
-"+"                                     return '+';
-
-(?:\\[\s\S]|[^\\(<:>\/)?&+])+           return 'ALL';
-<<EOF>>                                 return 'EOF';
-/lex
-
 %token '('
 %token '<'
 %token ':'
@@ -25,7 +7,6 @@
 %token '?'
 %token '&'
 %token '+'
-
 %token ALL
 %token EOF
 
@@ -43,7 +24,7 @@ RULE :
     }
     |
     PATHNAME_RULE {
-        $$ = $1
+        $$ = $1;
     }
     ;
 

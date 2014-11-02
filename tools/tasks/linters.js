@@ -9,7 +9,8 @@ var eslintStylishFormatter = require('eslint/lib/formatters/stylish');
 var glob = require('glob');
 var gutil = require('gulp-util');
 var linterPaths = [
-    'core/**/*.js',
+    'core/*.js',
+    'core/parser/*.js',
     'tools/**/*.js',
     'test/**/*.js',
     '*.js'

@@ -21,7 +21,8 @@ function runCover(done) {
     var self = this;
 
     this.src([
-        'core/**/*.js'
+        'core/*.js',
+        'core/parser/*.js'
     ])
         .pipe(istanbulPipe)
         .on('finish', function () {
@@ -33,7 +34,7 @@ function runCover(done) {
 }
 
 module.exports = function () {
-    this.task('unit', [], runMocha);
-    this.task('cover', [], runCover);
-    this.task('test', ['lint'], runCover);
+    this.task('unit', ['parser'], runMocha);
+    this.task('cover', ['parser'], runCover);
+    this.task('test', ['lint', 'parser'], runCover);
 };
