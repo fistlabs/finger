@@ -840,7 +840,7 @@ Rule.prototype.__compileEmptyArgs = function () {
         if (!hasProperty.call(qEmptyArgs, name)) {
             qEmptyArgs[name] = void 0;
         } else if (Array.isArray(qEmptyArgs[name])) {
-            qEmptyArgs[name].push(name);
+            qEmptyArgs[name].push(void 0);
         } else {
             qEmptyArgs[name] = [qEmptyArgs[name], void 0];
         }
