@@ -14,8 +14,7 @@ var rule = new Rule('/');
 ```
 
 ####```String ruleString```
-```ruleString``` is a ```String``` describing url both for mathing and building.
-```ruleString``` could describe pathname and, optionally, query.
+```ruleString``` is a ```String``` describing url both for matching and building.
 It consists of static rule parts, parameters captures and optional parts.
 
 ```
@@ -28,22 +27,6 @@ Let's make optional part more dynamic:
 /news/(<postId>/)
 ```
 Now, ```postId``` is parameter now. This rule both valid for ```/news/``` and ```/news/146/``` urls.
-Let's describe query arguments.
-
-```
-/news/(<postId>/)&date
-```
-For now ```date``` is required query argument. Let's describe more than one query argument:
-
-```
-/news/(<postId>/)&date&time
-```
-Query arguments may be optional:
-
-```
-/news/(<postId>/)&date?time
-```
-Now, ```time``` argument is optional.
 
 ####```Object options```
 Rule object support some options
@@ -63,11 +46,9 @@ For this rule both ```/news/``` and ```/NeWs/``` urls are identical.
 Matches the url to the rule. Returns the set of values according to described arguments
 
 ```js
-var rule = new Rule('/news/(<postId>/)?date');
-rule.match('/news/'); // -> {postId: undefined, date: undefined}
-rule.match('/news/146/'); // -> {postId: '146', date: undefined}
-rule.match('/news/146/?nondecl=42'); // -> {postId: '146', date: undefined}
-rule.match('/news/146/?date=31-12-14'); // -> {postId: '146', date: '31-12-14'}
+var rule = new Rule('/news/(<postId>/)');
+rule.match('/news/'); // -> {postId: undefined}
+rule.match('/news/146/?date=42'); // -> {postId: '146', date: '42'}
 rule.match('/forum/'); // -> null
 ```
 
@@ -75,7 +56,7 @@ rule.match('/forum/'); // -> null
 Builds url from rule
 
 ```js
-var rule = new Rule('/news/(<postId>/)?date');
+var rule = new Rule('/news/(<postId>/)');
 rule.build(); // -> '/news/'
 rule.build({postId: 146}); // -> '/news/146/'
 rule.build({date: 42}); // -> /news/?date=42
@@ -122,18 +103,18 @@ Returns all match results
 
 ```js
 var matcher = new Matcher();
-matcher.addRule('/news/?date', {name: 'index1'})
-matcher.addRule('/news/', {name: 'index2'});
+matcher.addRule('/news/', {name: 'news'})
+matcher.addRule('/<page>/', {name: 'other'});
 assert.deepEqual(matcher.matchAll('/news/'), [
     {
-        name: 'index1', 
-        args: {
-            date: undefined
-        }
+        name: 'news', 
+        args: {}
     }, 
     {
-        name: 'index2', 
-        args: {}
+        name: 'other', 
+        args: {
+            page: 'news'
+        }
     }
 ]);
 ```
@@ -153,18 +134,15 @@ matcher.addRule('/news/<Alnum:postId>/');
 ```
 Now the rule is valid for ```/news/42/``` but not for ```/news/foo/```.
 Builtin types:
- * ```Seg```- default for pathname parameters, ```[^/?&]+?```
+ * ```Seg```- ```[^/?&]+?```, default
  * ```Seq```  - ```[^?&]+?```
- * ```Str```  - default for query parameters, ```[\s\S]+?```
 
-###Combined parameters
-The parameters could describe where values must be placed in arguments object.
-
+###Default values
+Let's set default parameter values
 ```js
-var rule = new Rule('/<page.section>/(<page.itemId>/)');
-rule.match('/news/146/'); // -> {page: {section: 'news', itemId: '146'}}
+var rule = new Rule('/news/(<postId=42>/)');
+rule.match('/news/'); // -> {postId: '42'}
+rule.build(); // -> /news/42/
 ```
-Supported both for pathname and query parameters
-
 ---------
 LICENSE [MIT](LICENSE)
