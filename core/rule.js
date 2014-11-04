@@ -482,8 +482,7 @@ Rule.prototype.__compileMatchRegExpPartStatic = function (part) {
 Rule.prototype.__compileTypes = function () {
     var types = _.extend({
         Seg: '[^/?&]+?',
-        Seq: '[^?&]+?',
-        Str: '[\\s\\S]+?'
+        Seq: '[^?&]+?'
     }, this.params.types);
 
     return _.mapValues(types, function (regexp, kind) {
