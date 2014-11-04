@@ -43,9 +43,9 @@ describe('core/parser/rule-arg', function () {
             assert.ok(rule.hasOwnProperty('name'));
         });
 
-        it('Should be an Array', function () {
+        it('Should be a String', function () {
             var rule = new RuleArg();
-            assert.ok(Array.isArray(rule.name));
+            assert.strictEqual(typeof rule.name, 'string');
         });
     });
 
@@ -62,32 +62,6 @@ describe('core/parser/rule-arg', function () {
         });
     });
 
-    describe('{RuleArg}.required', function () {
-
-        it('Should have own member "required"', function () {
-            var rule = new RuleArg();
-            assert.ok(rule.hasOwnProperty('required'));
-        });
-
-        it('Should be a Boolean', function () {
-            var rule = new RuleArg();
-            assert.strictEqual(typeof rule.required, 'boolean');
-        });
-    });
-
-    describe('{RuleArg}.multiple', function () {
-
-        it('Should have own member "multiple"', function () {
-            var rule = new RuleArg();
-            assert.ok(rule.hasOwnProperty('multiple'));
-        });
-
-        it('Should be a Boolean', function () {
-            var rule = new RuleArg();
-            assert.strictEqual(typeof rule.multiple, 'boolean');
-        });
-    });
-
     describe('{RuleArg}.setName', function () {
 
         it('Should have own method "setName"', function () {
@@ -97,11 +71,11 @@ describe('core/parser/rule-arg', function () {
 
         it('Should add text to {RuleArg}.name', function () {
             var rule = new RuleArg();
-            assert.strictEqual(rule.getName(), '');
+            assert.strictEqual(rule.name, '');
             rule.setName('a');
-            assert.strictEqual(rule.getName(), 'a');
-            rule.setName('a.b\\.\\c');
-            assert.strictEqual(rule.getName(), 'a.b\\.c');
+            assert.strictEqual(rule.name, 'a');
+            rule.setName('\\a\\b');
+            assert.strictEqual(rule.name, 'ab');
         });
 
         it('Should return {RuleArg} (self)', function () {
@@ -129,56 +103,4 @@ describe('core/parser/rule-arg', function () {
             assert.strictEqual(rule.setKind('kind'), rule);
         });
     });
-
-    describe('{RuleArg}.setRequired', function () {
-
-        it('Should have own method "setRequired"', function () {
-            var rule = new RuleArg();
-            assert.strictEqual(typeof rule.setRequired, 'function');
-        });
-
-        it('Should set {RuleArg}.required', function () {
-            var rule = new RuleArg();
-            assert.strictEqual(rule.required, true);
-            rule.setRequired(false);
-            assert.strictEqual(rule.required, false);
-        });
-
-        it('Should return {RuleArg} (self)', function () {
-            var rule = new RuleArg();
-            assert.strictEqual(rule.setRequired(true), rule);
-        });
-    });
-
-    describe('{RuleArg}.setMultiple', function () {
-
-        it('Should have own method "setMultiple"', function () {
-            var rule = new RuleArg();
-            assert.strictEqual(typeof rule.setMultiple, 'function');
-        });
-
-        it('Should set {RuleArg}.multiple', function () {
-            var rule = new RuleArg();
-            assert.strictEqual(rule.multiple, false);
-            rule.setMultiple(true);
-            assert.strictEqual(rule.multiple, true);
-        });
-
-        it('Should return {RuleArg} (self)', function () {
-            var rule = new RuleArg();
-            assert.strictEqual(rule.setMultiple(true), rule);
-        });
-    });
-
-    describe('RuleArg.build', function () {
-        it('Should have static method "build"', function () {
-            assert.strictEqual(typeof RuleArg.build, 'function');
-        });
-
-        it('Should correctly build name', function () {
-            assert.strictEqual(RuleArg.build(['a', 'b']), 'a.b');
-            assert.strictEqual(RuleArg.build(['a.b\\.c', 'd']), 'a\\.b\\\\\\.c.d');
-        });
-    });
-
 });

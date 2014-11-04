@@ -44,20 +44,4 @@ describe('core/type', function () {
         });
     });
 
-    describe('{Type}.check', function () {
-        it('Should check value on regexp', function () {
-            var contest = new Type('contest', 'contest');
-            assert.ok(contest.check('contest'));
-            assert.ok(!contest.check('contest2'));
-            assert.ok(!contest.check('context'));
-            var seg = new Type('seg', '[^/]+?');
-            assert.ok(seg.check('42'));
-            assert.ok(!seg.check('42/'));
-
-            var messagesOrStandings = new Type('mos', 'messages|standings');
-            assert.ok(!messagesOrStandings.check('messages2'));
-            assert.ok(!messagesOrStandings.check('2standings'));
-        });
-    });
-
 });

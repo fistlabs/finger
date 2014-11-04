@@ -21,13 +21,13 @@ susaninRouter.addRoute({pattern: '/a/(<b>/c/(<d>/))', name: 'r5'});
 susaninRouter.addRoute({pattern: '/a/(<b>/c/(<d>/e/))', name: 'r6'});
 susaninRouter.addRoute({pattern: '/a/(<b>/c/(<d>/e/(<f>/)))', name: 'r7'});
 
-fingerMatcher.addRule('/?foo', {name: 'r1'});
-fingerMatcher.addRule('/a/?foo', {name: 'r2'});
-fingerMatcher.addRule('/a/(<b>/)?foo', {name: 'r3'});
-fingerMatcher.addRule('/a/(<b>/c/)?foo', {name: 'r4'});
-fingerMatcher.addRule('/a/(<b>/c/(<d>/))?foo', {name: 'r5'});
-fingerMatcher.addRule('/a/(<b>/c/(<d>/e/))?foo', {name: 'r6'});
-fingerMatcher.addRule('/a/(<b>/c/(<d>/e/(<f>/)))?foo', {name: 'r7'});
+fingerMatcher.addRule('/', {name: 'r1'});
+fingerMatcher.addRule('/a/', {name: 'r2'});
+fingerMatcher.addRule('/a/(<b>/)', {name: 'r3'});
+fingerMatcher.addRule('/a/(<b>/c/)', {name: 'r4'});
+fingerMatcher.addRule('/a/(<b>/c/(<d>/))', {name: 'r5'});
+fingerMatcher.addRule('/a/(<b>/c/(<d>/e/))', {name: 'r6'});
+fingerMatcher.addRule('/a/(<b>/c/(<d>/e/(<f>/)))', {name: 'r7'});
 
 var susaninRoute = susaninRouter.getRouteByName('r7');
 var fingerRule = fingerMatcher.getRule('r7');

@@ -31,31 +31,10 @@ function Type(name, source) {
      * @property
      * @type {RegExp}
      * */
-    this.regexp = new RegExp(source);
-
-    /**
-     * @private
-     * @memberOf {Type}
-     * @property
-     * @type {RegExp}
-     * */
-    this.__checkRegExp = new RegExp('^(?:' + source + ')$');
+    this.regexp = source;
 }
 
 Type.prototype.name = 'Empty';
-
-/**
- * @public
- * @memberOf {Type}
- * @method
- *
- * @param {String} value
- *
- * @returns {Boolean}
- * */
-Type.prototype.check = function (value) {
-    return this.__checkRegExp.test(value);
-};
 
 /**
  * @public

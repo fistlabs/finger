@@ -18,24 +18,16 @@ describe('core/rule', function () {
 
     Rule.prototype = Object.create(StdRule.prototype);
 
-    Rule.prototype.getPathRule = function () {
-        return this._pathRule;
-    };
-
-    Rule.prototype.getPathArgsOrder = function () {
+    Rule.prototype.getPathParams = function () {
         return this._pathParams;
     };
 
-    Rule.prototype.getPathArgsIndex = function () {
+    Rule.prototype.getParamsIndex = function () {
         return this._paramsIndex;
     };
 
     Rule.prototype.getMatchRegExp = function () {
         return this._matchRegExp;
-    };
-
-    Rule.prototype.getTypes = function () {
-        return this._types;
     };
 
     describe('{Rule}.params', function () {
@@ -54,34 +46,14 @@ describe('core/rule', function () {
         });
     });
 
-    describe('{Rule}._pathRule', function () {
-        it('Should extend default AST with args occurrence indexes', function () {
-            var rule = new Rule('<a>(<a>)<b><a>&a&b&c');
-            var pathRule = rule.getPathRule();
-            assert.strictEqual(pathRule.parts[0].used, 0);
-            assert.strictEqual(pathRule.parts[1].parts[0].used, 1);
-            assert.strictEqual(pathRule.parts[2].used, 0);
-            assert.strictEqual(pathRule.parts[3].used, 2);
-
-            assert.strictEqual(pathRule.args[0].used, 3);
-            assert.strictEqual(pathRule.args[1].used, 1);
-            assert.strictEqual(pathRule.args[2].used, 0);
-        });
-
-        it('Should set default types to arguments rules', function () {
-            var rule = new Rule('<foo>?bar');
-            assert.strictEqual(rule.getPathRule().args.length, 1);
-        });
-    });
-
     describe('Static path args indexing', function () {
         var rule = new Rule('<a>(<a>)<b><a><foo.bar><\\foo.bar><foo\\.bar>');
 
         describe('Expecting path args order', function () {
             it('Should create path args order', function () {
-                var pathArgsOrder = rule.getPathArgsOrder();
+                var pathArgsOrder = rule.getPathParams();
                 assert.deepEqual(pathArgsOrder.map(function (rule) {
-                    return rule.getName();
+                    return rule.name;
                 }), [
                     'a',
                     'a',
@@ -89,19 +61,18 @@ describe('core/rule', function () {
                     'a',
                     'foo.bar',
                     'foo.bar',
-                    'foo\\.bar'
+                    'foo.bar'
                 ]);
             });
         });
 
         describe('Expecting path args index', function () {
             it('Should create path args index', function () {
-                var pathArgsIndex = rule.getPathArgsIndex();
+                var pathArgsIndex = rule.getParamsIndex();
                 assert.deepEqual(pathArgsIndex, {
                     a: 3,
                     b: 1,
-                    'foo.bar': 2,
-                    'foo\\.bar': 1
+                    'foo.bar': 3
                 });
             });
         });
@@ -175,6 +146,12 @@ describe('core/rule', function () {
                         '/',
                         //  expected result
                         {}
+                    ],
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: 'bar'
+                        }
                     ]
                 ]
             ],
@@ -275,103 +252,6 @@ describe('core/rule', function () {
             ],
             [
                 [
-                    '/i<Seq:path>?sk'
-                ],
-                [
-                    [
-                        '/i/path/to/image.png?sk=12345',
-                        {
-                            path: '/path/to/image.png',
-                            sk: '12345'
-                        }
-                    ],
-                    [
-                        '/i/path/to/image.png',
-                        {
-                            path: '/path/to/image.png',
-                            sk: void 0
-                        }
-                    ]
-                ]
-            ],
-            /*
-             * + QUERY_ARGS
-             * */
-            [
-                [
-                    '/?a'
-                ],
-                [
-                    [
-                        '/?a=42',
-                        {
-                            a: '42'
-                        }
-                    ],
-                    [
-                        '/?a=42&a=43',
-                        {
-                            a: '42'
-                        }
-                    ],
-                    [
-                        '/?a',
-                        {
-                            a: void 0
-                        }
-                    ],
-                    [
-                        '/',
-                        {
-                            a: void 0
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/&a?a'
-                ],
-                [
-                    [
-                        '/?a=42&a=43',
-                        {
-                            a: ['42', '43']
-                        }
-                    ],
-                    [
-                        '/?a=42',
-                        {
-                            a: ['42', void 0]
-                        }
-                    ],
-                    [
-                        '/?a',
-                        null
-                    ],
-                    [
-                        '/?a=42&b=43&a=44',
-                        {
-                            a: ['42', '44']
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo>/?foo?foo'
-                ],
-                [
-                    [
-                        '/news/?foo=42',
-                        {
-                            foo: ['news', '42', void 0]
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
                     '/'
                 ],
                 [
@@ -399,273 +279,10 @@ describe('core/rule', function () {
                         }
                     ],
                     [
-                        //  should ignore type
                         '/foo/?type=bar',
                         {
-                            page: 'foo'
-                        }
-                    ]
-                ]
-            ],
-            //  MERGING ARGS
-            [
-                [
-                    '/<page.type>/&page.name'
-                ],
-                [
-                    [
-                        '/foo/',
-                        null
-                    ],
-                    [
-                        '/foo/?page.name=bar',
-                        {
-                            page: {
-                                type: 'foo',
-                                name: 'bar'
-                            }
-                        }
-                    ],
-                    [
-                        '/foo/?\\page.n\\ame=bar',
-                        null
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo>/?foo'
-                ],
-                [
-                    [
-                        '/bar/?foo=baz',
-                        {
-                            foo: ['bar', 'baz']
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo>/?foo.bar'
-                ],
-                [
-                    [
-                        '/bar/?foo.bar=baz',
-                        {
-                            foo: 'bar'
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo.bar>/?foo'
-                ],
-                [
-                    [
-                        '/bar/?foo=baz',
-                        {
-                            foo: {
-                                bar: 'bar'
-                            }
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo>/<foo>/?foo?foo'
-                ],
-                [
-                    [
-                        '/bar/baz/?foo=zot&foo=zom',
-                        {
-                            foo: ['bar', 'baz', 'zot', 'zom']
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo>/<foo>/?foo.bar'
-                ],
-                [
-                    [
-                        '/bar/baz/?foo.bar=zot',
-                        {
-                            foo: ['bar', 'baz']
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo.bar>/?foo&foo'
-                ],
-                [
-                    [
-                        '/baz/?foo=baz&foo=zom',
-                        {
-                            foo: {
-                                bar: 'baz'
-                            }
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo>/<foo>/?foo'
-                ],
-                [
-                    [
-                        '/bar/baz/?foo=zot',
-                        {
-                            foo: ['bar', 'baz', 'zot']
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo>/?foo?foo'
-                ],
-                [
-                    [
-                        '/bar/?foo=baz&foo=zot',
-                        {
-                            foo: ['bar', 'baz', 'zot']
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/news/<post.id>/?post.tag?post.tag?post'
-                ],
-                [
-                    [
-                        '/news/42/',
-                        {
-                            post: {
-                                id: '42',
-                                tag: [void 0, void 0]
-                            }
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<post>/<post.id>/?post?post.id'
-                ],
-                [
-                    [
-                        '/foo/42/?post=bar&post.id=43',
-                        {
-                            post: {
-                                id: ['42', '43']
-                            }
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo>/?foo?foo?foo'
-                ],
-                [
-                    [
-                        '/bar/?foo=baz&foo=zot&foo=poo',
-                        {
-                            foo: ['bar', 'baz', 'zot', 'poo']
-                        }
-                    ]
-                ]
-            ],
-            //  SO SPECIAL
-            [
-                [
-                    '/?\\post.t\\ype'
-                ],
-                [
-                    [
-                        '/?post.type=42',
-                        {
-                            post: {
-                                type: '42'
-                            }
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/?post\\.type'
-                ],
-                [
-                    [
-                        '/?post.type=42',
-                        {
-                            'post.type': '42'
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/?a\\.b.c'
-                ],
-                [
-                    [
-                        '/?a.b.c=42',
-                        {
-                            'a.b': {
-                                c: '42'
-                            }
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<\\foo\\.bar>/?f\\oo\\.bar'
-                ],
-                [
-                    [
-                        '/bar/?foo.bar=baz',
-                        {
-                            'foo.bar': ['bar', 'baz']
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/<foo.bar>/?foo\\.bar'
-                ],
-                [
-                    [
-                        '/bar/?foo.bar=baz',
-                        {
-                            foo: {
-                                bar: 'bar'
-                            },
-                            'foo.bar': 'baz'
-                        }
-                    ]
-                ]
-            ],
-            [
-                [
-                    '/?f\\\\oo\\.bar'
-                ],
-                [
-                    [
-                        '/?f\\oo.bar=42',
-                        {
-                            'f\\oo.bar': '42'
+                            page: 'foo',
+                            type: 'bar'
                         }
                     ]
                 ]
@@ -694,13 +311,6 @@ describe('core/rule', function () {
 
                     it(shouldText, function () {
                         assert.deepEqual(rule.match(s[0]), s[1]);
-                        //  try {
-                        //
-                        //      assert.deepEqual(rule.match(s[0]), s[1]);
-                        //  } catch (err) {
-                        //      console.log(rule._matcherFunc + '');
-                        //      throw err;
-                        //  }
                     });
                 });
             });
@@ -760,7 +370,7 @@ describe('core/rule', function () {
                         }
                     ],
                     [
-                        '/news/42/',
+                        '/news/42/?foo=xxx',
                         {
                             postId: ['42'],
                             foo: 'xxx'
@@ -809,70 +419,7 @@ describe('core/rule', function () {
                 ]
             ],
             [
-                '/news/(<postId>/)?postId',
-                [
-                    [
-                        '/news/42/?postId=43',
-                        {
-                            postId: ['42', '43']
-                        }
-                    ],
-                    [
-                        '/news/42/',
-                        {
-                            postId: ['42']
-                        }
-                    ],
-                    [
-                        '/news/?postId=43',
-                        {
-                            postId: ['', '43']
-                        }
-                    ]
-                ]
-            ],
-            [
-                '/news/(<post.id>/)?post.type',
-                [
-                    [
-                        '/news/42/?post.type=foo',
-                        {
-                            post: {
-                                id: '42',
-                                type: 'foo'
-                            }
-                        }
-                    ]
-                ]
-            ],
-            [
-                '/news/(<post.id>/)&post',
-                [
-                    [
-                        '/news/42/?post',
-                        {
-                            post: {
-                                id: 42
-                            }
-                        }
-                    ]
-                ]
-            ],
-            [
-                '/news/(<post.id>/)?post',
-                [
-                    [
-                        '/news/42/',
-                        {
-                            post: {
-                                id: 42
-                            }
-                        }
-                    ]
-                ]
-            ],
-            [
-                '<Seq:pathname>?renderer',
+                '<Seq:pathname>',
                 [
                     [
                         '/foo/bar/?renderer=%2Ffoo%2F',
@@ -883,40 +430,13 @@ describe('core/rule', function () {
                     ]
                 ]
             ],
-            //  SPECIAL CASES
-
             [
-                '/<foo.bar>/?foo\\.bar',
+                '/',
                 [
                     [
-                        '/foo/?foo.bar=42',
+                        '/?foo=42&foo=43',
                         {
-                            foo: {
-                                bar: 'foo'
-                            },
-                            'foo.bar': '42'
-                        }
-                    ]
-                ]
-            ],
-            [
-                '/<\\foo\\.ba\\r>/&f\\oo\\.bar',
-                [
-                    [
-                        '/foo/?foo.bar=42',
-                        {
-                            'foo.bar': ['foo', '42']
-                        }
-                    ]
-                ]
-            ],
-            [
-                '/?f\\\\oo\\.bar',
-                [
-                    [
-                        '/?f%5Coo.bar=42',
-                        {
-                            'f\\oo.bar': '42'
+                            foo: ['42', '43']
                         }
                     ]
                 ]
@@ -947,11 +467,11 @@ describe('core/rule', function () {
     describe('Expecting type errors', function () {
         it('Should throw unknown type errors', function () {
             assert.throws(function () {
-                return new Rule('<Unded:foo>', {
+                return new Rule('<Undef:foo>', {
                     types: {
                         Xyz: '\\w+'
                     }
-                }).getPathRule();
+                });
             });
         });
     });
@@ -972,13 +492,6 @@ describe('core/rule', function () {
 
         it('Should not match "/post/foo/"', function () {
             assert.strictEqual(rule.match('/post/foo/'), null);
-        });
-
-        it('Should correctly handle unmatched optional query args', function () {
-            var rule = new Rule('/?Number:page', params);
-            assert.deepEqual(rule.match('/?page=foo'), {
-                page: void 0
-            });
         });
     });
 });

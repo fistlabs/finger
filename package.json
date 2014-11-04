@@ -8,7 +8,6 @@
     ],
     "dependencies": {
         "lodash-node": "2.4.1",
-        "obus": "0.0.5",
         "unique-id": "0.0.1",
         "regesc": "0.0.1",
         "inherit": "2.2.2",

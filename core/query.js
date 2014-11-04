@@ -1,7 +1,5 @@
 'use strict';
 
-var RuleArg = require('./parser/rule-arg');
-
 var hasProperty = Object.prototype.hasOwnProperty;
 
 /**
@@ -59,19 +57,13 @@ Query.prototype.parse = function (queryString, sep, eq) {
     var key;
     var l;
     var pair;
-    var pairs;
+    var pairs = queryString.split(sep);
     var val;
     var queryObject = {};
 
-    if (!queryString) {
-        return queryObject;
-    }
-
-    queryString = queryString.replace(/\+/g, '%20');
-    pairs = queryString.split(sep);
-
     for (i = 0, l = pairs.length; i < l; i += 1) {
         pair = pairs[i];
+        pair = pair.replace(/\+/g, '%20');
         eqIndex = pair.indexOf(eq);
 
         if (eqIndex === -1) {
@@ -82,36 +74,16 @@ Query.prototype.parse = function (queryString, sep, eq) {
             val = this.unescape(pair.substr(eqIndex + 1));
         }
 
-        if (hasProperty.call(queryObject, key)) {
+        if (!hasProperty.call(queryObject, key)) {
+            queryObject[key] = val;
+        } else if (Array.isArray(queryObject[key])) {
             queryObject[key].push(val);
         } else {
-            queryObject[key] = [val];
+            queryObject[key] = [queryObject[key], val];
         }
     }
 
     return queryObject;
-};
-
-/**
- * @public
- * @memberOf {Query}
- * @method
- *
- * @param {Object} flatArgs
- *
- * @returns {Object}
- * */
-Query.prototype.deeper = function (flatArgs) {
-    var deepArgs = {};
-    var valuePath;
-
-    for (valuePath in flatArgs) {
-        if (hasProperty.call(flatArgs, valuePath)) {
-            deepPush(deepArgs, valuePath, flatArgs[valuePath]);
-        }
-    }
-
-    return deepArgs;
 };
 
 /**
@@ -150,34 +122,5 @@ Query.prototype.stringifyQueryArg = function (v) {
 Query.prototype.stringifyPathArg = function (v) {
     return this.stringifyQueryArg(v).replace(/%2F/g, '/');
 };
-
-function deepPush(deepArgs, valuePath, value) {
-    var i;
-    var l;
-    var part;
-    var parts = RuleArg.parse(valuePath);
-
-    for (i = 0, l = parts.length - 1; i < l; i += 1) {
-        part = parts[i];
-
-        if (hasProperty.call(deepArgs, part) && deepArgs[part] &&
-            typeof deepArgs[part] === 'object' && !Array.isArray(deepArgs[part])) {
-
-            deepArgs = deepArgs[part];
-
-            continue;
-        }
-
-        deepArgs = deepArgs[part] = {};
-    }
-
-    part = parts[l];
-
-    if (!hasProperty.call(deepArgs, part)) {
-        deepArgs[part] = value;
-    }
-
-    return deepArgs[part];
-}
 
 module.exports = Query;

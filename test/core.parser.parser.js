@@ -52,8 +52,7 @@ describe('core/parser/parser', function () {
                         {
                             type: RuleSep.TYPE
                         }
-                    ],
-                    args: []
+                    ]
                 }
             ],
             [
@@ -65,8 +64,7 @@ describe('core/parser/parser', function () {
                             type: RuleAny.TYPE,
                             text: 'foo'
                         }
-                    ],
-                    args: []
+                    ]
                 }
             ],
             [
@@ -76,13 +74,10 @@ describe('core/parser/parser', function () {
                     parts: [
                         {
                             type: RuleArg.TYPE,
-                            name: ['foo'],
-                            kind: '',
-                            required: true,
-                            multiple: false
+                            name: 'foo',
+                            kind: ''
                         }
-                    ],
-                    args: []
+                    ]
                 }
             ],
             [
@@ -105,37 +100,13 @@ describe('core/parser/parser', function () {
                             parts: [
                                 {
                                     type: RuleArg.TYPE,
-                                    name: ['postId'],
-                                    kind: '',
-                                    required: true,
-                                    multiple: false
+                                    name: 'postId',
+                                    kind: ''
                                 },
                                 {
                                     type: RuleSep.TYPE
                                 }
-                            ],
-                            args: []
-                        }
-                    ],
-                    args: []
-                }
-            ],
-            [
-                '/&a',
-                {
-                    type: RuleSeq.TYPE,
-                    parts: [
-                        {
-                            type: RuleSep.TYPE
-                        }
-                    ],
-                    args: [
-                        {
-                            type: RuleArg.TYPE,
-                            name: ['a'],
-                            kind: '',
-                            required: true,
-                            multiple: false
+                            ]
                         }
                     ]
                 }
@@ -147,45 +118,8 @@ describe('core/parser/parser', function () {
                     parts: [
                         {
                             type: RuleArg.TYPE,
-                            name: ['name'],
-                            kind: 'kind',
-                            required: true,
-                            multiple: false
-                        }
-                    ],
-                    args: []
-                }
-            ],
-            [
-                '/<name>&type?value',
-                {
-                    type: RuleSeq.TYPE,
-                    parts: [
-                        {
-                            type: RuleSep.TYPE
-                        },
-                        {
-                            type: RuleArg.TYPE,
-                            name: ['name'],
-                            kind: '',
-                            required: true,
-                            multiple: false
-                        }
-                    ],
-                    args: [
-                        {
-                            type: RuleArg.TYPE,
-                            name: ['type'],
-                            kind: '',
-                            required: true,
-                            multiple: false
-                        },
-                        {
-                            type: RuleArg.TYPE,
-                            name: ['value'],
-                            kind: '',
-                            required: false,
-                            multiple: false
+                            name: 'name',
+                            kind: 'kind'
                         }
                     ]
                 }

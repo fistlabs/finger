@@ -20,14 +20,6 @@ function RuleSeq() {
      * @type {Array}
      * */
     this.parts = [];
-
-    /**
-     * @public
-     * @memberOf {RuleSeq}
-     * @property
-     * @type {Array}
-     * */
-    this.args = [];
 }
 
 /**
@@ -50,20 +42,6 @@ RuleSeq.TYPE = 'RULE_SEQ';
  * */
 RuleSeq.prototype.addRule = function (rule) {
     this.parts[this.parts.length] = rule;
-    return this;
-};
-
-/**
- * @public
- * @memberOf {RuleSeq}
- * @method
- *
- * @param {*} rule
- *
- * @returns {RuleSeq}
- * */
-RuleSeq.prototype.addArg = function (rule) {
-    this.args[this.args.length] = rule;
     return this;
 };
 

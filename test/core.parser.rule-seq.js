@@ -49,19 +49,6 @@ describe('core/parser/rule-seq', function () {
         });
     });
 
-    describe('{RuleSeq}.args', function () {
-
-        it('Should have own member "args"', function () {
-            var rule = new RuleSeq();
-            assert.ok(rule.hasOwnProperty('args'));
-        });
-
-        it('Should be an Array', function () {
-            var rule = new RuleSeq();
-            assert.ok(Array.isArray(rule.args));
-        });
-    });
-
     describe('{RuleSeq}.addRule', function () {
 
         it('Should have own method "addRule"', function () {
@@ -79,26 +66,6 @@ describe('core/parser/rule-seq', function () {
         it('Should return {RuleSeq} (self)', function () {
             var rule = new RuleSeq();
             assert.strictEqual(rule.addRule(42), rule);
-        });
-    });
-
-    describe('{RuleSeq}.addArg', function () {
-
-        it('Should have own method "addArg"', function () {
-            var rule = new RuleSeq();
-            assert.strictEqual(typeof rule.addArg, 'function');
-        });
-
-        it('Should add item to {RuleSeq}.args', function () {
-            var rule = new RuleSeq();
-            assert.strictEqual(rule.args.length, 0);
-            rule.addArg(42);
-            assert.strictEqual(rule.args.length, 1);
-        });
-
-        it('Should return {RuleSeq} (self)', function () {
-            var rule = new RuleSeq();
-            assert.strictEqual(rule.addArg(42), rule);
         });
     });
 });

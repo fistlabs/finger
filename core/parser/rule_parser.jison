@@ -1,12 +1,12 @@
 %token '('
 %token '<'
 %token ':'
+%token '='
 %token '>'
 %token '/'
 %token ')'
 %token '?'
 %token '&'
-%token '+'
 %token ALL
 %token EOF
 
@@ -19,22 +19,8 @@ INPUT :
     ;
 
 RULE :
-    PATH_RULE {
-        $$ = $1;
-    }
-    |
     PATHNAME_RULE {
         $$ = $1;
-    }
-    ;
-
-PATH_RULE :
-    PATH_RULE QUERY_PARAMETER {
-        $$ = $1.addArg($2);
-    }
-    |
-    PATHNAME_RULE QUERY_PARAMETER {
-        $$ = $1.addArg($2);
     }
     ;
 
@@ -45,38 +31,6 @@ PATHNAME_RULE :
     |
     PATHNAME_RULE_PART {
         $$ = yy.createRuleSeq().addRule($1);
-    }
-    ;
-
-QUERY_PARAMETER :
-    QUERY_PARAMETER_SINGLE '+' {
-        $$ = $1.setMultiple(true);
-    }
-    |
-    QUERY_PARAMETER_SINGLE {
-        $$ = $1.setMultiple(false);
-    }
-    ;
-
-QUERY_PARAMETER_SINGLE :
-    QUERY_PARAMETER_REQUIRED {
-        $$ = $1;
-    }
-    |
-    QUERY_PARAMETER_OPTIONAL {
-        $$ = $1;
-    }
-    ;
-
-QUERY_PARAMETER_REQUIRED :
-    '&' PARAMETER {
-        $$ = $2.setRequired(true);
-    }
-    ;
-
-QUERY_PARAMETER_OPTIONAL :
-    '?' PARAMETER {
-        $$ = $2.setRequired(false);
     }
     ;
 
