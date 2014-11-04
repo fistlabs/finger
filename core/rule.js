@@ -167,6 +167,8 @@ Rule.prototype.match = function (url) {
 
         if (typeof value === 'string') {
             value = query.unescape(value);
+        } else {
+            value = pathParams[i].default;
         }
 
         if (!hasProperty.call(args, name)) {
@@ -306,9 +308,17 @@ Rule.prototype.__compileBuilderFunc = function () {
                                 this.__astTypeAssignmentExpression('=',
                                 this.__astTypeIdentifier('value'),
                                 this.__astTypeArrayExpression([
-                                    this.__astTypeIdentifier('value')])))]
-                    ),
+                                    this.__astTypeIdentifier('value')])))]),
                     this.__astPresetGetNthValue(part.used)]));
+
+        body.push(
+            this.__astTypeIfStatement(
+                this.__astPresetValueCheckExpression('||', '==='),
+                [
+                    this.__astTypeExpressionStatement(
+                        this.__astTypeAssignmentExpression('=',
+                        this.__astTypeIdentifier('value'),
+                        this.__astTypeLiteral(part.default === void 0 ? null : part.default)))]));
 
         if (n > 1) {
             body.push(

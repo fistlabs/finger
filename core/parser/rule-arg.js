@@ -30,6 +30,14 @@ function RuleArg() {
      * @type {String}
      * */
     this.kind = '';
+
+    /**
+     * @public
+     * @memberOf {RuleArg}
+     * @property
+     * @type {String}
+     * */
+    this.default = void 0;
 }
 
 /**
@@ -69,6 +77,21 @@ RuleArg.prototype.setKind = function (type) {
     type = RuleAny.unBackSlash(type);
 
     this.kind = type;
+
+    return this;
+};
+
+/**
+ * @public
+ * @memberOf {RuleArg}
+ * @method
+ *
+ * @param {String} text
+ *
+ * @returns {RuleArg}
+ * */
+RuleArg.prototype.setDefault = function (text) {
+    this.default = RuleAny.unBackSlash(text);
 
     return this;
 };

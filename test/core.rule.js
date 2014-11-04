@@ -286,6 +286,19 @@ describe('core/rule', function () {
                         }
                     ]
                 ]
+            ],
+            [
+                [
+                    '/(<page=news>/)'
+                ],
+                [
+                    [
+                        '/',
+                        {
+                            page: 'news'
+                        }
+                    ]
+                ]
             ]
         ];
 
@@ -437,6 +450,36 @@ describe('core/rule', function () {
                         '/?foo=42&foo=43',
                         {
                             foo: ['42', '43']
+                        }
+                    ]
+                ]
+            ],
+            [
+                '/news/(<postId=42>/)',
+                [
+                    [
+                        '/news/42/'
+                    ],
+                    [
+                        '/news/42/',
+                        {}
+                    ],
+                    [
+                        '/news/42/',
+                        {
+                            postId: void 0
+                        }
+                    ],
+                    [
+                        '/news/42/',
+                        {
+                            postId: null
+                        }
+                    ],
+                    [
+                        '/news/42/',
+                        {
+                            postId: []
                         }
                     ]
                 ]

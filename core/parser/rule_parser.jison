@@ -43,6 +43,10 @@ PATHNAME_RULE_PART :
         $$ = $2;
     }
     |
+    '<' PARAMETER '=' ALL '>' {
+        $$ = $2.setDefault($4);
+    }
+    |
     TEXT {
         $$ = $1;
     }

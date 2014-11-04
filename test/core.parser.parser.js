@@ -75,7 +75,8 @@ describe('core/parser/parser', function () {
                         {
                             type: RuleArg.TYPE,
                             name: 'foo',
-                            kind: ''
+                            kind: '',
+                            default: void 0
                         }
                     ]
                 }
@@ -101,7 +102,8 @@ describe('core/parser/parser', function () {
                                 {
                                     type: RuleArg.TYPE,
                                     name: 'postId',
-                                    kind: ''
+                                    kind: '',
+                                    default: void 0
                                 },
                                 {
                                     type: RuleSep.TYPE
@@ -119,7 +121,22 @@ describe('core/parser/parser', function () {
                         {
                             type: RuleArg.TYPE,
                             name: 'name',
-                            kind: 'kind'
+                            kind: 'kind',
+                            default: void 0
+                        }
+                    ]
+                }
+            ],
+            [
+                '<postId=42>',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'postId',
+                            kind: '',
+                            default: '42'
                         }
                     ]
                 }
