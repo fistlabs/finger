@@ -236,9 +236,9 @@ Rule.prototype._compileBuilderFunc = function () {
 //
         if (part.type === RuleAny.TYPE) {
             body.push(
-                //  part += `encodeURIComponent(part.text)`;
+                //  part += `this._valEscape(part.text)`;
                 this._astCasePartSelfPlus(
-                    this._astTypeLiteral(encodeURIComponent(part.text))));
+                    this._astTypeLiteral(this._valEscape(part.text))));
 
             return;
         }
