@@ -3,18 +3,17 @@
 var util = require('util');
 
 /**
- * @abstract
  * @class Type
  *
  * @param {String} name
- * @param {String} source
+ * @param {String} regexp
  * */
-function Type(name, source) {
+function Type(name, regexp) {
 
-    if (!Type.checkRegExp(source)) {
-        source = util.format('Invalid %j type regexp %j', name, source);
+    if (!Type.checkRegExp(regexp)) {
+        regexp = util.format('Invalid %j type regexp %j', name, regexp);
 
-        throw new TypeError(source);
+        throw new TypeError(regexp);
     }
 
     /**
@@ -31,39 +30,37 @@ function Type(name, source) {
      * @property
      * @type {RegExp}
      * */
-    this.regexp = source;
+    this.regexp = regexp;
 }
-
-Type.prototype.name = 'Empty';
 
 /**
  * @public
  * @static
  * @memberOf {Type}
  *
- * @param {String} source
+ * @param {String} regexp
  *
  * @returns {Boolean}
  * */
-Type.checkRegExp = function (source) {
+Type.checkRegExp = function (regexp) {
     var $;
     var r;
 
-    if (typeof source !== 'string') {
+    if (typeof regexp !== 'string') {
         return false;
     }
 
     r = /(?:\\[\[\(]|\[(?:\\[\s\S]|[^\]])*]|\(\?:)|(\()/g;
 
     /*eslint no-cond-assign: 0*/
-    while ($ = r.exec(source)) {
+    while ($ = r.exec(regexp)) {
         if ($[1]) {
             return false;
         }
     }
 
     try {
-        source = new RegExp(source).source;
+        regexp = new RegExp(regexp).source;
     } catch (err) {
         return false;
     }
