@@ -1,6 +1,5 @@
 'use strict';
 
-var Obus = require('obus');
 var RuleAny = /** @type RuleAny */ require('./rule-any');
 
 /**
@@ -22,7 +21,7 @@ function RuleArg() {
      * @property
      * @type {Array}
      * */
-    this.name = [];
+    this.name = '';
 
     /**
      * @public
@@ -36,9 +35,9 @@ function RuleArg() {
      * @public
      * @memberOf {RuleArg}
      * @property
-     * @type {Boolean}
+     * @type {String}
      * */
-    this.required = true;
+    this.default = void 0;
 }
 
 /**
@@ -60,44 +59,7 @@ RuleArg.TYPE = 'RULE_ARG';
  * @returns {RuleArg}
  * */
 RuleArg.prototype.setName = function (name) {
-    this.name = RuleArg.parse(name);
-
-    return this;
-};
-
-/**
- * @public
- * @memberOf {RuleArg}
- * @method
- *
- * @returns {String}
- * */
-RuleArg.prototype.getName = function () {
-    return RuleArg.build(this.name);
-};
-
-/**
- * @public
- * @memberOf {RuleArg}
- * @method
- *
- * @returns {String}
- * */
-RuleArg.prototype.getRawName = function () {
-    return RuleAny.unBackSlash(this.getName());
-};
-
-/**
- * @public
- * @memberOf {RuleArg}
- * @method
- *
- * @param {Boolean} required
- *
- * @returns {RuleArg}
- * */
-RuleArg.prototype.setRequired = function (required) {
-    this.required = Boolean(required);
+    this.name = RuleAny.unBackSlash(name);
 
     return this;
 };
@@ -119,13 +81,19 @@ RuleArg.prototype.setKind = function (type) {
     return this;
 };
 
-RuleArg.escape = Obus.escape;
+/**
+ * @public
+ * @memberOf {RuleArg}
+ * @method
+ *
+ * @param {String} text
+ *
+ * @returns {RuleArg}
+ * */
+RuleArg.prototype.setDefault = function (text) {
+    this.default = RuleAny.unBackSlash(text);
 
-RuleArg.parse = Obus.parse;
-
-RuleArg.build = function (parts) {
-
-    return parts.map(RuleArg.escape).join('.');
+    return this;
 };
 
 module.exports = RuleArg;

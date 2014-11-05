@@ -85,19 +85,7 @@ describe('core/query', function () {
             [
                 'a=5',
                 {
-                    a: ['5']
-                }
-            ],
-            [
-                '\\a.b=42',
-                {
-                    '\\a.b': ['42']
-                }
-            ],
-            [
-                'a\\.b=42',
-                {
-                    'a\\.b': ['42']
+                    a: '5'
                 }
             ],
             [
@@ -107,15 +95,17 @@ describe('core/query', function () {
                 }
             ],
             [
-                'a&b',
+                'a=1&a=2&a=3',
                 {
-                    a: [''],
-                    b: ['']
+                    a: ['1', '2', '3']
                 }
             ],
             [
-                '',
-                {}
+                'a&b',
+                {
+                    a: '',
+                    b: ''
+                }
             ]
         ];
         _.forEach(samples, function (s) {
@@ -126,106 +116,4 @@ describe('core/query', function () {
             });
         });
     });
-
-    describe('{Query}.deeper', function () {
-        var samples = [
-            [
-                {
-                    a: 42
-                },
-                {
-                    a: 42
-                }
-            ],
-            [
-                {
-                    'a.b': 42
-                },
-                {
-                    a: {
-                        b: 42
-                    }
-                }
-            ],
-            [
-                {
-                    'a\\.b': 42
-                },
-                {
-                    'a.b': 42
-                }
-            ],
-            [
-                {
-                    '\\a.b': 42
-                },
-                {
-                    a: {
-                        b: 42
-                    }
-                }
-            ],
-            [
-                {
-                    a: 42,
-                    'a.b': 42
-                },
-                {
-                    a: {
-                        b: 42
-                    }
-                }
-            ],
-            [
-                {
-                    a: [11],
-                    'a.b': [42]
-                },
-                {
-                    a: {
-                        b: [42]
-                    }
-                }
-            ],
-            [
-                {
-                    a: 11,
-                    'a.b': 12,
-                    'a.b.c': 42
-                },
-                {
-                    a: {
-                        b: {
-                            c: 42
-                        }
-                    }
-                }
-            ],
-            [
-                {
-                    'a.b': 42,
-                    a: 11
-                },
-                {
-                    a: {
-                        b: 42
-                    }
-                }
-            ]
-        ];
-        var query = new Query();
-
-        it('Should have own method "deeper"', function () {
-            assert.strictEqual(typeof query.deeper, 'function');
-        });
-
-        _.forEach(samples, function (s) {
-            var shouldText = 'Should transform %j to %j';
-            shouldText = util.format(shouldText, s[0], s[1]);
-            it(shouldText, function () {
-                assert.deepEqual(query.deeper(s[0]), s[1]);
-            });
-        });
-    });
-
 });

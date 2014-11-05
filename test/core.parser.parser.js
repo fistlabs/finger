@@ -52,8 +52,7 @@ describe('core/parser/parser', function () {
                         {
                             type: RuleSep.TYPE
                         }
-                    ],
-                    args: []
+                    ]
                 }
             ],
             [
@@ -65,8 +64,7 @@ describe('core/parser/parser', function () {
                             type: RuleAny.TYPE,
                             text: 'foo'
                         }
-                    ],
-                    args: []
+                    ]
                 }
             ],
             [
@@ -76,12 +74,11 @@ describe('core/parser/parser', function () {
                     parts: [
                         {
                             type: RuleArg.TYPE,
-                            name: ['foo'],
+                            name: 'foo',
                             kind: '',
-                            required: true
+                            default: void 0
                         }
-                    ],
-                    args: []
+                    ]
                 }
             ],
             [
@@ -104,35 +101,14 @@ describe('core/parser/parser', function () {
                             parts: [
                                 {
                                     type: RuleArg.TYPE,
-                                    name: ['postId'],
+                                    name: 'postId',
                                     kind: '',
-                                    required: true
+                                    default: void 0
                                 },
                                 {
                                     type: RuleSep.TYPE
                                 }
-                            ],
-                            args: []
-                        }
-                    ],
-                    args: []
-                }
-            ],
-            [
-                '/&a',
-                {
-                    type: RuleSeq.TYPE,
-                    parts: [
-                        {
-                            type: RuleSep.TYPE
-                        }
-                    ],
-                    args: [
-                        {
-                            type: RuleArg.TYPE,
-                            name: ['a'],
-                            kind: '',
-                            required: true
+                            ]
                         }
                     ]
                 }
@@ -144,41 +120,23 @@ describe('core/parser/parser', function () {
                     parts: [
                         {
                             type: RuleArg.TYPE,
-                            name: ['name'],
+                            name: 'name',
                             kind: 'kind',
-                            required: true
+                            default: void 0
                         }
-                    ],
-                    args: []
+                    ]
                 }
             ],
             [
-                '/<name>&type?value',
+                '<postId=42>',
                 {
                     type: RuleSeq.TYPE,
                     parts: [
                         {
-                            type: RuleSep.TYPE
-                        },
-                        {
                             type: RuleArg.TYPE,
-                            name: ['name'],
+                            name: 'postId',
                             kind: '',
-                            required: true
-                        }
-                    ],
-                    args: [
-                        {
-                            type: RuleArg.TYPE,
-                            name: ['type'],
-                            kind: '',
-                            required: true
-                        },
-                        {
-                            type: RuleArg.TYPE,
-                            name: ['value'],
-                            kind: '',
-                            required: false
+                            default: '42'
                         }
                     ]
                 }
