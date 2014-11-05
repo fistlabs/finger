@@ -23,7 +23,7 @@ describe('core/rule', function () {
     };
 
     Rule.prototype.getParamsIndex = function () {
-        return this._paramsIndex;
+        return this._paramsCount;
     };
 
     Rule.prototype.getMatchRegExp = function () {
@@ -151,6 +151,20 @@ describe('core/rule', function () {
                         '/?foo=bar',
                         {
                             foo: 'bar'
+                        }
+                    ],
+                    [
+                        '/?foo=bar&foo=bar2',
+                        {
+                            foo: ['bar', 'bar2']
+                        }
+                    ],
+                    [
+                        '/?foo=bar&foo=bar2&foo=bar3&bar=42&baz&baz=%%',
+                        {
+                            foo: ['bar', 'bar2', 'bar3'],
+                            bar: '42',
+                            baz: ['', '%%']
                         }
                     ]
                 ]
@@ -358,6 +372,15 @@ describe('core/rule', function () {
                     [
                         '/',
                         false
+                    ],
+                    [
+                        '/?n=1&b=true&i=&z=',
+                        {
+                            n: 1,
+                            b: true,
+                            i: Infinity,
+                            z: {}
+                        }
                     ]
                 ]
             ],

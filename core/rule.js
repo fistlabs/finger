@@ -6,15 +6,12 @@ var RuleArg = /** @type RuleArg */ require('./parser/rule-arg');
 var RuleSep = /** @type RuleSep */ require('./parser/rule-sep');
 var RuleSeq = /** @type RuleSeq */ require('./parser/rule-seq');
 
-var Query = /** @type Query */ require('./query');
-
 var Tools = /** @type Tools */ require('./tools');
 var Type = /** @type Type */ require('./type');
 
 var _ = require('lodash-node');
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
-var query = /** @type {Query} */ new Query();
 var regesc = require('regesc');
 var util = require('util');
 
@@ -44,7 +41,7 @@ function Rule(ruleString, params) {
      * @property
      * @type {Object}
      * */
-    this._types = this.__compileTypes();
+    this._types = this.__createTypes();
 
     Tools.call(this, ruleString);
 
@@ -62,7 +59,7 @@ function Rule(ruleString, params) {
      * @property
      * @type {Object}
      * */
-    this._paramsIndex = this.__countPathParams();
+    this._paramsCount = this.__countPathParams();
 
     /**
      * @protected
@@ -110,17 +107,17 @@ Rule.prototype.build = function (args) {
     var value;
 
     for (name in args) {
-        if (hasProperty.call(args, name) && !hasProperty.call(this._paramsIndex, name)) {
+        if (hasProperty.call(args, name) && !hasProperty.call(this._paramsCount, name)) {
             value = args[name];
 
             if (Array.isArray(value)) {
                 for (i = 0, l = value.length; i < l; i += 1) {
-                    queryArgs[queryArgs.length] = query.escape(name) + this.params.queryEq +
-                        query.stringifyQueryArg(value[i]);
+                    queryArgs[queryArgs.length] = this.__valEscape(name) + this.params.queryEq +
+                        this.__qStringify(value[i]);
                 }
             } else {
-                queryArgs[queryArgs.length] = query.escape(name) + this.params.queryEq +
-                    query.stringifyQueryArg(value);
+                queryArgs[queryArgs.length] = this.__valEscape(name) + this.params.queryEq +
+                    this.__qStringify(value);
             }
 
         }
@@ -166,7 +163,7 @@ Rule.prototype.match = function (url) {
         name = pathParams[i].name;
 
         if (typeof value === 'string') {
-            value = query.unescape(value);
+            value = this.__valUnescape(value);
         } else {
             value = pathParams[i].default;
         }
@@ -186,7 +183,7 @@ Rule.prototype.match = function (url) {
         return args;
     }
 
-    queryObject = query.parse(queryString, this.params.querySep, this.params.queryEq);
+    queryObject = this.__parseQs(queryString);
 
     if (!l) {
         return queryObject;
@@ -231,7 +228,7 @@ Rule.prototype.__compileBuilderFunc = function () {
         if (part.type === RuleSep.TYPE) {
             //  part += '/';
             body.push(
-                this.__astPresetPartSelfPlus(
+                this.__astCasePartSelfPlus(
                     this.__astTypeLiteral('/')));
 
             return;
@@ -240,7 +237,7 @@ Rule.prototype.__compileBuilderFunc = function () {
         if (part.type === RuleAny.TYPE) {
             body.push(
                 //  part += `encodeURIComponent(part.text)`;
-                this.__astPresetPartSelfPlus(
+                this.__astCasePartSelfPlus(
                     this.__astTypeLiteral(encodeURIComponent(part.text))));
 
             return;
@@ -252,7 +249,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                 body = stack.pop();
                 body.push(
                     //  part = stack[`n`] + part;
-                    this.__astPresetAssignPart(
+                    this.__astCaseAssignPart(
                         this.__astTypeBinaryExpression('+',
                             this.__astTypeMemberExpression(
                                 this.__astTypeIdentifier('stack'),
@@ -273,7 +270,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                             true),
                         this.__astTypeIdentifier('part'))),
                 //  part = '';
-                this.__astPresetResetPart());
+                this.__astCaseResetPart());
 
             stack.push(body);
             //  RULE_SEQ_`n`: {
@@ -284,9 +281,9 @@ Rule.prototype.__compileBuilderFunc = function () {
         }
 
         body.push(
-            this.__astPresetResetValue(),
+            this.__astCaseResetValue(),
             this.__astTypeIfStatement(
-                this.__astPresetHasPropertyCall(
+                this.__astCaseHasPropertyCall(
                     [
                         this.__astTypeIdentifier('args'),
                         this.__astTypeLiteral(part.name)]
@@ -301,7 +298,7 @@ Rule.prototype.__compileBuilderFunc = function () {
                                 true))),
                     this.__astTypeIfStatement(
                         this.__astTypeUnaryExpression('!',
-                            this.__astPresetIsValueArray(),
+                            this.__astCaseIsValueArray(),
                             true),
                         [
                             this.__astTypeExpressionStatement(
@@ -309,11 +306,11 @@ Rule.prototype.__compileBuilderFunc = function () {
                                 this.__astTypeIdentifier('value'),
                                 this.__astTypeArrayExpression([
                                     this.__astTypeIdentifier('value')])))]),
-                    this.__astPresetGetNthValue(part.used)]));
+                    this.__astCaseGetNthValue(part.used)]));
 
         body.push(
             this.__astTypeIfStatement(
-                this.__astPresetValueCheckExpression('||', '==='),
+                this.__astCaseValueCheckExpression('||', '==='),
                 [
                     this.__astTypeExpressionStatement(
                         this.__astTypeAssignmentExpression('=',
@@ -324,24 +321,24 @@ Rule.prototype.__compileBuilderFunc = function () {
             body.push(
                 this.__astTypeIfStatement(
                     //  if (value === undefined || value === null || value === ') {
-                    this.__astPresetValueCheckExpression('||', '==='),
+                    this.__astCaseValueCheckExpression('||', '==='),
                     [
                         //  part = '';
-                        this.__astPresetResetPart(),
+                        this.__astCaseResetPart(),
                         //  break RULE_SEQ_`n - 1`;
                         this.__astTypeBreakStatement('RULE_SEQ_' + (n - 1))]),
-                //  part += query.stringifyQueryArg(value);
-                this.__astPresetPartSelfPlus(
-                    this.__astPresetQueryEscapeValue4Pathname()));
+                //  part += this.__qStringify(value);
+                this.__astCasePartSelfPlus(
+                    this.__astCaseQueryEscapeValue4Pathname()));
         } else {
             body.push(
                 this.__astTypeIfStatement(
                     //  if (value !== undefined && value !== null && value !== '') {
-                    this.__astPresetValueCheckExpression('&&', '!=='),
+                    this.__astCaseValueCheckExpression('&&', '!=='),
                     [
-                        //  part += query.stringifyQueryArg(value);
-                        this.__astPresetPartSelfPlus(
-                            this.__astPresetQueryEscapeValue4Pathname())]));
+                        //  part += this.__qStringify(value);
+                        this.__astCasePartSelfPlus(
+                            this.__astCaseQueryEscapeValue4Pathname())]));
         }
     });
 
@@ -349,33 +346,10 @@ Rule.prototype.__compileBuilderFunc = function () {
 
     func = escodegen.generate(func);
 
-    return new Function('hasProperty', 'query', 'undefined',
-        'return ' + func)(hasProperty, query, void 0);
+    return new Function('hasProperty', 'undefined',
+        'return ' + func)(hasProperty, void 0);
 };
 
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} logicalOp
- * @param {String} binaryOp
- *
- * @returns {Object}
- * */
-Rule.prototype.__astPresetValueCheckExpression = function (logicalOp, binaryOp) {
-    return this.__astTypeLogicalExpression(logicalOp,
-        this.__astTypeLogicalExpression(logicalOp,
-            this.__astTypeBinaryExpression(binaryOp,
-                this.__astTypeIdentifier('value'),
-                this.__astPresetUndef()),
-            this.__astTypeBinaryExpression(binaryOp,
-                this.__astTypeIdentifier('value'),
-                this.__astTypeLiteral(null))),
-        this.__astTypeBinaryExpression(binaryOp,
-            this.__astTypeIdentifier('value'),
-            this.__astTypeLiteral('')));
-};
 /**
  * @private
  * @memberOf {Rule}
@@ -452,7 +426,7 @@ Rule.prototype.__compileMatchRegExpPartStatic = function (part) {
     for (i = 0, l = text.length; i < l; i += 1) {
         char = text.charAt(i);
 
-        if (char === query.escape(char)) {
+        if (char === this.__valEscape(char)) {
             result += regesc(char);
 
             continue;
@@ -460,13 +434,13 @@ Rule.prototype.__compileMatchRegExpPartStatic = function (part) {
 
         if (this.params.ignoreCase) {
             result += '(?:' + regesc(char) + '|' +
-            query.escape(char.toLowerCase()) + '|' +
-            query.escape(char.toUpperCase()) + ')';
+            this.__valEscape(char.toLowerCase()) + '|' +
+            this.__valEscape(char.toUpperCase()) + ')';
 
             continue;
         }
 
-        result += '(?:' + regesc(char) + '|' + query.escape(char) + ')';
+        result += '(?:' + regesc(char) + '|' + this.__valEscape(char) + ')';
     }
 
     return result;
@@ -479,7 +453,7 @@ Rule.prototype.__compileMatchRegExpPartStatic = function (part) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__compileTypes = function () {
+Rule.prototype.__createTypes = function () {
     var types = _.extend({
         Seg: '[^/?&]+?',
         Seq: '[^?&]+?'
@@ -579,6 +553,32 @@ Rule.prototype._compilePathRule = function () {
     return rule;
 };
 
+//  Ast cases
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} logicalOp
+ * @param {String} binaryOp
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__astCaseValueCheckExpression = function (logicalOp, binaryOp) {
+    return this.__astTypeLogicalExpression(logicalOp,
+        this.__astTypeLogicalExpression(logicalOp,
+            this.__astTypeBinaryExpression(binaryOp,
+                this.__astTypeIdentifier('value'),
+                this.__astCaseUndef()),
+            this.__astTypeBinaryExpression(binaryOp,
+                this.__astTypeIdentifier('value'),
+                this.__astTypeLiteral(null))),
+        this.__astTypeBinaryExpression(binaryOp,
+            this.__astTypeIdentifier('value'),
+            this.__astTypeLiteral('')));
+};
+
 /**
  * @private
  * @memberOf {Rule}
@@ -586,11 +586,9 @@ Rule.prototype._compilePathRule = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__astPresetUndef = function () {
+Rule.prototype.__astCaseUndef = function () {
     return this.__astTypeIdentifier('undefined');
 };
-
-//  Ast presets
 
 /**
  * @private
@@ -601,7 +599,7 @@ Rule.prototype.__astPresetUndef = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__astPresetHasPropertyCall = function (args) {
+Rule.prototype.__astCaseHasPropertyCall = function (args) {
     return this.__astTypeCallExpression(
         this.__astTypeMemberExpression(
             this.__astTypeIdentifier('hasProperty'),
@@ -616,11 +614,11 @@ Rule.prototype.__astPresetHasPropertyCall = function (args) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__astPresetQueryEscapeValue4Pathname = function () {
+Rule.prototype.__astCaseQueryEscapeValue4Pathname = function () {
     return this.__astTypeCallExpression(
         this.__astTypeMemberExpression(
-            this.__astTypeIdentifier('query'),
-            this.__astTypeIdentifier('stringifyPathArg')),
+            this.__astTypeIdentifier('this'),
+            this.__astTypeIdentifier('__pStringify')),
         [
             this.__astTypeIdentifier('value')]);
 };
@@ -632,7 +630,7 @@ Rule.prototype.__astPresetQueryEscapeValue4Pathname = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__astPresetIsValueArray = function () {
+Rule.prototype.__astCaseIsValueArray = function () {
     return this.__astTypeCallExpression(
         this.__astTypeMemberExpression(
             this.__astTypeIdentifier('Array'),
@@ -650,7 +648,7 @@ Rule.prototype.__astPresetIsValueArray = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__astPresetGetNthValue = function (nth) {
+Rule.prototype.__astCaseGetNthValue = function (nth) {
     return this.__astTypeExpressionStatement(
         this.__astTypeAssignmentExpression('=',
             this.__astTypeIdentifier('value'),
@@ -669,7 +667,7 @@ Rule.prototype.__astPresetGetNthValue = function (nth) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__astPresetPartSelfPlus = function (plus) {
+Rule.prototype.__astCasePartSelfPlus = function (plus) {
     return this.__astTypeExpressionStatement(
         this.__astTypeAssignmentExpression('+=',
             this.__astTypeIdentifier('part'),
@@ -685,7 +683,7 @@ Rule.prototype.__astPresetPartSelfPlus = function (plus) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__astPresetAssignPart = function (assign) {
+Rule.prototype.__astCaseAssignPart = function (assign) {
     return this.__astTypeExpressionStatement(
         this.__astTypeAssignmentExpression('=',
             this.__astTypeIdentifier('part'),
@@ -699,11 +697,11 @@ Rule.prototype.__astPresetAssignPart = function (assign) {
  *
  * @returns {Object}
  * */
-Rule.prototype.__astPresetResetValue = function () {
+Rule.prototype.__astCaseResetValue = function () {
     return this.__astTypeExpressionStatement(
         this.__astTypeAssignmentExpression('=',
             this.__astTypeIdentifier('value'),
-            this.__astPresetUndef()));
+            this.__astCaseUndef()));
 };
 
 /**
@@ -713,8 +711,8 @@ Rule.prototype.__astPresetResetValue = function () {
  *
  * @returns {Object}
  * */
-Rule.prototype.__astPresetResetPart = function () {
-    return this.__astPresetAssignPart(
+Rule.prototype.__astCaseResetPart = function () {
+    return this.__astCaseAssignPart(
         this.__astTypeLiteral(''));
 };
 
@@ -1028,6 +1026,117 @@ Rule.prototype.__astTypeMemberExpression = function (object, property, computed)
         property: property,
         computed: computed
     };
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} queryString
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__parseQs = function (queryString) {
+    var eqIndex;
+    var i;
+    var key;
+    var l;
+    var pair;
+    var pairs = queryString.split(this.params.querySep);
+    var val;
+    var queryObject = {};
+
+    for (i = 0, l = pairs.length; i < l; i += 1) {
+        pair = pairs[i].replace(/\+/g, '%20');
+        eqIndex = pair.indexOf(this.params.queryEq);
+
+        if (eqIndex === -1) {
+            key = this.__valUnescape(pair);
+            val = '';
+        } else {
+            key = this.__valUnescape(pair.substr(0, eqIndex));
+            val = this.__valUnescape(pair.substr(eqIndex + 1));
+        }
+
+        if (!hasProperty.call(queryObject, key)) {
+            queryObject[key] = val;
+        } else if (Array.isArray(queryObject[key])) {
+            queryObject[key].push(val);
+        } else {
+            queryObject[key] = [queryObject[key], val];
+        }
+    }
+
+    return queryObject;
+};
+
+/**
+ * @public
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {*} [v]
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__pStringify = function (v) {
+    return this.__qStringify(v).replace(/%2F/g, '/');
+};
+
+/**
+ * @public
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {*} [v]
+ *
+ * @returns {Object}
+ * */
+Rule.prototype.__qStringify = function (v) {
+    var t = typeof v;
+
+    if (t === 'string') {
+        return this.__valEscape(v);
+    }
+
+    if (t === 'boolean' || t === 'number' && isFinite(v)) {
+
+        return String(v);
+    }
+
+    return '';
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {String}
+ * */
+Rule.prototype.__valEscape = encodeURIComponent;
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} subj
+ *
+ * @returns {String}
+ * */
+Rule.prototype.__valUnescape = function (subj) {
+
+    if (subj.indexOf('%') === -1) {
+        return subj;
+    }
+
+    try {
+        return decodeURIComponent(subj);
+    } catch (err) {
+        return subj;
+    }
 };
 
 module.exports = Rule;
