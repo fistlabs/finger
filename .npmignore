@@ -6,3 +6,5 @@
 /Gulpfile.js
 *.log
 .*
+*.jison
+*.jisonlex
