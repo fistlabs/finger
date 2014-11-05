@@ -46,6 +46,20 @@ describe('core/rule', function () {
         });
     });
 
+    describe('{Rule}.data', function () {
+        it('Should have own member "data"', function () {
+            var rule = new Rule('/');
+            assert.ok(rule.hasOwnProperty('data'));
+        });
+
+        it('Should be an Object', function () {
+            var rule = new Rule('/');
+            assert.ok(rule.data);
+            assert.strictEqual(typeof rule.data, 'object');
+            assert.strictEqual(typeof rule.data.name, 'string');
+        });
+    });
+
     describe('Static path args indexing', function () {
         var rule = new Rule('<a>(<a>)<b><a><foo.bar><\\foo.bar><foo\\.bar>');
 

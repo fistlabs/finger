@@ -13,6 +13,7 @@ var _ = require('lodash-node');
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
 var regesc = require('regesc');
+var uniqueId = require('unique-id');
 var util = require('util');
 
 /**
@@ -34,6 +35,16 @@ function Rule(ruleString, params) {
         queryEq: '=',
         querySep: '&'
     }, params);
+
+    /**
+     * @public
+     * @memberOf {Rule}
+     * @property
+     * @type {Object}
+     * */
+    this.data = {
+        name: uniqueId()
+    };
 
     /**
      * @protected
