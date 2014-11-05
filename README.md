@@ -98,7 +98,7 @@ var rule = matcher.addRule('/', {name: 'index'});
 assert.strictEqual(rule, matcher.getRule('index'));
 ```
 
-###```Array<Rule> matcher.matchAll(String url)```
+###```Array<Object> matcher.matchAll(String url)```
 Returns all match results
 
 ```js
