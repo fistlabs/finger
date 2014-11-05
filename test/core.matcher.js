@@ -101,18 +101,24 @@ describe('core/matcher', function () {
             assert.deepEqual(matcher.matchAll('/'), [
                 {
                     args: {},
-                    name: 'index0'
+                    data: {
+                        name: 'index0'
+                    }
                 }
             ]);
             matcher.addRule('/', {name: 'index1'});
             assert.deepEqual(matcher.matchAll('/'), [
                 {
                     args: {},
-                    name: 'index0'
+                    data: {
+                        name: 'index0'
+                    }
                 },
                 {
                     args: {},
-                    name: 'index1'
+                    data: {
+                        name: 'index1'
+                    }
                 }
             ]);
         });

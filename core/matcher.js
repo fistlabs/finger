@@ -161,7 +161,7 @@ Matcher.prototype.matchAll = function (url) {
         if (args) {
             matches[matches.length] = {
                 args: args,
-                name: rules[i].data.name
+                data: rules[i].data
             };
         }
     }

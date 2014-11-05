@@ -49,11 +49,15 @@ describe('core/router', function () {
             assert.deepEqual(router.matchAll('GET', '/'), [
                 {
                     args: {},
-                    name: 'index0'
+                    data: {
+                        name: 'index0'
+                    }
                 },
                 {
                     args: {},
-                    name: 'index1'
+                    data: {
+                        name: 'index1'
+                    }
                 }
             ]);
         });
