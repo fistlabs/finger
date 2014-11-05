@@ -2,8 +2,7 @@
 
 var Rule = /** @type Rule */ require('./rule');
 
-var hasProperty = Object.prototype.hasOwnProperty;
-var uniqueId = require('unique-id');
+var _ = require('lodash-node');
 
 /**
  * @class Matcher
@@ -113,28 +112,6 @@ Matcher.prototype._createIndex = function () {
  * @memberOf {Matcher}
  * @method
  *
- * @param {*} ruleData
- *
- * @returns {Object}
- * */
-Matcher.prototype._createRuleData = function (ruleData) {
-    var data = {name: uniqueId()};
-    var i;
-
-    for (i in ruleData) {
-        if (hasProperty.call(ruleData, i)) {
-            data[i] = ruleData[i];
-        }
-    }
-
-    return data;
-};
-
-/**
- * @protected
- * @memberOf {Matcher}
- * @method
- *
  * @param {String} urlPattern
  * @param {Object} ruleData
  *
@@ -143,7 +120,7 @@ Matcher.prototype._createRuleData = function (ruleData) {
 Matcher.prototype._createRoute = function (urlPattern, ruleData) {
     var rule = this._createRule(urlPattern, this.params);
 
-    rule.data = this._createRuleData(ruleData);
+    _.extend(rule.data, ruleData);
 
     return rule;
 };
