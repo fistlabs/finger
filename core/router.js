@@ -186,7 +186,7 @@ Router.prototype.matchAll = function (verb, url) {
         if (args) {
             matches[matches.length] = {
                 args: args,
-                name: rule.data.name
+                data: rule.data
             };
         }
     }
