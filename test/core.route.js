@@ -12,12 +12,14 @@ describe('core/route', function () {
     Route.parseRequestRule = Route._parseRequestRule;
 
     describe('{Route}.params', function () {
-        it('Should clone should support flags', function () {
-            var route = new Route('/ IzX', {
-                ignoreCase: true
+        it('Should support flags', function () {
+            var route = new Route('/ IzXs', {
+                ignoreCase: true,
+                appendSlash: false
             });
 
             assert.ok(!route.params.ignoreCase);
+            assert.ok(route.params.appendSlash);
             assert.ok(route.params.z);
             assert.ok(!route.params.X);
         });

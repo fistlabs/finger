@@ -155,12 +155,18 @@ Rule.prototype.match = function (url) {
     var args = null;
     var i;
     var l;
-    var match = this._matchRegExp.exec(url);
+    var match;
     var name;
     var pathParams;
     var queryObject;
     var queryString;
     var value;
+
+    if (this.params.appendSlash) {
+        url = url.replace(/^([^?]*[^\/?])(\?[^?]*)?$/, '$1/$2');
+    }
+
+    match = this._matchRegExp.exec(url);
 
     if (match === null) {
         return args;

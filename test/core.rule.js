@@ -327,6 +327,44 @@ describe('core/rule', function () {
                         }
                     ]
                 ]
+            ],
+            [
+                [
+                    '/foo/',
+                    {
+                        appendSlash: true
+                    }
+                ],
+                [
+                    [
+                        '/foo',
+                        {}
+                    ],
+                    [
+                        '/foo/',
+                        {}
+                    ],
+                    [
+                        '/foo?x=z',
+                        {
+                            x: 'z'
+                        }
+                    ],
+                    [
+                        '/foo/?x=z',
+                        {
+                            x: 'z'
+                        }
+                    ],
+                    [
+                        '/foo/?',
+                        {}
+                    ],
+                    [
+                        '/foo?',
+                        {}
+                    ]
+                ]
             ]
         ];
 
