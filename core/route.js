@@ -66,7 +66,8 @@ Route.prototype.toString = function () {
  * @type {Object}
  * */
 Route._flagsMapping = {
-    i: 'ignoreCase'
+    i: 'ignoreCase',
+    s: 'appendSlash'
 };
 
 /**
