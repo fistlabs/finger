@@ -25,6 +25,7 @@ function runCover(done) {
         'core/parser/*.js'
     ])
         .pipe(istanbulPipe)
+        .pipe(gulpIstanbul.hookRequire())
         .on('finish', function () {
             self.src('test/*.js')
                 .pipe(mochaPipe)

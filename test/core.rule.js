@@ -380,10 +380,10 @@ describe('core/rule', function () {
             describeTitle = util.format(describeTitle, pattern[0], pattern[1] || {});
 
             describe(describeTitle, function () {
-                var samples = example[1];
+                var sample = example[1];
                 var rule = new Rule(pattern[0], pattern[1]);
 
-                _.forEach(samples, function (s) {
+                _.forEach(sample, function (s) {
                     var shouldText = 'Should match %j and return %j';
 
                     shouldText = util.format(shouldText, s[0], s[1]);
