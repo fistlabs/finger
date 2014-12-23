@@ -42,6 +42,17 @@ var rule = new Rule('/news/', {
 
 For this rule both ```/news/``` and ```/NeWs/``` urls are identical.
 
+#####```Boolean options.appendSlash```
+Allows url to do not contain trailing slash
+
+```js
+var rule = new Rule('/news/', {
+    appendSlash: true
+});
+```
+
+For this rule both ```/news/``` and ```/news``` urls are valid.
+
 ###```Object|null rule.match(String url)```
 Matches the url to the rule. Returns the set of values according to described arguments
 
