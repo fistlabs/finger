@@ -6,7 +6,7 @@ Finger is a powerful and fast nodejs router
 ##[core/rule](core/rule.js)
 ```Rule``` is a part of ```Matcher``` that can match and build urls described in special syntax.
 
-###```Rule new Rule(String ruleString[, Object options])```
+###```Rule new Rule(String ruleString[, Object options[, Object data]])```
 Creates new rule.
 
 ```js
@@ -52,6 +52,17 @@ var rule = new Rule('/news/', {
 ```
 
 For this rule both ```/news/``` and ```/news``` urls are valid.
+
+####```Object data```
+The data will be appended to rule
+
+```js
+var rule = new Rule('/news/', {
+    appendSlash: true
+}, {
+    name: 'news'
+});
+```
 
 ###```Object|null rule.match(String url)```
 Matches the url to the rule. Returns the set of values according to described arguments
