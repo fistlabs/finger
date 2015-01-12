@@ -4,14 +4,21 @@
 var Benchmark = require('benchmark').Benchmark;
 var Suite = Benchmark.Suite;
 var suite = new Suite();
+var methods = require('methods').map(function (verb) {
+    return verb.toUpperCase();
+});
 
 Benchmark.options.minSamples = 100;
 
 var SusaninRouter = require('susanin');
 var FingerMatcher = require('../core/matcher');
+var FingerRouter = require('../core/router');
 
 var susaninRouter = new SusaninRouter();
 var fingerMatcher = new FingerMatcher();
+
+var susaninVerbRouter = new SusaninRouter();
+var fingerVerbRouter = new FingerRouter();
 
 susaninRouter.addRoute({pattern: '/', name: 'r1'});
 susaninRouter.addRoute({pattern: '/a/', name: 'r2'});
@@ -194,6 +201,31 @@ function benchFingerMatcherMatchAll() {
     global.__test__ = fingerMatcher.matchAll('/a/b/c/d/e/f/?foo=bar');
 }
 
+
+methods.forEach(function (verb) {
+    susaninVerbRouter.addRoute({pattern: '/', data: {method: verb}});
+    susaninVerbRouter.addRoute({pattern: '/foo/', data: {method: verb}});
+    susaninVerbRouter.addRoute({pattern: '/bar/', data: {method: verb}});
+});
+
+methods.forEach(function (verb) {
+    fingerVerbRouter.addRule(verb + ' /');
+    fingerVerbRouter.addRule(verb + ' /foo/');
+    fingerVerbRouter.addRule(verb + ' /bar/');
+});
+
+function benchSusaninVerbRouter() {
+    global.__test__ = susaninVerbRouter.find('/', {method: methods[0]});
+    global.__test__ = susaninVerbRouter.find('/foo/', {method: methods[5]});
+    global.__test__ = susaninVerbRouter.find('/bar/', {method: methods[10]});
+}
+
+function benchFingerVerbRouter() {
+    global.__test__ = fingerVerbRouter.matchAll('/', methods[0]);
+    global.__test__ = fingerVerbRouter.matchAll('/foo/', methods[5]);
+    global.__test__ = fingerVerbRouter.matchAll('/bar/', methods[10]);
+}
+
 //  Warm up!
 benchSusaninRouteMatch();
 benchFingerRuleMatch();
@@ -204,6 +236,9 @@ benchFingerRuleBuild();
 benchSusaninRouterFind();
 benchFingerMatcherMatchAll();
 
+benchSusaninVerbRouter();
+benchFingerVerbRouter();
+
 suite.add('Susanin.Route#match', benchSusaninRouteMatch);
 suite.add('finger/core/rule#match', benchFingerRuleMatch);
 
@@ -212,6 +247,9 @@ suite.add('finger/core/rule#build', benchFingerRuleBuild);
 
 suite.add('Susanin#find', benchSusaninRouterFind);
 suite.add('finger/core/matcher#matchAll', benchFingerMatcherMatchAll);
+
+suite.add('Susanin#find() + method', benchSusaninVerbRouter);
+suite.add('finger/core/router#matchAll() + method', benchFingerVerbRouter);
 
 suite.on('cycle', function (event) {
     console.log(String(event.target));

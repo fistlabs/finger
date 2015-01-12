@@ -162,9 +162,11 @@ Router.prototype.matchAll = function (url, verb) {
 
     verb = verb ? String(verb).toUpperCase() : 'GET';
 
-    if (!(verb in this._implemented)) {
-        return matches;
-    }
+    //  Do not check is verb implemented, let throw error.
+    //  We should check it manually by router.isImplemented
+    // if (!(verb in this._implemented)) {
+    //     return matches;
+    // }
 
     names = this._implemented[verb];
 

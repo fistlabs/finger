@@ -38,18 +38,6 @@ describe('core/router', function () {
             assert.strictEqual(typeof router.matchAll, 'function');
         });
 
-        it('Should not fail if no verb handler implemented', function () {
-            var router = new Router();
-            assert.doesNotThrow(function () {
-                return router.matchAll('/', 'GET');
-            });
-        });
-
-        it('Should return [] if the passed verb is not implemented', function () {
-            var router = new Router();
-            assert.deepEqual(router.matchAll('/', 'GET'), []);
-        });
-
         it('Should match routes according to passed verb', function () {
             var router = new Router();
             router.addRule('/', {name: 'index0'});
