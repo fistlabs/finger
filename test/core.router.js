@@ -4,6 +4,9 @@
 var _ = require('lodash-node');
 var assert = require('assert');
 var util = require('util');
+var methods = require('methods').map(function (verb) {
+     return verb.toUpperCase();
+}).sort();
 
 describe('core/router', function () {
     /*eslint max-nested-callbacks: 0*/
@@ -48,6 +51,7 @@ describe('core/router', function () {
             router.addRule('/foo/', {name: 'foo'});
             router.addRule('/', {name: 'index1'});
             router.addRule('POST /', {name: 'index2'});
+            router.addRule('* /', {name: 'index3'});
             assert.deepEqual(router.matchAll('GET', '/'), [
                 {
                     args: {},
@@ -61,6 +65,30 @@ describe('core/router', function () {
                     data: {
                         name: 'index1',
                         verbs: ['GET', 'HEAD']
+                    }
+                },
+                {
+                    args: {},
+                    data: {
+                        name: 'index3',
+                        verbs: methods
+                    }
+                }
+            ]);
+
+            assert.deepEqual(router.matchAll('POST', '/'), [
+                {
+                    args: {},
+                    data: {
+                        name: 'index2',
+                        verbs: ['POST']
+                    }
+                },
+                {
+                    args: {},
+                    data: {
+                        name: 'index3',
+                        verbs: methods
                     }
                 }
             ]);
@@ -128,6 +156,12 @@ describe('core/router', function () {
                 var router = new Router();
                 var route = router.addRule('POST,POST, PUT, POST /');
                 assert.deepEqual(route.data.verbs.sort(), ['POST', 'PUT'].sort());
+            });
+
+            it('Should allow all methods if "*" passed', function () {
+                var router = new Router();
+                var route = router.addRule('* /');
+                assert.deepEqual(route.data.verbs.sort(), methods);
             });
         });
     });

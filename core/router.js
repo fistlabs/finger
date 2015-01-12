@@ -1,12 +1,12 @@
 'use strict';
 
-var R_ADVANCED_PATTERN = /^\s*(?:([a-z]+(?:\s*,\s*[a-z]+)*)\s+)?([\s\S]+?)(?:\s+([a-z]+))?\s*$/i;
+var R_ADVANCED_PATTERN = /^\s*(?:([a-z]+(?:\s*,\s*[a-z]+)*|\*)\s+)?([\s\S]+?)(?:\s+([a-z]+))?\s*$/i;
 
 var Matcher = /** @type Matcher */ require('./matcher');
 var Rule = /** @type Rule */ require('./rule');
 
 var _ = require('lodash-node');
-var hasProperty = Object.prototype.hasOwnProperty;
+var methods = require('methods');
 
 /**
  * @class Router
@@ -54,23 +54,17 @@ Router.prototype.isImplemented = function (verb) {
  * @returns {Rule}
  * */
 Router.prototype.addRule = function (ruleString, ruleData) {
-    var i;
-    var l;
     var rule = Matcher.prototype.addRule.call(this, ruleString, ruleData);
-    var verbs = rule.data.verbs;
-    var verb;
-    var rules;
 
-    for (i = 0, l = verbs.length; i < l; i += 1) {
-        verb = verbs[i];
-        rules = this._implemented[verb];
+    _.forEach(rule.data.verbs, function (verb) {
+        var rules = this._implemented[verb];
 
         if (!rules) {
             rules = this._implemented[verb] = [];
         }
 
         rules[rules.length] = rule.data.name;
-    }
+    }, this);
 
     return rule;
 };
@@ -85,34 +79,21 @@ Router.prototype.addRule = function (ruleString, ruleData) {
  * @returns {Rule|null}
  * */
 Router.prototype.delRule = function (name) {
-    var i;
-    var j;
-    var l;
     var rule = Matcher.prototype.delRule.call(this, name);
-    var verbs;
-    var verb;
-    var rules;
 
     if (!rule) {
         return rule;
     }
 
-    verbs = rule.data.verbs;
+    _.forEach(rule.data.verbs, function (verb) {
+        var rules = this._implemented[verb];
 
-    for (i = 0, l = verbs.length; i < l; i += 1) {
-        verb = verbs[i];
-        rules = this._implemented[verb];
-
-        for (j = rules.length - 1; j >= 0; j -= 1) {
-            if (rules[j] === name) {
-                rules.splice(j, 1);
-            }
-        }
+        _.pull(rules, name);
 
         if (!rules.length) {
             delete this._implemented[verb];
         }
-    }
+    }, this);
 
     return rule;
 };
@@ -127,25 +108,29 @@ Router.prototype.delRule = function (name) {
  * @returns {Array}
  * */
 Router.prototype.matchVerbs = function (url) {
-    var verbs = [];
+    var args;
+    var data;
     var i;
     var j;
     var k;
     var l;
     var rule;
-    var args;
+    var rules = this._rules;
+    var verbs = [];
 
-    for (i = 0, l = this._rules.length; i < l; i += 1) {
-        rule = this._rules[i];
+    for (i = 0, l = rules.length; i < l; i += 1) {
+        rule = rules[i];
         args = rule.match(url);
 
         if (!args) {
             continue;
         }
 
-        for (j = 0, k = rule.data.verbs.length; j < k; j += 1) {
-            if (verbs.indexOf(rule.data.verbs[j]) === -1) {
-                verbs[verbs.length] = rule.data.verbs[j];
+        data = rule.data;
+
+        for (j = 0, k = data.verbs.length; j < k; j += 1) {
+            if (verbs.indexOf(data.verbs[j]) === -1) {
+                verbs[verbs.length] = data.verbs[j];
             }
         }
     }
@@ -233,28 +218,27 @@ Router.prototype._createRule = function (requestRule, params, ruleData) {
  * @returns {Array<String>}
  * */
 Router._parseVerbs = function (verbsString) {
-    var allowedVerbs = [];
     var verbs = [];
-    var i;
-    var l;
 
     if (verbsString) {
-        allowedVerbs = verbsString.split(',').map(function (verb) {
-            return verb.trim().toUpperCase();
-        });
+        verbs = verbsString.split(',');
     }
 
-    for (i = 0, l = allowedVerbs.length; i < l; i += 1) {
-        if (verbs.indexOf(allowedVerbs[i]) === -1) {
-            verbs[verbs.length] = allowedVerbs[i];
-        }
+    if (verbs[0] === '*') {
+        verbs = methods;
     }
+
+    verbs = _.map(verbs, function (verb) {
+        return verb.trim().toUpperCase();
+    });
+
+    verbs = _.uniq(verbs);
 
     if (!verbs.length) {
         verbs = ['GET'];
     }
 
-    if (verbs.indexOf('GET') > -1 && verbs.indexOf('HEAD') === -1) {
+    if (_.indexOf(verbs, 'GET') > -1 && _.indexOf(verbs, 'HEAD') === -1) {
         verbs[verbs.length] = 'HEAD';
     }
 
@@ -303,23 +287,12 @@ Router._flagsMapping = {
  * @returns {Object}
  * */
 Router._createRuleParams = function (defaultParams, routeFlags) {
-    var i;
-    var l;
-    var flag;
-    var name;
-    var params = {};
+    var params = _.extend({}, defaultParams);
 
-    for (i in defaultParams) {
-        if (hasProperty.call(defaultParams, i)) {
-            params[i] = defaultParams[i];
-        }
-    }
-
-    for (i = 0, l = routeFlags.length; i < l; i += 1) {
-        flag = routeFlags.charAt(i);
-        name = Router._flagsMapping[flag.toLowerCase()] || flag;
+    _.forEach(routeFlags, function (flag) {
+        var name = Router._flagsMapping[flag.toLowerCase()] || flag;
         params[name] = flag.toLowerCase() === flag;
-    }
+    });
 
     return params;
 };
