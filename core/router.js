@@ -162,10 +162,9 @@ Router.prototype.matchAll = function (verb, url) {
 
     verb = verb.toUpperCase();
 
-    //  DO NOT CHECK IS IMPLEMENTED, LET THROW ERROR
-    //  if (!(verb in this._implemented)) {
-    //      return matches;
-    //  }
+    if (!(verb in this._implemented)) {
+        return matches;
+    }
 
     names = this._implemented[verb];
 
