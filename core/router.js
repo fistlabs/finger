@@ -145,12 +145,12 @@ Router.prototype.matchVerbs = function (url) {
  * @memberOf {Router}
  * @method
  *
- * @param {String} verb
  * @param {String} url
+ * @param {String} [verb]
  *
  * @returns {Array}
  * */
-Router.prototype.matchAll = function (verb, url) {
+Router.prototype.matchAll = function (url, verb) {
     var matches = [];
     var names;
     var rule;
@@ -160,7 +160,7 @@ Router.prototype.matchAll = function (verb, url) {
     var rules = this._rules;
     var index = this._index;
 
-    verb = verb.toUpperCase();
+    verb = verb ? String(verb).toUpperCase() : 'GET';
 
     if (!(verb in this._implemented)) {
         return matches;
