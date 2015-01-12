@@ -22,8 +22,9 @@ var util = require('util');
  *
  * @param {String} ruleString
  * @param {Object} [params]
+ * @param {Object} [data]
  * */
-function Rule(ruleString, params) {
+function Rule(ruleString, params, data) {
 
     /**
      * @public
@@ -42,9 +43,9 @@ function Rule(ruleString, params) {
      * @property
      * @type {Object}
      * */
-    this.data = {
+    this.data = _.extend({
         name: uniqueId()
-    };
+    }, data);
 
     /**
      * @protected

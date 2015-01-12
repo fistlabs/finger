@@ -11,13 +11,14 @@ var hasProperty = Object.prototype.hasOwnProperty;
  *
  * @param {String} requestRule
  * @param {Object} [params]
+ * @param {Object} [data]
  * */
-function Route(requestRule, params) {
+function Route(requestRule, params, data) {
     var pattern = Route._parseRequestRule(requestRule);
 
     params = Route._createRuleParams(params, pattern[2]);
 
-    Rule.call(this, pattern[1], params);
+    Rule.call(this, pattern[1], params, data);
 
     /**
      * @protected

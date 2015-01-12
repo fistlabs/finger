@@ -201,11 +201,12 @@ Router.prototype.matchAll = function (verb, url) {
  *
  * @param {String} requestRule
  * @param {Object} [params]
+ * @param {Object} [ruleData]
  *
  * @returns {Route}
  * */
-Router.prototype._createRule = function (requestRule, params) {
-    return new Route(requestRule, params);
+Router.prototype._createRule = function (requestRule, params, ruleData) {
+    return new Route(requestRule, params, ruleData);
 };
 
 module.exports = Router;
