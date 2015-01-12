@@ -1,7 +1,12 @@
 'use strict';
 
+var R_ADVANCED_PATTERN = /^\s*(?:([a-z]+(?:\s*,\s*[a-z]+)*|\*)\s+)?([\s\S]+?)(?:\s+([a-z]+))?\s*$/i;
+
 var Matcher = /** @type Matcher */ require('./matcher');
-var Route = /** @type Route */ require('./route');
+var Rule = /** @type Rule */ require('./rule');
+
+var _ = require('lodash-node');
+var methods = require('methods');
 
 /**
  * @class Router
@@ -46,26 +51,20 @@ Router.prototype.isImplemented = function (verb) {
  * @param {String} ruleString
  * @param {*} [ruleData]
  *
- * @returns {Route}
+ * @returns {Rule}
  * */
 Router.prototype.addRule = function (ruleString, ruleData) {
-    var i;
-    var l;
     var rule = Matcher.prototype.addRule.call(this, ruleString, ruleData);
-    var verbs = rule.verbs;
-    var verb;
-    var rules;
 
-    for (i = 0, l = verbs.length; i < l; i += 1) {
-        verb = verbs[i];
-        rules = this._implemented[verb];
+    _.forEach(rule.data.verbs, function (verb) {
+        var rules = this._implemented[verb];
 
         if (!rules) {
             rules = this._implemented[verb] = [];
         }
 
         rules[rules.length] = rule.data.name;
-    }
+    }, this);
 
     return rule;
 };
@@ -77,37 +76,24 @@ Router.prototype.addRule = function (ruleString, ruleData) {
  *
  * @param {String} name
  *
- * @returns {Route|null}
+ * @returns {Rule|null}
  * */
 Router.prototype.delRule = function (name) {
-    var i;
-    var j;
-    var l;
     var rule = Matcher.prototype.delRule.call(this, name);
-    var verbs;
-    var verb;
-    var rules;
 
     if (!rule) {
         return rule;
     }
 
-    verbs = rule.verbs;
+    _.forEach(rule.data.verbs, function (verb) {
+        var rules = this._implemented[verb];
 
-    for (i = 0, l = verbs.length; i < l; i += 1) {
-        verb = verbs[i];
-        rules = this._implemented[verb];
-
-        for (j = rules.length - 1; j >= 0; j -= 1) {
-            if (rules[j] === name) {
-                rules.splice(j, 1);
-            }
-        }
+        _.pull(rules, name);
 
         if (!rules.length) {
             delete this._implemented[verb];
         }
-    }
+    }, this);
 
     return rule;
 };
@@ -122,25 +108,29 @@ Router.prototype.delRule = function (name) {
  * @returns {Array}
  * */
 Router.prototype.matchVerbs = function (url) {
-    var verbs = [];
+    var args;
+    var data;
     var i;
     var j;
     var k;
     var l;
     var rule;
-    var args;
+    var rules = this._rules;
+    var verbs = [];
 
-    for (i = 0, l = this._rules.length; i < l; i += 1) {
-        rule = this._rules[i];
+    for (i = 0, l = rules.length; i < l; i += 1) {
+        rule = rules[i];
         args = rule.match(url);
 
         if (!args) {
             continue;
         }
 
-        for (j = 0, k = rule.verbs.length; j < k; j += 1) {
-            if (verbs.indexOf(rule.verbs[j]) === -1) {
-                verbs[verbs.length] = rule.verbs[j];
+        data = rule.data;
+
+        for (j = 0, k = data.verbs.length; j < k; j += 1) {
+            if (verbs.indexOf(data.verbs[j]) === -1) {
+                verbs[verbs.length] = data.verbs[j];
             }
         }
     }
@@ -201,11 +191,110 @@ Router.prototype.matchAll = function (verb, url) {
  *
  * @param {String} requestRule
  * @param {Object} [params]
+ * @param {Object} [ruleData]
  *
- * @returns {Route}
+ * @returns {Rule}
  * */
-Router.prototype._createRule = function (requestRule, params) {
-    return new Route(requestRule, params);
+Router.prototype._createRule = function (requestRule, params, ruleData) {
+    var pattern = Router._parseRequestRule(requestRule);
+
+    params = Router._createRuleParams(params, pattern[2]);
+
+    ruleData = _.extend({
+        verbs: Router._parseVerbs(pattern[0])
+    }, ruleData);
+
+    return new Rule(pattern[1], params, ruleData);
+};
+
+/**
+ * @protected
+ * @static
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} verbsString
+ *
+ * @returns {Array<String>}
+ * */
+Router._parseVerbs = function (verbsString) {
+    var verbs = [];
+
+    if (verbsString) {
+        verbs = verbsString.split(',');
+    }
+
+    if (verbs[0] === '*') {
+        verbs = methods;
+    }
+
+    verbs = _.map(verbs, function (verb) {
+        return verb.trim().toUpperCase();
+    });
+
+    verbs = _.uniq(verbs);
+
+    if (!verbs.length) {
+        verbs = ['GET'];
+    }
+
+    if (_.indexOf(verbs, 'GET') > -1 && _.indexOf(verbs, 'HEAD') === -1) {
+        verbs[verbs.length] = 'HEAD';
+    }
+
+    verbs.sort();
+
+    return verbs;
+};
+
+/**
+ * @protected
+ * @static
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} requestRule
+ *
+ * @returns {[String, String, String]}
+ * */
+Router._parseRequestRule = function (requestRule) {
+    var result = R_ADVANCED_PATTERN.exec(requestRule);
+
+    return [result[1] || '', result[2], result[3] || ''];
+};
+
+/**
+ * @protected
+ * @static
+ * @memberOf {Router}
+ * @property
+ * @type {Object}
+ * */
+Router._flagsMapping = {
+    i: 'ignoreCase',
+    s: 'appendSlash'
+};
+
+/**
+ * @protected
+ * @static
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {Object} defaultParams
+ * @param {String} routeFlags
+ *
+ * @returns {Object}
+ * */
+Router._createRuleParams = function (defaultParams, routeFlags) {
+    var params = _.extend({}, defaultParams);
+
+    _.forEach(routeFlags, function (flag) {
+        var name = Router._flagsMapping[flag.toLowerCase()] || flag;
+        params[name] = flag.toLowerCase() === flag;
+    });
+
+    return params;
 };
 
 module.exports = Router;

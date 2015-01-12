@@ -2,8 +2,6 @@
 
 var Rule = /** @type Rule */ require('./rule');
 
-var _ = require('lodash-node');
-
 /**
  * @class Matcher
  * @param {Object} params
@@ -46,7 +44,7 @@ function Matcher(params) {
  * @returns {Rule}
  * */
 Matcher.prototype.addRule = function (ruleString, ruleData) {
-    var rule = this._createRoute(ruleString, ruleData);
+    var rule = this._createRule(ruleString, this.params, ruleData);
 
     this.delRule(rule.data.name);
     this._rules.push(rule);
@@ -112,31 +110,14 @@ Matcher.prototype._createIndex = function () {
  * @memberOf {Matcher}
  * @method
  *
- * @param {String} urlPattern
- * @param {Object} ruleData
- *
- * @returns {Rule}
- * */
-Matcher.prototype._createRoute = function (urlPattern, ruleData) {
-    var rule = this._createRule(urlPattern, this.params);
-
-    _.extend(rule.data, ruleData);
-
-    return rule;
-};
-
-/**
- * @protected
- * @memberOf {Matcher}
- * @method
- *
  * @param {String} ruleString
- * @param {Object} params
+ * @param {Object} [params]
+ * @param {Object} [ruleData]
  *
  * @returns {Rule}
  * */
-Matcher.prototype._createRule = function (ruleString, params) {
-    return new Rule(ruleString, params);
+Matcher.prototype._createRule = function (ruleString, params, ruleData) {
+    return new Rule(ruleString, params, ruleData);
 };
 
 /**
