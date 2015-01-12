@@ -38,11 +38,16 @@ describe('core/router', function () {
             assert.strictEqual(typeof router.matchAll, 'function');
         });
 
-        it('Should throw error if method is not implemented', function () {
+        it('Should not fail if no verb handler implemented', function () {
             var router = new Router();
-            assert.throws(function () {
-                router.matchAll('GET', '/');
+            assert.doesNotThrow(function () {
+                return router.matchAll('/', 'GET');
             });
+        });
+
+        it('Should return [] if the passed verb is not implemented', function () {
+            var router = new Router();
+            assert.deepEqual(router.matchAll('/', 'GET'), []);
         });
 
         it('Should match routes according to passed verb', function () {
@@ -52,7 +57,7 @@ describe('core/router', function () {
             router.addRule('/', {name: 'index1'});
             router.addRule('POST /', {name: 'index2'});
             router.addRule('* /', {name: 'index3'});
-            assert.deepEqual(router.matchAll('GET', '/'), [
+            assert.deepEqual(router.matchAll('/', 'GET'), [
                 {
                     args: {},
                     data: {
@@ -76,7 +81,7 @@ describe('core/router', function () {
                 }
             ]);
 
-            assert.deepEqual(router.matchAll('POST', '/'), [
+            assert.deepEqual(router.matchAll('/', 'POST'), [
                 {
                     args: {},
                     data: {
@@ -89,6 +94,22 @@ describe('core/router', function () {
                     data: {
                         name: 'index3',
                         verbs: methods
+                    }
+                }
+            ]);
+        });
+
+        it('Should accept "GET" as default verb if omitted', function () {
+            var router = new Router();
+            router.addRule('/', {
+                name: 'foo'
+            });
+            assert.deepEqual(router.matchAll('/'), [
+                {
+                    args: {},
+                    data: {
+                        name: 'foo',
+                        verbs: ['GET', 'HEAD']
                     }
                 }
             ]);
