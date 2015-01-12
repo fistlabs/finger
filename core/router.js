@@ -1,7 +1,12 @@
 'use strict';
 
+var R_ADVANCED_PATTERN = /^\s*(?:([a-z]+(?:\s*,\s*[a-z]+)*)\s+)?([\s\S]+?)(?:\s+([a-z]+))?\s*$/i;
+
 var Matcher = /** @type Matcher */ require('./matcher');
-var Route = /** @type Route */ require('./route');
+var Rule = /** @type Rule */ require('./rule');
+
+var _ = require('lodash-node');
+var hasProperty = Object.prototype.hasOwnProperty;
 
 /**
  * @class Router
@@ -46,13 +51,13 @@ Router.prototype.isImplemented = function (verb) {
  * @param {String} ruleString
  * @param {*} [ruleData]
  *
- * @returns {Route}
+ * @returns {Rule}
  * */
 Router.prototype.addRule = function (ruleString, ruleData) {
     var i;
     var l;
     var rule = Matcher.prototype.addRule.call(this, ruleString, ruleData);
-    var verbs = rule.verbs;
+    var verbs = rule.data.verbs;
     var verb;
     var rules;
 
@@ -77,7 +82,7 @@ Router.prototype.addRule = function (ruleString, ruleData) {
  *
  * @param {String} name
  *
- * @returns {Route|null}
+ * @returns {Rule|null}
  * */
 Router.prototype.delRule = function (name) {
     var i;
@@ -92,7 +97,7 @@ Router.prototype.delRule = function (name) {
         return rule;
     }
 
-    verbs = rule.verbs;
+    verbs = rule.data.verbs;
 
     for (i = 0, l = verbs.length; i < l; i += 1) {
         verb = verbs[i];
@@ -138,9 +143,9 @@ Router.prototype.matchVerbs = function (url) {
             continue;
         }
 
-        for (j = 0, k = rule.verbs.length; j < k; j += 1) {
-            if (verbs.indexOf(rule.verbs[j]) === -1) {
-                verbs[verbs.length] = rule.verbs[j];
+        for (j = 0, k = rule.data.verbs.length; j < k; j += 1) {
+            if (verbs.indexOf(rule.data.verbs[j]) === -1) {
+                verbs[verbs.length] = rule.data.verbs[j];
             }
         }
     }
@@ -203,10 +208,120 @@ Router.prototype.matchAll = function (verb, url) {
  * @param {Object} [params]
  * @param {Object} [ruleData]
  *
- * @returns {Route}
+ * @returns {Rule}
  * */
 Router.prototype._createRule = function (requestRule, params, ruleData) {
-    return new Route(requestRule, params, ruleData);
+    var pattern = Router._parseRequestRule(requestRule);
+
+    params = Router._createRuleParams(params, pattern[2]);
+
+    ruleData = _.extend({
+        verbs: Router._parseVerbs(pattern[0])
+    }, ruleData);
+
+    return new Rule(pattern[1], params, ruleData);
+};
+
+/**
+ * @protected
+ * @static
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} verbsString
+ *
+ * @returns {Array<String>}
+ * */
+Router._parseVerbs = function (verbsString) {
+    var allowedVerbs = [];
+    var verbs = [];
+    var i;
+    var l;
+
+    if (verbsString) {
+        allowedVerbs = verbsString.split(',').map(function (verb) {
+            return verb.trim().toUpperCase();
+        });
+    }
+
+    for (i = 0, l = allowedVerbs.length; i < l; i += 1) {
+        if (verbs.indexOf(allowedVerbs[i]) === -1) {
+            verbs[verbs.length] = allowedVerbs[i];
+        }
+    }
+
+    if (!verbs.length) {
+        verbs = ['GET'];
+    }
+
+    if (verbs.indexOf('GET') > -1 && verbs.indexOf('HEAD') === -1) {
+        verbs[verbs.length] = 'HEAD';
+    }
+
+    verbs.sort();
+
+    return verbs;
+};
+
+/**
+ * @protected
+ * @static
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} requestRule
+ *
+ * @returns {[String, String, String]}
+ * */
+Router._parseRequestRule = function (requestRule) {
+    var result = R_ADVANCED_PATTERN.exec(requestRule);
+
+    return [result[1] || '', result[2], result[3] || ''];
+};
+
+/**
+ * @protected
+ * @static
+ * @memberOf {Router}
+ * @property
+ * @type {Object}
+ * */
+Router._flagsMapping = {
+    i: 'ignoreCase',
+    s: 'appendSlash'
+};
+
+/**
+ * @protected
+ * @static
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {Object} defaultParams
+ * @param {String} routeFlags
+ *
+ * @returns {Object}
+ * */
+Router._createRuleParams = function (defaultParams, routeFlags) {
+    var i;
+    var l;
+    var flag;
+    var name;
+    var params = {};
+
+    for (i in defaultParams) {
+        if (hasProperty.call(defaultParams, i)) {
+            params[i] = defaultParams[i];
+        }
+    }
+
+    for (i = 0, l = routeFlags.length; i < l; i += 1) {
+        flag = routeFlags.charAt(i);
+        name = Router._flagsMapping[flag.toLowerCase()] || flag;
+        params[name] = flag.toLowerCase() === flag;
+    }
+
+    return params;
 };
 
 module.exports = Router;
