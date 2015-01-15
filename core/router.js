@@ -115,7 +115,7 @@ Router.prototype.matchVerbs = function (url) {
     var k;
     var l;
     var rule;
-    var rules = this._rules;
+    var rules = this.rules;
     var verbs = [];
 
     for (i = 0, l = rules.length; i < l; i += 1) {
@@ -157,7 +157,7 @@ Router.prototype.matchAll = function (url, verb) {
     var i;
     var l;
     var args;
-    var rules = this._rules;
+    var rules = this.rules;
     var index = this._index;
 
     verb = verb ? String(verb).toUpperCase() : 'GET';

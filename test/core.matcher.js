@@ -15,7 +15,7 @@ describe('core/matcher', function () {
     Matcher.prototype = Object.create(StdMatcher.prototype);
 
     Matcher.prototype.getRules = function () {
-        return this._rules;
+        return this.rules;
     };
 
     describe('{Matcher}.params', function () {

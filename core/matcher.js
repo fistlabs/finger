@@ -22,7 +22,7 @@ function Matcher(params) {
      * @property
      * @type {Array}
      * */
-    this._rules = [];
+    this.rules = [];
 
     /**
      * @public
@@ -47,7 +47,7 @@ Matcher.prototype.addRule = function (ruleString, ruleData) {
     var rule = this._createRule(ruleString, this.params, ruleData);
 
     this.delRule(rule.data.name);
-    this._rules.push(rule);
+    this.rules.push(rule);
     this._index = this._createIndex();
 
     return rule;
@@ -66,7 +66,7 @@ Matcher.prototype.delRule = function (name) {
     var rule = null;
 
     if (name in this._index) {
-        rule = this._rules.splice(this._index[name], 1)[0];
+        rule = this.rules.splice(this._index[name], 1)[0];
         this._index = this._createIndex();
     }
 
@@ -83,7 +83,7 @@ Matcher.prototype.delRule = function (name) {
  * @returns {Rule|void}
  * */
 Matcher.prototype.getRule = function (name) {
-    return this._rules[this._index[name]];
+    return this.rules[this._index[name]];
 };
 
 /**
@@ -98,8 +98,8 @@ Matcher.prototype._createIndex = function () {
     var l;
     var index = Object.create(null);
 
-    for (i = 0, l = this._rules.length; i < l; i += 1) {
-        index[this._rules[i].data.name] = i;
+    for (i = 0, l = this.rules.length; i < l; i += 1) {
+        index[this.rules[i].data.name] = i;
     }
 
     return index;
@@ -134,7 +134,7 @@ Matcher.prototype.matchAll = function (url) {
     var i;
     var l;
     var matches = [];
-    var rules = this._rules;
+    var rules = this.rules;
 
     for (i = 0, l = rules.length; i < l; i += 1) {
         args = rules[i].match(url);
