@@ -330,6 +330,36 @@ describe('core/rule', function () {
             ],
             [
                 [
+                    '(/news)/index.html',
+                    {
+                        appendSlash: true
+                    }
+                ],
+                [
+                    [
+                        '/index.html',
+                        {}
+                    ],
+                    [
+                        '/index.html?foo=bar',
+                        {
+                            foo: 'bar'
+                        }
+                    ],
+                    [
+                        '/news/index.html',
+                        {}
+                    ],
+                    [
+                        '/news/index.html?foo=bar',
+                        {
+                            foo: 'bar'
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
                     '/foo/',
                     {
                         appendSlash: true
@@ -363,6 +393,10 @@ describe('core/rule', function () {
                     [
                         '/foo?',
                         {}
+                    ],
+                    [
+                        '/fo',
+                        null
                     ]
                 ]
             ]

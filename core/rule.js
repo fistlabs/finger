@@ -164,7 +164,7 @@ Rule.prototype.match = function (url) {
     var value;
 
     if (this.params.appendSlash) {
-        url = url.replace(/^([^?]*[^\/?])(\?[^?]*)?$/, '$1/$2');
+        url = url.replace(/^(\/[^.?\/]+[^\/?])(\?[^?]*)?$/, '$1/$2');
     }
 
     match = this._matchRegExp.exec(url);
