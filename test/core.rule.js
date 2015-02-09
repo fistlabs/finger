@@ -355,6 +355,10 @@ describe('core/rule', function () {
                         {
                             foo: 'bar'
                         }
+                    ],
+                    [
+                        '/index.html/',
+                        null
                     ]
                 ]
             ],

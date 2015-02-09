@@ -140,14 +140,18 @@ Matcher.prototype.matchAll = function (url) {
         args = rules[i].match(url);
 
         if (args) {
-            matches[matches.length] = {
-                args: args,
-                data: rules[i].data
-            };
+            matches[matches.length] = new Match(args, rules[i].data);
         }
     }
 
     return matches;
 };
+
+function Match(args, data) {
+    this.args = args;
+    this.data = data;
+}
+
+Matcher.Match = Match;
 
 module.exports = Matcher;
