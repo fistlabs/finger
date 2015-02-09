@@ -1,49 +1,48 @@
 {
-    "author": "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>",
-    "bugs": {
-        "url": "https://github.com/fistlabs/finger/issues"
-    },
-    "contributors": [
-        "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>"
-    ],
-    "dependencies": {
-        "methods": "1.1.1",
-        "lodash-node": "3.1.0",
-        "unique-id": "0.0.1",
-        "regesc": "0.0.1",
-        "escodegen": "1.6.1"
-    },
-    "description": "Urls matching&building like a boss",
-    "devDependencies": {
-        "gulp-jison": "1.0.0",
-        "gulp-jison-lex": "1.1.0",
-        "glob": "4.3.5",
-        "benchmark": "1.0.0",
-        "susanin": "1.0.0",
-        "gulp": "3.8.10",
-        "gulp-mocha": "2.0.0",
-        "gulp-istanbul": "0.6.0",
-        "gulp-jscs": "1.4.0",
-        "eslint": "0.14.1",
-        "gulp-util": "3.0.3",
-        "vow": "0.4.8",
-        "vow-fs": "0.3.4"
-    },
-    "keywords": [
-        "router",
-        "route",
-        "rule",
-        "pattern",
-        "url",
-        "match",
-        "build"
-    ],
-    "license": "MIT",
-    "main": "core/matcher",
-    "name": "finger",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/fistlabs/finger.git"
-    },
-    "version": "1.3.2"
+  "author": "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>",
+  "bugs": {
+    "url": "https://github.com/fistlabs/finger/issues"
+  },
+  "contributors": [
+    "Golyshev Dmitrii <golyshev.dmitry@yandex.ru>"
+  ],
+  "dependencies": {
+    "methods": "1.1.1",
+    "lodash-node": "3.1.0",
+    "unique-id": "0.0.1",
+    "regesc": "0.0.1",
+    "escodegen": "1.6.1"
+  },
+  "description": "Urls matching&building like a boss",
+  "devDependencies": {
+    "gulp-one-guide": "",
+    "gulp-jison": "1.0.0",
+    "gulp-jison-lex": "1.1.0",
+    "glob": "4.3.5",
+    "benchmark": "1.0.0",
+    "susanin": "1.0.0",
+    "gulp": "3.8.10",
+    "gulp-mocha": "2.0.0",
+    "gulp-istanbul": "0.6.0",
+    "gulp-util": "3.0.3",
+    "vow": "0.4.8",
+    "vow-fs": "0.3.4"
+  },
+  "keywords": [
+    "router",
+    "route",
+    "rule",
+    "pattern",
+    "url",
+    "match",
+    "build"
+  ],
+  "license": "MIT",
+  "main": "core/matcher",
+  "name": "finger",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fistlabs/finger.git"
+  },
+  "version": "1.3.2"
 }
