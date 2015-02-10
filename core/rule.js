@@ -110,29 +110,18 @@ Rule.prototype.constructor = Rule;
 * @returns {String}
 * */
 Rule.prototype.build = function (args) {
-    /*eslint complexity: 0*/
+    var keys;
     var i;
     var l;
-    var name;
-    var url = this._builderFunc(args || {});
     var queryArgs = [];
-    var value;
+    var url;
 
-    for (name in args) {
-        if (hasProperty.call(args, name) && !hasProperty.call(this._paramsCount, name)) {
-            value = args[name];
+    args = Object(args);
+    keys = Object.keys(args);
+    url = this._builderFunc(args);
 
-            if (Array.isArray(value)) {
-                for (i = 0, l = value.length; i < l; i += 1) {
-                    queryArgs[queryArgs.length] = this._valEscape(name) + this.params.queryEq +
-                        this._qStringify(value[i]);
-                }
-            } else {
-                queryArgs[queryArgs.length] = this._valEscape(name) + this.params.queryEq +
-                    this._qStringify(value);
-            }
-
-        }
+    for (i = 0, l = keys.length; i < l; i += 1) {
+        queryArgs = this._reduceQArg(queryArgs, args[keys[i]], keys[i]);
     }
 
     if (queryArgs.length) {
@@ -140,6 +129,50 @@ Rule.prototype.build = function (args) {
     }
 
     return url;
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {Array} allQArgs
+ * @param {*} value
+ * @param {String} name
+ *
+ * @returns {Array}
+ * */
+Rule.prototype._reduceQArg = function (allQArgs, value, name) {
+    var i;
+    var l;
+
+    if (hasProperty.call(this._paramsCount, name)) {
+        return allQArgs;
+    }
+
+    if (_.isArray(value)) {
+        for (i = 0, l = value.length; i < l; i += 1) {
+            allQArgs[allQArgs.length] = this._createQueryArg(name, value[i]);
+        }
+    } else {
+        allQArgs[allQArgs.length] = this._createQueryArg(name, value);
+    }
+
+    return allQArgs;
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} name
+ * @param {*} value
+ *
+ * @returns {String}
+ * */
+Rule.prototype._createQueryArg = function (name, value) {
+    return this._valEscape(name) + this.params.queryEq + this._qStringify(value);
 };
 
 /**
@@ -162,6 +195,7 @@ Rule.prototype.match = function (url) {
     var queryObject;
     var queryString;
     var value;
+    var keys;
 
     if (this.params.appendSlash) {
         url = url.replace(/^(\/[^.?\/]+[^\/?])(\?[^?]*)?$/, '$1/$2');
@@ -183,7 +217,7 @@ Rule.prototype.match = function (url) {
         if (typeof value === 'string') {
             value = this._valUnescape(value);
         } else {
-            value = pathParams[i].default;
+            value = pathParams[i].value;
         }
 
         if (!hasProperty.call(args, name)) {
@@ -203,14 +237,17 @@ Rule.prototype.match = function (url) {
 
     queryObject = this._parseQs(queryString);
 
-    if (!l) {
+    if (l === 0) {
         return queryObject;
     }
 
-    for (name in args) {
-        if (hasProperty.call(args, name)) {
-            queryObject[name] = args[name];
-        }
+    keys = Object.keys(args);
+    l = keys.length;
+
+    while (l) {
+        l -= 1;
+        name = keys[l];
+        queryObject[name] = args[name];
     }
 
     return queryObject;
@@ -330,7 +367,7 @@ Rule.prototype._compileBuilderFunc = function () {
                 [
                     this._astCaseAssignmentStatement('=',
                         this._astTypeIdentifier('value'),
-                        this._astTypeLiteral(part.default === void 0 ? null : part.default))]));
+                        this._astTypeLiteral(part.value === void 0 ? null : part.value))]));
 
         if (n > 1) {
             body.push(

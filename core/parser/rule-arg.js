@@ -37,7 +37,7 @@ function RuleArg() {
      * @property
      * @type {String}
      * */
-    this.default = void 0;
+    this.value = void 0;
 }
 
 /**
@@ -91,7 +91,7 @@ RuleArg.prototype.setKind = function (type) {
  * @returns {RuleArg}
  * */
 RuleArg.prototype.setDefault = function (text) {
-    this.default = RuleAny.unBackSlash(text);
+    this.value = RuleAny.unBackSlash(text);
 
     return this;
 };

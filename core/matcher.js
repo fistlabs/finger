@@ -134,13 +134,15 @@ Matcher.prototype.matchAll = function (url) {
     var i;
     var l;
     var matches = [];
+    var rule;
     var rules = this.rules;
 
     for (i = 0, l = rules.length; i < l; i += 1) {
-        args = rules[i].match(url);
+        rule = rules[i];
+        args = rule.match(url);
 
         if (args) {
-            matches[matches.length] = new Match(args, rules[i].data);
+            matches[matches.length] = new Match(args, rule.data);
         }
     }
 
