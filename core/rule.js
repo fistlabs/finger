@@ -176,6 +176,8 @@ Rule.prototype._createQueryArg = function (name, value) {
 };
 
 /**
+ * TODO: need to check url parameter type or replace exec to match to implicitly generate type error?
+ *
  * @public
  * @memberOf {Rule}
  * @method

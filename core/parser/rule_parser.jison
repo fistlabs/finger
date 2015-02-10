@@ -7,6 +7,7 @@
 %token ')'
 %token '?'
 %token '&'
+%token REGEX
 %token ALL
 %token EOF
 
@@ -57,12 +58,22 @@ PATHNAME_RULE_PART :
     ;
 
 PARAMETER :
+    ANON_KIND ':' PARAMETER_NAME {
+        $$ = $3.setRandomKind().setRegex($1);
+    }
+    |
     PARAMETER_KIND ':' PARAMETER_NAME {
         $$ = $3.setKind($1);
     }
     |
     PARAMETER_NAME {
         $$ = $1;
+    }
+    ;
+
+ANON_KIND :
+    REGEX {
+        $$ = $1.substring(1, $1.length - 1);
     }
     ;
 

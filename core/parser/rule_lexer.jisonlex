@@ -10,5 +10,6 @@
 "?"                                     return '?';
 "&"                                     return '&';
 
-(?:\\[\s\S]|[^\\(<:=>\/)?&+])+           return 'ALL';
+\{(?:\\[\s\S]|[^\{\}])+\}               return 'REGEX'
+(?:\\[\s\S]|[^\\(<{}:=>\/)?&+])+        return 'ALL';
 <<EOF>>                                 return 'EOF';

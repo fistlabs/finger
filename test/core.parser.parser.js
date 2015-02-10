@@ -27,7 +27,17 @@ describe('core/parser/parser', function () {
             '<foo=,',
             '/&a&',
             '<:z>',
-            'x:z'
+            'x:z',
+            '{}',
+            '<{}:foo>',
+            '<{:foo>',
+            '<}:foo>',
+            '<}Type:foo>',
+            '<{Type:foo>',
+            '<Type}:foo>',
+            '<{{}:foo>',
+            '<{}}:foo>',
+            '<{{}}:foo>'
         ];
         var title = 'Should throw error while parsing %j';
 
@@ -147,12 +157,56 @@ describe('core/parser/parser', function () {
             ]
         ];
 
+        var anonKindSamples = [
+            [
+                '<{\\d+}:foo>',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'foo',
+                            value: void 0,
+                            regex: '\\d+'
+                        }
+                    ]
+                }
+            ],
+            [
+                '<{\\{\\}}:foo>',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'foo',
+                            value: void 0,
+                            regex: '\\{\\}'
+                        }
+                    ]
+                }
+            ]
+        ];
+
         var title = 'Should parse %j to \n%j';
 
         _.forEach(samples, function (s) {
             var shouldText = util.format(title, s[0], s[1]);
             it(shouldText, function () {
                 var ast = parser.parse(s[0]);
+                assert.deepEqual(ast, s[1]);
+            });
+        });
+
+        _.forEach(anonKindSamples, function (s) {
+            var shouldText = util.format(title, s[0], s[1]);
+            it(shouldText, function () {
+                var ast = parser.parse(s[0]);
+
+                // cannot test equality of unique ids
+                delete ast.parts[0].kind;
+                delete s[1].parts[0].kind;
+
                 assert.deepEqual(ast, s[1]);
             });
         });

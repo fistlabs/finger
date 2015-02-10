@@ -2,6 +2,8 @@
 
 var RuleAny = /** @type RuleAny */ require('./rule-any');
 
+var uniqueId = require('unique-id');
+
 /**
  * @class RuleArg
  * */
@@ -43,7 +45,7 @@ function RuleArg() {
      * @public
      * @memberOf {RuleArg}
      * @property
-     * @type {RegExp}
+     * @type {String}
      * */
     this.regex = null;
 }
@@ -77,14 +79,40 @@ RuleArg.prototype.setName = function (name) {
  * @memberOf {RuleArg}
  * @method
  *
- * @param {String} type
+ * @param {String} kind
  *
  * @returns {RuleArg}
  * */
-RuleArg.prototype.setKind = function (type) {
-    type = RuleAny.unBackSlash(type);
+RuleArg.prototype.setKind = function (kind) {
+    kind = RuleAny.unBackSlash(kind);
 
-    this.kind = type;
+    this.kind = kind;
+
+    return this;
+};
+
+/**
+ * @public
+ * @memberOf {RuleArg}
+ * @method
+ *
+ * @returns {RuleArg}
+ * */
+RuleArg.prototype.setRandomKind = function () {
+    return this.setKind(RuleArg.generateRandomKind());
+};
+
+/**
+ * @public
+ * @memberOf {RuleArg}
+ * @method
+ *
+ * @param {String} regexSrc
+ *
+ * @returns {RuleArg}
+ * */
+RuleArg.prototype.setRegex = function (regexSrc) {
+    this.regex = regexSrc;
 
     return this;
 };
@@ -102,6 +130,18 @@ RuleArg.prototype.setDefault = function (text) {
     this.value = RuleAny.unBackSlash(text);
 
     return this;
+};
+
+/**
+ * @public
+ * @static
+ * @memberOf {RuleArg}
+ * @method
+ *
+ * @returns {String}
+ * */
+RuleArg.generateRandomKind = function () {
+    return uniqueId();
 };
 
 module.exports = RuleArg;
