@@ -38,6 +38,14 @@ function RuleArg() {
      * @type {String}
      * */
     this.value = void 0;
+
+    /**
+     * @public
+     * @memberOf {RuleArg}
+     * @property
+     * @type {RegExp}
+     * */
+    this.regex = null;
 }
 
 /**
