@@ -66,8 +66,8 @@ describe('core/rule', function () {
         describe('Expecting path args order', function () {
             it('Should create path args order', function () {
                 var pathArgsOrder = rule.getPathParams();
-                assert.deepEqual(pathArgsOrder.map(function (rule) {
-                    return rule.name;
+                assert.deepEqual(pathArgsOrder.map(function (param) {
+                    return param.name;
                 }), [
                     'a',
                     'a',
@@ -355,6 +355,10 @@ describe('core/rule', function () {
                         {
                             foo: 'bar'
                         }
+                    ],
+                    [
+                        '/index.html/',
+                        null
                     ]
                 ]
             ],
@@ -600,16 +604,16 @@ describe('core/rule', function () {
             assert.strictEqual(typeof rule.build, 'function');
         });
 
-        _.forEach(samples, function (s) {
-            var pattern = s[0];
+        _.forEach(samples, function (sample) {
+            var pattern = sample[0];
             var rule = new Rule(pattern);
             describe(pattern, function () {
                 var title = 'Should build %j from %j';
 
-                _.forEach(s[1], function (s) {
-                    var shouldText = util.format(title, s[0], s[1]);
+                _.forEach(sample[1], function (test) {
+                    var shouldText = util.format(title, test[0], test[1]);
                     it(shouldText, function () {
-                        assert.strictEqual(rule.build(s[1]), s[0]);
+                        assert.strictEqual(rule.build(test[1]), test[0]);
                     });
                 });
             });

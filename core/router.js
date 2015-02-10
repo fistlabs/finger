@@ -175,10 +175,7 @@ Router.prototype.matchAll = function (url, verb) {
         args = rule.match(url);
 
         if (args) {
-            matches[matches.length] = {
-                args: args,
-                data: rule.data
-            };
+            matches[matches.length] = new Matcher.Match(args, rule.data);
         }
     }
 
@@ -239,7 +236,7 @@ Router._parseVerbs = function (verbsString) {
         verbs = ['GET'];
     }
 
-    if (_.indexOf(verbs, 'GET') > -1 && _.indexOf(verbs, 'HEAD') === -1) {
+    if (_.contains(verbs, 'GET') && !_.contains(verbs, 'HEAD')) {
         verbs[verbs.length] = 'HEAD';
     }
 

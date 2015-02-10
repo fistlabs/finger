@@ -134,20 +134,26 @@ Matcher.prototype.matchAll = function (url) {
     var i;
     var l;
     var matches = [];
+    var rule;
     var rules = this.rules;
 
     for (i = 0, l = rules.length; i < l; i += 1) {
-        args = rules[i].match(url);
+        rule = rules[i];
+        args = rule.match(url);
 
         if (args) {
-            matches[matches.length] = {
-                args: args,
-                data: rules[i].data
-            };
+            matches[matches.length] = new Match(args, rule.data);
         }
     }
 
     return matches;
 };
+
+function Match(args, data) {
+    this.args = args;
+    this.data = data;
+}
+
+Matcher.Match = Match;
 
 module.exports = Matcher;
