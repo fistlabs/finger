@@ -53,7 +53,14 @@ function Rule(ruleString, params, data) {
      * @property
      * @type {Object}
      * */
-    this._types = this._createTypes();
+    this._types = _.extend({
+        Seg: '[^/?&]+?',
+        Seq: '[^?&]+?'
+    }, this.params.types);
+
+    this._types = _.mapValues(this._types, function (regex, kind) {
+        return new Type(kind, regex);
+    });
 
     Tools.call(this, ruleString);
 
@@ -507,24 +514,6 @@ Rule.prototype._compileMatchRegExpPartStatic = function (part) {
  *
  * @returns {Object}
  * */
-Rule.prototype._createTypes = function () {
-    var types = _.extend({
-        Seg: '[^/?&]+?',
-        Seq: '[^?&]+?'
-    }, this.params.types);
-
-    return _.mapValues(types, function (regexp, kind) {
-        return new Type(kind, regexp);
-    });
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
 Rule.prototype._countPathParams = function () {
     var count = {};
 
@@ -577,6 +566,10 @@ Rule.prototype._compilePathRule = function () {
 
         if (!part.kind) {
             part.kind = defaultType;
+        }
+
+        if (part.regex) {
+            types[part.kind] = new Type(part.kind, part.regex);
         }
 
         if (!_.has(types, part.kind)) {
