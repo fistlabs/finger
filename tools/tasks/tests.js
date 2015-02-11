@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('lodash-node');
 var gulpMocha = require('gulp-mocha');
 var gulpIstanbul = require('gulp-istanbul');
 var istanbulPipe = gulpIstanbul();
@@ -7,35 +8,36 @@ var writePipe = gulpIstanbul.writeReports();
 var mochaPipe = gulpMocha({
     ui: 'bdd',
     reporter: 'spec',
-//    reporter: 'dot',
     checkLeaks: true,
     slow: Infinity
 });
+var testsFiles = [
+    'test/*.js'
+];
 
-function runMocha(done) {
+var filesToCover = [
+    'core/*.js',
+    'core/parser/*.js'
+];
 
-    this.src('test/*.js').pipe(mochaPipe).on('end', done);
+function runUnitTests() {
+    return this.src(testsFiles).pipe(mochaPipe);
 }
 
-function runCover(done) {
-    var self = this;
-
-    this.src([
-        'core/*.js',
-        'core/parser/*.js'
-    ])
+function runUnitTestsWithCover(done) {
+    var getRunTestsPipe = _.bind(runUnitTests, this);
+    this.src(filesToCover)
         .pipe(istanbulPipe)
         .pipe(gulpIstanbul.hookRequire())
         .on('finish', function () {
-            self.src('test/*.js')
-                .pipe(mochaPipe)
+            getRunTestsPipe()
                 .pipe(writePipe)
                 .on('end', done);
         });
 }
 
-module.exports = function () {
-    this.task('unit', ['parser'], runMocha);
-    this.task('cover', ['parser'], runCover);
-    this.task('test', ['lint', 'parser'], runCover);
+module.exports = function (gulp) {
+    gulp.task('unit', ['parser'], runUnitTests);
+    gulp.task('cover', ['parser'], runUnitTestsWithCover);
+    gulp.task('test', ['lint', 'parser'], runUnitTestsWithCover);
 };

@@ -14,8 +14,8 @@ var excludeFiles = [
     '**/node_modules/**'
 ];
 
-module.exports = function () {
-    this.task('lint', function () {
+module.exports = function (gulp) {
+    gulp.task('lint', function () {
         return this.src(filesToLint).pipe(linterPipe({
             root: process.cwd(),
             config: 'yandex-node',

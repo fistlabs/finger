@@ -12,14 +12,14 @@ var lexerPipe = gulpJisonLex({
     moduleType: 'commonjs'
 });
 
-module.exports = function () {
+module.exports = function (gulp) {
 
-    this.task('lexer', function () {
+    gulp.task('lexer', function () {
         return this.src('core/parser/*.jisonlex').
             pipe(lexerPipe).pipe(this.dest('core/parser/build/'));
     });
 
-    this.task('parser', ['lexer'], function () {
+    gulp.task('parser', ['lexer'], function () {
         this.src('core/parser/*.jison').
             pipe(parserPipe).pipe(this.dest('core/parser/build/'));
     });
