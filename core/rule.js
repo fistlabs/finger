@@ -47,6 +47,16 @@ function Rule(ruleString, params, data) {
         name: uniqueId()
     }, data);
 
+    Tools.call(this, ruleString);
+
+    /**
+     * @protected
+     * @memberOf {Rule}
+     * @property
+     * @type {Array<String>}
+     * */
+    this._pathParams = this._findPathParams();
+
     /**
      * @protected
      * @memberOf {Rule}
@@ -62,15 +72,20 @@ function Rule(ruleString, params, data) {
         return new Type(kind, regex);
     });
 
-    Tools.call(this, ruleString);
+    _.forEach(this._pathParams, function (part) {
+        if (!part.kind) {
+            // default parameter kind
+            part.kind = 'Seg';
+        }
 
-    /**
-     * @protected
-     * @memberOf {Rule}
-     * @property
-     * @type {Array<String>}
-     * */
-    this._pathParams = this._findPathParams();
+        if (part.regex) {
+            this._types[part.kind] = new Type(part.kind, part.regex);
+        }
+
+        if (!_.has(this._types, part.kind)) {
+            throw new TypeError(util.format('Unknown %j parameter type %j', part.name, part.kind));
+        }
+    }, this);
 
     /**
      * @protected
@@ -519,7 +534,7 @@ Rule.prototype._countPathParams = function () {
 
     _.forEach(this._pathParams, function (part) {
         var name = part.name;
-        if (hasProperty.call(count, name)) {
+        if (_.has(count, name)) {
             count[name] += 1;
         } else {
             count[name] = 1;
@@ -558,22 +573,12 @@ Rule.prototype._findPathParams = function () {
 Rule.prototype._compilePathRule = function () {
     var rule = Tools.prototype._compilePathRule.call(this);
     var used = Object.create(null);
-    var types = this._types;
-    var defaultType = 'Seg';
 
-    function useArg(part) {
+    Tools._inspectRule(rule, function (part) {
         var name = part.name;
 
-        if (!part.kind) {
-            part.kind = defaultType;
-        }
-
-        if (part.regex) {
-            types[part.kind] = new Type(part.kind, part.regex);
-        }
-
-        if (!_.has(types, part.kind)) {
-            throw new TypeError(util.format('Unknown %j parameter type %j', name, part.kind));
+        if (part.type !== RuleArg.TYPE) {
+            return;
         }
 
         if (used[name] === void 0) {
@@ -583,17 +588,7 @@ Rule.prototype._compilePathRule = function () {
         }
 
         part.used = used[name];
-    }
-
-    Tools._inspectRule(rule, function (part) {
-        if (part.type === RuleArg.TYPE) {
-            useArg(part);
-        }
     });
-
-    defaultType = 'Str';
-
-    _.forEach(rule.args, useArg);
 
     return rule;
 };
