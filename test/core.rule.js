@@ -545,7 +545,7 @@ describe('core/rule', function () {
                 ]
             ],
             [
-                '<Seq:pathname>',
+                '<{[^?&]+?}:pathname>',
                 [
                     [
                         '/foo/bar/?renderer=%2Ffoo%2F',

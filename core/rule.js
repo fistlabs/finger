@@ -25,6 +25,7 @@ var util = require('util');
  * @param {Object} [data]
  * */
 function Rule(ruleString, params, data) {
+    Tools.call(this, ruleString);
 
     /**
      * @public
@@ -47,8 +48,6 @@ function Rule(ruleString, params, data) {
         name: uniqueId()
     }, data);
 
-    Tools.call(this, ruleString);
-
     /**
      * @protected
      * @memberOf {Rule}
@@ -63,19 +62,16 @@ function Rule(ruleString, params, data) {
      * @property
      * @type {Object}
      * */
-    this._types = _.extend({
-        Seg: '[^/?&]+?',
-        Seq: '[^?&]+?'
-    }, this.params.types);
-
-    this._types = _.mapValues(this._types, function (regex, kind) {
+    this._types = _.mapValues(this.params.types, function (regex, kind) {
         return new Type(kind, regex);
     });
 
     _.forEach(this._pathParams, function (part) {
         if (!part.kind) {
             // default parameter kind
-            part.kind = 'Seg';
+            part.setRandomKind();
+            //  default type for parameters
+            part.setRegex('[^/?&]+?');
         }
 
         if (part.regex) {
