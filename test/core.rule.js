@@ -545,7 +545,7 @@ describe('core/rule', function () {
                 ]
             ],
             [
-                '<Seq:pathname>',
+                '<{[^?&]+?}:pathname>',
                 [
                     [
                         '/foo/bar/?renderer=%2Ffoo%2F',
@@ -648,6 +648,86 @@ describe('core/rule', function () {
 
         it('Should not match "/post/foo/"', function () {
             assert.strictEqual(rule.match('/post/foo/'), null);
+        });
+    });
+
+    describe('Anonymous types', function () {
+        var okShouldText = 'Should match %j to %j as %j';
+        var badShouldText = 'Should NOT match %j to %j';
+        var okSamples = [
+            [
+                '/news/<{\\d+}:postId>/',
+                '/news/42/',
+                {
+                    postId: '42'
+                }
+            ],
+            [
+                '/news/<{\\d+x}:postId>/',
+                '/news/42x/',
+                {
+                    postId: '42x'
+                }
+            ],
+            [
+                '/news/<{\\{\\}}:postId>/',
+                '/news/{}/',
+                {
+                    postId: '{}'
+                }
+            ],
+            [
+                '/<{foo|bar|baz}:page>/',
+                '/foo/',
+                {
+                    page: 'foo'
+                }
+            ],
+            [
+                '/<{foo|bar|baz}:page>/',
+                '/bar/',
+                {
+                    page: 'bar'
+                }
+            ],
+            [
+                '/<{foo|bar|baz}:page>/',
+                '/baz/',
+                {
+                    page: 'baz'
+                }
+            ]
+        ];
+
+        var badSamples = [
+            [
+                '/news/<{\\d+}:postId>/',
+                '/news/42b/'
+            ],
+            [
+                '/news/<{\\d+x}:postId>/',
+                '/news/42/'
+            ],
+            [
+                '/<{foo|bar|baz}:page>/',
+                '/moo/'
+            ]
+        ];
+
+        _.forEach(okSamples, function (okSample) {
+            var shouldText = util.format(okShouldText, okSample[1], okSample[0], okSample[2]);
+            it(shouldText, function () {
+                var rule = new Rule(okSample[0]);
+                assert.deepEqual(rule.match(okSample[1]), okSample[2]);
+            });
+        });
+
+        _.forEach(badSamples, function (badSample) {
+            var shouldText = util.format(badShouldText, badSample[1], badSample[0]);
+            it(shouldText, function () {
+                var rule = new Rule(badSample[0]);
+                assert.strictEqual(rule.match(badSample[1]), null);
+            });
         });
     });
 });

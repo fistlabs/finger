@@ -103,4 +103,27 @@ describe('core/parser/rule-arg', function () {
             assert.strictEqual(rule.setKind('kind'), rule);
         });
     });
+
+    describe('RuleArg.generateRandomKind()', function () {
+        it('Should generate random id', function () {
+            assert.notStrictEqual(RuleArg.generateRandomKind(), RuleArg.generateRandomKind());
+            assert.notStrictEqual(RuleArg.generateRandomKind(), RuleArg.generateRandomKind());
+            assert.notStrictEqual(RuleArg.generateRandomKind(), RuleArg.generateRandomKind());
+            assert.notStrictEqual(RuleArg.generateRandomKind(), RuleArg.generateRandomKind());
+            assert.notStrictEqual(RuleArg.generateRandomKind(), RuleArg.generateRandomKind());
+        });
+    });
+
+    describe('{RuleArg}.setRandomKind()', function () {
+        it('Should set random generated kind', function () {
+            var generateRandomKind = RuleArg.generateRandomKind;
+            var rule = new RuleArg();
+            RuleArg.generateRandomKind = function () {
+                return 'foo';
+            };
+            rule.setRandomKind();
+            assert.strictEqual(rule.kind, 'foo');
+            RuleArg.generateRandomKind = generateRandomKind;
+        });
+    });
 });

@@ -25,6 +25,7 @@ var util = require('util');
  * @param {Object} [data]
  * */
 function Rule(ruleString, params, data) {
+    Tools.call(this, ruleString);
 
     /**
      * @public
@@ -51,19 +52,36 @@ function Rule(ruleString, params, data) {
      * @protected
      * @memberOf {Rule}
      * @property
-     * @type {Object}
+     * @type {Array<String>}
      * */
-    this._types = this._createTypes();
-
-    Tools.call(this, ruleString);
+    this._pathParams = this._findPathParams();
 
     /**
      * @protected
      * @memberOf {Rule}
      * @property
-     * @type {Array<String>}
+     * @type {Object}
      * */
-    this._pathParams = this._findPathParams();
+    this._types = _.mapValues(this.params.types, function (regex, kind) {
+        return new Type(kind, regex);
+    });
+
+    _.forEach(this._pathParams, function (part) {
+        if (!part.kind) {
+            // default parameter kind
+            part.setRandomKind();
+            //  default type for parameters
+            part.setRegex('[^/?&]+?');
+        }
+
+        if (part.regex) {
+            this._types[part.kind] = new Type(part.kind, part.regex);
+        }
+
+        if (!_.has(this._types, part.kind)) {
+            throw new TypeError(util.format('Unknown %j parameter type %j', part.name, part.kind));
+        }
+    }, this);
 
     /**
      * @protected
@@ -176,6 +194,8 @@ Rule.prototype._createQueryArg = function (name, value) {
 };
 
 /**
+ * TODO: need to check url parameter type or replace exec to match to implicitly generate type error?
+ *
  * @public
  * @memberOf {Rule}
  * @method
@@ -505,30 +525,12 @@ Rule.prototype._compileMatchRegExpPartStatic = function (part) {
  *
  * @returns {Object}
  * */
-Rule.prototype._createTypes = function () {
-    var types = _.extend({
-        Seg: '[^/?&]+?',
-        Seq: '[^?&]+?'
-    }, this.params.types);
-
-    return _.mapValues(types, function (regexp, kind) {
-        return new Type(kind, regexp);
-    });
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
 Rule.prototype._countPathParams = function () {
     var count = {};
 
     _.forEach(this._pathParams, function (part) {
         var name = part.name;
-        if (hasProperty.call(count, name)) {
+        if (_.has(count, name)) {
             count[name] += 1;
         } else {
             count[name] = 1;
@@ -567,18 +569,12 @@ Rule.prototype._findPathParams = function () {
 Rule.prototype._compilePathRule = function () {
     var rule = Tools.prototype._compilePathRule.call(this);
     var used = Object.create(null);
-    var types = this._types;
-    var defaultType = 'Seg';
 
-    function useArg(part) {
+    Tools._inspectRule(rule, function (part) {
         var name = part.name;
 
-        if (!part.kind) {
-            part.kind = defaultType;
-        }
-
-        if (!_.has(types, part.kind)) {
-            throw new TypeError(util.format('Unknown %j parameter type %j', name, part.kind));
+        if (part.type !== RuleArg.TYPE) {
+            return;
         }
 
         if (used[name] === void 0) {
@@ -588,17 +584,7 @@ Rule.prototype._compilePathRule = function () {
         }
 
         part.used = used[name];
-    }
-
-    Tools._inspectRule(rule, function (part) {
-        if (part.type === RuleArg.TYPE) {
-            useArg(part);
-        }
     });
-
-    defaultType = 'Str';
-
-    _.forEach(rule.args, useArg);
 
     return rule;
 };

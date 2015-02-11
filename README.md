@@ -149,18 +149,23 @@ Let's add the types to parameters:
 ```js
 var matcher = new Matcher({
     types: {
-        Alnum: '\\d+'
+        Num: '\\d+'
     }
 });
-matcher.addRule('/news/<Alnum:postId>/');
+matcher.addRule('/news/<Num:postId>/');
 ```
 Now the rule is valid for ```/news/42/``` but not for ```/news/foo/```.
-Builtin types:
- * ```Seg```- ```[^/?&]+?```, default
- * ```Seq```  - ```[^?&]+?```
+
+###Anonymous parameter types
+Also you can directly specify parameter type by regexp:
+
+```js
+matcher.addRule('/news/<{\\d+}:postId>/')
+```
 
 ###Default values
 Let's set default parameter values
+
 ```js
 var rule = new Rule('/news/(<postId=42>/)');
 rule.match('/news/'); // -> {postId: '42'}
