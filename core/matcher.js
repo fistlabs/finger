@@ -1,5 +1,6 @@
 'use strict';
 
+var Match = /** @type Match */ require('./match');
 var Rule = /** @type Rule */ require('./rule');
 
 /**
@@ -148,12 +149,5 @@ Matcher.prototype.matchAll = function (url) {
 
     return matches;
 };
-
-function Match(args, data) {
-    this.args = args;
-    this.data = data;
-}
-
-Matcher.Match = Match;
 
 module.exports = Matcher;
