@@ -10,6 +10,7 @@ var Tools = /** @type Tools */ require('./tools');
 var Type = /** @type Type */ require('./type');
 
 var _ = require('lodash-node');
+var au = require('./ast-utils');
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
 var regesc = require('regesc');
@@ -291,7 +292,7 @@ Rule.prototype._compileBuilderFunc = function () {
     body.push(
         //  var part = '';'
         this._astTypeVarDeclaration('part',
-            this._astTypeLiteral('')),
+            au.typeLiteral('')),
         //  var stack = [];
         this._astTypeVarDeclaration('stack',
             this._astTypeArrayExpression([])),
@@ -304,7 +305,7 @@ Rule.prototype._compileBuilderFunc = function () {
             //  part += '/';
             body.push(
                 this._astCasePartSelfPlus(
-                    this._astTypeLiteral('/')));
+                    au.typeLiteral('/')));
 
             return;
         }
@@ -313,7 +314,7 @@ Rule.prototype._compileBuilderFunc = function () {
             body.push(
                 //  part += `this._valEscape(part.text)`;
                 this._astCasePartSelfPlus(
-                    this._astTypeLiteral(this._valEscape(part.text))));
+                    au.typeLiteral(this._valEscape(part.text))));
 
             return;
         }
@@ -328,7 +329,7 @@ Rule.prototype._compileBuilderFunc = function () {
                         this._astTypeBinaryExpression('+',
                             this._astTypeMemberExpression(
                                 this._astTypeIdentifier('stack'),
-                                this._astTypeLiteral(n),
+                                au.typeLiteral(n),
                                 true),
                             this._astTypeIdentifier('part'))));
 
@@ -340,7 +341,7 @@ Rule.prototype._compileBuilderFunc = function () {
                 this._astCaseAssignmentStatement('=',
                     this._astTypeMemberExpression(
                         this._astTypeIdentifier('stack'),
-                        this._astTypeLiteral(n),
+                        au.typeLiteral(n),
                         true),
                     this._astTypeIdentifier('part')),
                 //  part = '';
@@ -360,7 +361,7 @@ Rule.prototype._compileBuilderFunc = function () {
                 this._astCaseHasPropertyCall(
                     [
                         this._astTypeIdentifier('args'),
-                        this._astTypeLiteral(part.name)]
+                        au.typeLiteral(part.name)]
                 ),
                 [
 
@@ -368,7 +369,7 @@ Rule.prototype._compileBuilderFunc = function () {
                         this._astTypeIdentifier('value'),
                         this._astTypeMemberExpression(
                             this._astTypeIdentifier('args'),
-                            this._astTypeLiteral(part.name),
+                            au.typeLiteral(part.name),
                             true)),
                     this._astTypeIfStatement(
                         this._astTypeUnaryExpression('!',
@@ -387,7 +388,7 @@ Rule.prototype._compileBuilderFunc = function () {
                 [
                     this._astCaseAssignmentStatement('=',
                         this._astTypeIdentifier('value'),
-                        this._astTypeLiteral(part.value === void 0 ? null : part.value))]));
+                        au.typeLiteral(part.value === void 0 ? null : part.value))]));
 
         if (n > 1) {
             body.push(
@@ -609,10 +610,10 @@ Rule.prototype._astCaseValueCheckExpression = function (logicalOp, binaryOp) {
                 this._astCaseUndef()),
             this._astTypeBinaryExpression(binaryOp,
                 this._astTypeIdentifier('value'),
-                this._astTypeLiteral(null))),
+                au.typeLiteral(null))),
         this._astTypeBinaryExpression(binaryOp,
             this._astTypeIdentifier('value'),
-            this._astTypeLiteral('')));
+            au.typeLiteral('')));
 };
 
 /**
@@ -689,7 +690,7 @@ Rule.prototype._astCaseGetNthValue = function (nth) {
         this._astTypeIdentifier('value'),
         this._astTypeMemberExpression(
             this._astTypeIdentifier('value'),
-            this._astTypeLiteral(nth),
+            au.typeLiteral(nth),
             true));
 };
 
@@ -745,7 +746,7 @@ Rule.prototype._astCaseResetValue = function () {
  * */
 Rule.prototype._astCaseResetPart = function () {
     return this._astCaseAssignPart(
-        this._astTypeLiteral(''));
+        au.typeLiteral(''));
 };
 
 /**
@@ -1037,22 +1038,6 @@ Rule.prototype._astTypeVarDeclaration = function (name, init) {
             }
         ],
         kind: 'var'
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {*} value
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeLiteral = function (value) {
-    return {
-        type: 'Literal',
-        value: value
     };
 };
 
