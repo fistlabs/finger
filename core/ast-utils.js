@@ -6,3 +6,10 @@ exports.typeLiteral = function (value) {
         value: value
     };
 };
+
+exports.typeIdentifier = function (name) {
+    return {
+        type: 'Identifier',
+        name: name
+    };
+};
