@@ -2,6 +2,7 @@
 
 var R_ADVANCED_PATTERN = /^\s*(?:([a-z]+(?:\s*,\s*[a-z]+)*|\*)\s+)?([\s\S]+?)(?:\s+([a-z]+))?\s*$/i;
 
+var Match = /** @type Match */ require('./match');
 var Matcher = /** @type Matcher */ require('./matcher');
 var Rule = /** @type Rule */ require('./rule');
 
@@ -175,7 +176,7 @@ Router.prototype.matchAll = function (url, verb) {
         args = rule.match(url);
 
         if (args) {
-            matches[matches.length] = new Matcher.Match(args, rule.data);
+            matches[matches.length] = new Match(args, rule.data);
         }
     }
 
