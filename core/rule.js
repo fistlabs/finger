@@ -295,7 +295,7 @@ Rule.prototype._compileBuilderFunc = function () {
             au.typeLiteral('')),
         //  var stack = [];
         au.typeVarDeclaration('stack',
-            this._astTypeArrayExpression([])),
+            au.typeArrayExpression([])),
         //  var value;
         au.typeVarDeclaration('value'));
 
@@ -378,7 +378,7 @@ Rule.prototype._compileBuilderFunc = function () {
                         [
                             au.typeAssignmentStatement('=',
                                 au.typeIdentifier('value'),
-                                this._astTypeArrayExpression([
+                                au.typeArrayExpression([
                                     au.typeIdentifier('value')]))]),
                     this._astCaseGetNthValue(part.used)]));
 
@@ -850,22 +850,6 @@ Rule.prototype._astTypeReturnStatement = function (argument) {
     return {
         type: 'ReturnStatement',
         argument: argument
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {Array} elements
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeArrayExpression = function (elements) {
-    return {
-        type: 'ArrayExpression',
-        elements: elements
     };
 };
 

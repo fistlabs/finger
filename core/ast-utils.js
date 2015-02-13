@@ -92,3 +92,10 @@ exports.typeUnaryExpression = function (operator, argument, prefix) {
         prefix: Boolean(prefix)
     };
 };
+
+exports.typeArrayExpression = function (elements) {
+    return {
+        type: 'ArrayExpression',
+        elements: elements
+    };
+};
