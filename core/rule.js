@@ -603,8 +603,8 @@ Rule.prototype._compilePathRule = function () {
  * @returns {Object}
  * */
 Rule.prototype._astCaseValueCheckExpression = function (logicalOp, binaryOp) {
-    return this._astTypeLogicalExpression(logicalOp,
-        this._astTypeLogicalExpression(logicalOp,
+    return au.typeLogicalExpression(logicalOp,
+        au.typeLogicalExpression(logicalOp,
             au.typeBinaryExpression(binaryOp,
                 au.typeIdentifier('value'),
                 this._astCaseUndef()),
@@ -788,26 +788,6 @@ Rule.prototype._astTypeBreakStatement = function (name) {
  * @memberOf {Rule}
  * @method
  *
- * @param {String} operator
- * @param {*} left
- * @param {*} right
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeLogicalExpression = function (operator, left, right) {
-    return {
-        type: 'LogicalExpression',
-        operator: operator,
-        left: left,
-        right: right
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
  * @param {*} callee
  * @param {Array} args
  *
@@ -928,7 +908,6 @@ Rule.prototype._astTypeBlockStatement = function (body) {
         body: body
     };
 };
-
 
 /**
  * @private

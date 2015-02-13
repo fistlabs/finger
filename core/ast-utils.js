@@ -22,3 +22,12 @@ exports.typeBinaryExpression = function (operator, left, right) {
         right: right
     };
 };
+
+exports.typeLogicalExpression = function (operator, left, right) {
+    return {
+        type: 'LogicalExpression',
+        operator: operator,
+        left: left,
+        right: right
+    };
+};
