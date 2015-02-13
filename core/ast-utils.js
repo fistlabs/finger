@@ -130,3 +130,11 @@ exports.typeLabeledStatement = function (name, body) {
         body: exports.typeBlockStatement(body)
     };
 };
+
+exports.typeIfStatement = function (test, consequent) {
+    return {
+        type: 'IfStatement',
+        test: test,
+        consequent: exports.typeBlockStatement(consequent)
+    };
+};

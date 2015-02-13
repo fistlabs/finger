@@ -357,7 +357,7 @@ Rule.prototype._compileBuilderFunc = function () {
 
         body.push(
             this._astCaseResetValue(),
-            this._astTypeIfStatement(
+            au.typeIfStatement(
                 this._astCaseHasPropertyCall(
                     [
                         au.typeIdentifier('args'),
@@ -371,7 +371,7 @@ Rule.prototype._compileBuilderFunc = function () {
                             au.typeIdentifier('args'),
                             au.typeLiteral(part.name),
                             true)),
-                    this._astTypeIfStatement(
+                    au.typeIfStatement(
                         au.typeUnaryExpression('!',
                             this._astCaseIsValueArray(),
                             true),
@@ -383,7 +383,7 @@ Rule.prototype._compileBuilderFunc = function () {
                     this._astCaseGetNthValue(part.used)]));
 
         body.push(
-            this._astTypeIfStatement(
+            au.typeIfStatement(
                 this._astCaseValueCheckExpression('||', '==='),
                 [
                     au.typeAssignmentStatement('=',
@@ -392,7 +392,7 @@ Rule.prototype._compileBuilderFunc = function () {
 
         if (n > 1) {
             body.push(
-                this._astTypeIfStatement(
+                au.typeIfStatement(
                     //  if (value === undefined || value === null || value === ') {
                     this._astCaseValueCheckExpression('||', '==='),
                     [
@@ -405,7 +405,7 @@ Rule.prototype._compileBuilderFunc = function () {
                     this._astCaseQueryEscapeValue4Pathname()));
         } else {
             body.push(
-                this._astTypeIfStatement(
+                au.typeIfStatement(
                     //  if (value !== undefined && value !== null && value !== '') {
                     this._astCaseValueCheckExpression('&&', '!=='),
                     [
@@ -762,24 +762,6 @@ Rule.prototype._astTypeBreakStatement = function (name) {
     return {
         type: 'BreakStatement',
         label: au.typeIdentifier(name)
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {*} test
- * @param {*} consequent
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeIfStatement = function (test, consequent) {
-    return {
-        type: 'IfStatement',
-        test: test,
-        consequent: au.typeBlockStatement(consequent)
     };
 };
 
