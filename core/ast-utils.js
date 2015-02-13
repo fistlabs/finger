@@ -1,20 +1,20 @@
 'use strict';
 
-exports.typeLiteral = function (value) {
+exports.literal = function (value) {
     return {
         type: 'Literal',
         value: value
     };
 };
 
-exports.typeIdentifier = function (name) {
+exports.identifier = function (name) {
     return {
         type: 'Identifier',
         name: name
     };
 };
 
-exports.typeBinaryExpression = function (operator, left, right) {
+exports.binaryExpression = function (operator, left, right) {
     return {
         type: 'BinaryExpression',
         operator: operator,
@@ -23,7 +23,7 @@ exports.typeBinaryExpression = function (operator, left, right) {
     };
 };
 
-exports.typeLogicalExpression = function (operator, left, right) {
+exports.logicalExpression = function (operator, left, right) {
     return {
         type: 'LogicalExpression',
         operator: operator,
@@ -32,7 +32,7 @@ exports.typeLogicalExpression = function (operator, left, right) {
     };
 };
 
-exports.typeCallExpression = function (callee, args) {
+exports.callExpression = function (callee, args) {
     return {
         type: 'CallExpression',
         callee: callee,
@@ -40,7 +40,7 @@ exports.typeCallExpression = function (callee, args) {
     };
 };
 
-exports.typeMemberExpression = function (object, property, computed) {
+exports.memberExpression = function (object, property, computed) {
     return {
         type: 'MemberExpression',
         object: object,
@@ -49,7 +49,7 @@ exports.typeMemberExpression = function (object, property, computed) {
     };
 };
 
-exports.typeAssignmentExpression = function (operator, left, right) {
+exports.assignmentExpression = function (operator, left, right) {
     return {
         type: 'AssignmentExpression',
         operator: operator,
@@ -58,25 +58,25 @@ exports.typeAssignmentExpression = function (operator, left, right) {
     };
 };
 
-exports.typeExpressionStatement = function (expression) {
+exports.expressionStatement = function (expression) {
     return {
         type: 'ExpressionStatement',
         expression: expression
     };
 };
 
-exports.typeAssignmentStatement = function (operator, left, right) {
-    return exports.typeExpressionStatement(
-        exports.typeAssignmentExpression(operator, left, right));
+exports.assignmentStatement = function (operator, left, right) {
+    return exports.expressionStatement(
+        exports.assignmentExpression(operator, left, right));
 };
 
-exports.typeVarDeclaration = function (name, init) {
+exports.varDeclaration = function (name, init) {
     return {
         type: 'VariableDeclaration',
         declarations: [
             {
                 type: 'VariableDeclarator',
-                id: exports.typeIdentifier(name),
+                id: exports.identifier(name),
                 init: init
             }
         ],
@@ -84,7 +84,7 @@ exports.typeVarDeclaration = function (name, init) {
     };
 };
 
-exports.typeUnaryExpression = function (operator, argument, prefix) {
+exports.unaryExpression = function (operator, argument, prefix) {
     return {
         type: 'UnaryExpression',
         operator: operator,
@@ -93,55 +93,55 @@ exports.typeUnaryExpression = function (operator, argument, prefix) {
     };
 };
 
-exports.typeArrayExpression = function (elements) {
+exports.arrayExpression = function (elements) {
     return {
         type: 'ArrayExpression',
         elements: elements
     };
 };
 
-exports.typeReturnStatement = function (argument) {
+exports.returnStatement = function (argument) {
     return {
         type: 'ReturnStatement',
         argument: argument
     };
 };
 
-exports.typeBlockStatement = function (body) {
+exports.blockStatement = function (body) {
     return {
         type: 'BlockStatement',
         body: body
     };
 };
 
-exports.typeFunctionDeclaration = function (name, body, params) {
+exports.functionDeclaration = function (name, body, params) {
     return {
         params: params,
         type: 'FunctionDeclaration',
-        id: exports.typeIdentifier(name),
-        body: exports.typeBlockStatement(body)
+        id: exports.identifier(name),
+        body: exports.blockStatement(body)
     };
 };
 
-exports.typeLabeledStatement = function (name, body) {
+exports.labeledStatement = function (name, body) {
     return {
         type: 'LabeledStatement',
-        label: exports.typeIdentifier(name),
-        body: exports.typeBlockStatement(body)
+        label: exports.identifier(name),
+        body: exports.blockStatement(body)
     };
 };
 
-exports.typeIfStatement = function (test, consequent) {
+exports.ifStatement = function (test, consequent) {
     return {
         type: 'IfStatement',
         test: test,
-        consequent: exports.typeBlockStatement(consequent)
+        consequent: exports.blockStatement(consequent)
     };
 };
 
-exports.typeBreakStatement = function (name) {
+exports.breakStatement = function (name) {
     return {
         type: 'BreakStatement',
-        label: exports.typeIdentifier(name)
+        label: exports.identifier(name)
     };
 };
