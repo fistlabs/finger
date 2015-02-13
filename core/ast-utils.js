@@ -64,3 +64,8 @@ exports.typeExpressionStatement = function (expression) {
         expression: expression
     };
 };
+
+exports.typeAssignmentStatement = function (operator, left, right) {
+    return exports.typeExpressionStatement(
+        exports.typeAssignmentExpression(operator, left, right));
+};

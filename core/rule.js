@@ -338,7 +338,7 @@ Rule.prototype._compileBuilderFunc = function () {
 
             body.push(
                 //  stack[`n`] = part;
-                this._astCaseAssignmentStatement('=',
+                au.typeAssignmentStatement('=',
                     au.typeMemberExpression(
                         au.typeIdentifier('stack'),
                         au.typeLiteral(n),
@@ -365,7 +365,7 @@ Rule.prototype._compileBuilderFunc = function () {
                 ),
                 [
 
-                    this._astCaseAssignmentStatement('=',
+                    au.typeAssignmentStatement('=',
                         au.typeIdentifier('value'),
                         au.typeMemberExpression(
                             au.typeIdentifier('args'),
@@ -376,7 +376,7 @@ Rule.prototype._compileBuilderFunc = function () {
                             this._astCaseIsValueArray(),
                             true),
                         [
-                            this._astCaseAssignmentStatement('=',
+                            au.typeAssignmentStatement('=',
                                 au.typeIdentifier('value'),
                                 this._astTypeArrayExpression([
                                     au.typeIdentifier('value')]))]),
@@ -386,7 +386,7 @@ Rule.prototype._compileBuilderFunc = function () {
             this._astTypeIfStatement(
                 this._astCaseValueCheckExpression('||', '==='),
                 [
-                    this._astCaseAssignmentStatement('=',
+                    au.typeAssignmentStatement('=',
                         au.typeIdentifier('value'),
                         au.typeLiteral(part.value === void 0 ? null : part.value))]));
 
@@ -686,7 +686,7 @@ Rule.prototype._astCaseIsValueArray = function () {
  * @returns {Object}
  * */
 Rule.prototype._astCaseGetNthValue = function (nth) {
-    return this._astCaseAssignmentStatement('=',
+    return au.typeAssignmentStatement('=',
         au.typeIdentifier('value'),
         au.typeMemberExpression(
             au.typeIdentifier('value'),
@@ -704,7 +704,7 @@ Rule.prototype._astCaseGetNthValue = function (nth) {
  * @returns {Object}
  * */
 Rule.prototype._astCasePartSelfPlus = function (plus) {
-    return this._astCaseAssignmentStatement('+=',
+    return au.typeAssignmentStatement('+=',
         au.typeIdentifier('part'),
         plus);
 };
@@ -719,7 +719,7 @@ Rule.prototype._astCasePartSelfPlus = function (plus) {
  * @returns {Object}
  * */
 Rule.prototype._astCaseAssignPart = function (assign) {
-    return this._astCaseAssignmentStatement('=',
+    return au.typeAssignmentStatement('=',
         au.typeIdentifier('part'),
         assign);
 };
@@ -732,7 +732,7 @@ Rule.prototype._astCaseAssignPart = function (assign) {
  * @returns {Object}
  * */
 Rule.prototype._astCaseResetValue = function () {
-    return this._astCaseAssignmentStatement('=',
+    return au.typeAssignmentStatement('=',
         au.typeIdentifier('value'),
         this._astCaseUndef());
 };
@@ -748,24 +748,6 @@ Rule.prototype._astCaseResetPart = function () {
     return this._astCaseAssignPart(
         au.typeLiteral(''));
 };
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} operator
- * @param {Object} left
- * @param {Object} right
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseAssignmentStatement = function (operator, left, right) {
-    return au.typeExpressionStatement(
-        au.typeAssignmentExpression(operator, left, right));
-};
-
-//  Scalar ast helpers
 
 /**
  * @private
