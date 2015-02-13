@@ -83,3 +83,12 @@ exports.typeVarDeclaration = function (name, init) {
         kind: 'var'
     };
 };
+
+exports.typeUnaryExpression = function (operator, argument, prefix) {
+    return {
+        type: 'UnaryExpression',
+        operator: operator,
+        argument: argument,
+        prefix: Boolean(prefix)
+    };
+};

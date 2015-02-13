@@ -372,7 +372,7 @@ Rule.prototype._compileBuilderFunc = function () {
                             au.typeLiteral(part.name),
                             true)),
                     this._astTypeIfStatement(
-                        this._astTypeUnaryExpression('!',
+                        au.typeUnaryExpression('!',
                             this._astCaseIsValueArray(),
                             true),
                         [
@@ -866,26 +866,6 @@ Rule.prototype._astTypeArrayExpression = function (elements) {
     return {
         type: 'ArrayExpression',
         elements: elements
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} operator
- * @param {*} argument
- * @param {Boolean} [prefix]
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeUnaryExpression = function (operator, argument, prefix) {
-    return {
-        type: 'UnaryExpression',
-        operator: operator,
-        argument: argument,
-        prefix: Boolean(prefix)
     };
 };
 
