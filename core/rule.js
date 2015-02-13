@@ -291,13 +291,13 @@ Rule.prototype._compileBuilderFunc = function () {
 
     body.push(
         //  var part = '';'
-        this._astTypeVarDeclaration('part',
+        au.typeVarDeclaration('part',
             au.typeLiteral('')),
         //  var stack = [];
-        this._astTypeVarDeclaration('stack',
+        au.typeVarDeclaration('stack',
             this._astTypeArrayExpression([])),
         //  var value;
-        this._astTypeVarDeclaration('value'));
+        au.typeVarDeclaration('value'));
 
     this.inspectRule(function (part, stackPop, n) {
 
@@ -886,30 +886,6 @@ Rule.prototype._astTypeUnaryExpression = function (operator, argument, prefix) {
         operator: operator,
         argument: argument,
         prefix: Boolean(prefix)
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} name
- * @param {*} [init]
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeVarDeclaration = function (name, init) {
-    return {
-        type: 'VariableDeclaration',
-        declarations: [
-            {
-                type: 'VariableDeclarator',
-                id: au.typeIdentifier(name),
-                init: init
-            }
-        ],
-        kind: 'var'
     };
 };
 

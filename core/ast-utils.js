@@ -69,3 +69,17 @@ exports.typeAssignmentStatement = function (operator, left, right) {
     return exports.typeExpressionStatement(
         exports.typeAssignmentExpression(operator, left, right));
 };
+
+exports.typeVarDeclaration = function (name, init) {
+    return {
+        type: 'VariableDeclaration',
+        declarations: [
+            {
+                type: 'VariableDeclarator',
+                id: exports.typeIdentifier(name),
+                init: init
+            }
+        ],
+        kind: 'var'
+    };
+};
