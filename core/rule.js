@@ -761,7 +761,7 @@ Rule.prototype._astCaseResetPart = function () {
  * @returns {Object}
  * */
 Rule.prototype._astCaseAssignmentStatement = function (operator, left, right) {
-    return this._astTypeExpressionStatement(
+    return au.typeExpressionStatement(
         au.typeAssignmentExpression(operator, left, right));
 };
 
@@ -816,22 +816,6 @@ Rule.prototype._astTypeLabeledStatement = function (name, body) {
         type: 'LabeledStatement',
         label: au.typeIdentifier(name),
         body: this._astTypeBlockStatement(body)
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {*} expression
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeExpressionStatement = function (expression) {
-    return {
-        type: 'ExpressionStatement',
-        expression: expression
     };
 };
 

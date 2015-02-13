@@ -57,3 +57,10 @@ exports.typeAssignmentExpression = function (operator, left, right) {
         right: right
     };
 };
+
+exports.typeExpressionStatement = function (expression) {
+    return {
+        type: 'ExpressionStatement',
+        expression: expression
+    };
+};
