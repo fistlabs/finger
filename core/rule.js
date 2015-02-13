@@ -327,7 +327,7 @@ Rule.prototype._compileBuilderFunc = function () {
                     //  part = stack[`n`] + part;
                     this._astCaseAssignPart(
                         au.typeBinaryExpression('+',
-                            this._astTypeMemberExpression(
+                            au.typeMemberExpression(
                                 au.typeIdentifier('stack'),
                                 au.typeLiteral(n),
                                 true),
@@ -339,7 +339,7 @@ Rule.prototype._compileBuilderFunc = function () {
             body.push(
                 //  stack[`n`] = part;
                 this._astCaseAssignmentStatement('=',
-                    this._astTypeMemberExpression(
+                    au.typeMemberExpression(
                         au.typeIdentifier('stack'),
                         au.typeLiteral(n),
                         true),
@@ -367,7 +367,7 @@ Rule.prototype._compileBuilderFunc = function () {
 
                     this._astCaseAssignmentStatement('=',
                         au.typeIdentifier('value'),
-                        this._astTypeMemberExpression(
+                        au.typeMemberExpression(
                             au.typeIdentifier('args'),
                             au.typeLiteral(part.name),
                             true)),
@@ -638,7 +638,7 @@ Rule.prototype._astCaseUndef = function () {
  * */
 Rule.prototype._astCaseHasPropertyCall = function (args) {
     return au.typeCallExpression(
-        this._astTypeMemberExpression(
+        au.typeMemberExpression(
             au.typeIdentifier('hasProperty'),
             au.typeIdentifier('call')),
         args);
@@ -653,7 +653,7 @@ Rule.prototype._astCaseHasPropertyCall = function (args) {
  * */
 Rule.prototype._astCaseQueryEscapeValue4Pathname = function () {
     return au.typeCallExpression(
-        this._astTypeMemberExpression(
+        au.typeMemberExpression(
             au.typeIdentifier('this'),
             au.typeIdentifier('_pStringify')),
         [
@@ -669,7 +669,7 @@ Rule.prototype._astCaseQueryEscapeValue4Pathname = function () {
  * */
 Rule.prototype._astCaseIsValueArray = function () {
     return au.typeCallExpression(
-        this._astTypeMemberExpression(
+        au.typeMemberExpression(
             au.typeIdentifier('Array'),
             au.typeIdentifier('isArray')),
         [
@@ -688,7 +688,7 @@ Rule.prototype._astCaseIsValueArray = function () {
 Rule.prototype._astCaseGetNthValue = function (nth) {
     return this._astCaseAssignmentStatement('=',
         au.typeIdentifier('value'),
-        this._astTypeMemberExpression(
+        au.typeMemberExpression(
             au.typeIdentifier('value'),
             au.typeLiteral(nth),
             true));
@@ -964,26 +964,6 @@ Rule.prototype._astTypeVarDeclaration = function (name, init) {
             }
         ],
         kind: 'var'
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {*} object
- * @param {*} property
- * @param {Boolean} [computed=false]
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeMemberExpression = function (object, property, computed) {
-    return {
-        type: 'MemberExpression',
-        object: object,
-        property: property,
-        computed: computed
     };
 };
 

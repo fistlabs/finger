@@ -39,3 +39,12 @@ exports.typeCallExpression = function (callee, args) {
         arguments: args
     };
 };
+
+exports.typeMemberExpression = function (object, property, computed) {
+    return {
+        type: 'MemberExpression',
+        object: object,
+        property: property,
+        computed: computed
+    };
+};
