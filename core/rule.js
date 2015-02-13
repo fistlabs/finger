@@ -415,7 +415,7 @@ Rule.prototype._compileBuilderFunc = function () {
         }
     });
 
-    body.push(this._astTypeReturnStatement(au.typeIdentifier('part')));
+    body.push(au.typeReturnStatement(au.typeIdentifier('part')));
 
     func = escodegen.generate(func);
 
@@ -834,22 +834,6 @@ Rule.prototype._astTypeBlockStatement = function (body) {
     return {
         type: 'BlockStatement',
         body: body
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {*} argument
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeReturnStatement = function (argument) {
-    return {
-        type: 'ReturnStatement',
-        argument: argument
     };
 };
 

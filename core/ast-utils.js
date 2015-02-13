@@ -99,3 +99,10 @@ exports.typeArrayExpression = function (elements) {
         elements: elements
     };
 };
+
+exports.typeReturnStatement = function (argument) {
+    return {
+        type: 'ReturnStatement',
+        argument: argument
+    };
+};
