@@ -106,3 +106,10 @@ exports.typeReturnStatement = function (argument) {
         argument: argument
     };
 };
+
+exports.typeBlockStatement = function (body) {
+    return {
+        type: 'BlockStatement',
+        body: body
+    };
+};

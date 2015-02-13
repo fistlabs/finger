@@ -779,7 +779,7 @@ Rule.prototype._astTypeIfStatement = function (test, consequent) {
     return {
         type: 'IfStatement',
         test: test,
-        consequent: this._astTypeBlockStatement(consequent)
+        consequent: au.typeBlockStatement(consequent)
     };
 };
 
@@ -797,7 +797,7 @@ Rule.prototype._astTypeLabeledStatement = function (name, body) {
     return {
         type: 'LabeledStatement',
         label: au.typeIdentifier(name),
-        body: this._astTypeBlockStatement(body)
+        body: au.typeBlockStatement(body)
     };
 };
 
@@ -817,23 +817,7 @@ Rule.prototype._astTypeFunctionDeclaration = function (name, body, params) {
         params: params,
         type: 'FunctionDeclaration',
         id: au.typeIdentifier(name),
-        body: this._astTypeBlockStatement(body)
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {Array} body
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeBlockStatement = function (body) {
-    return {
-        type: 'BlockStatement',
-        body: body
+        body: au.typeBlockStatement(body)
     };
 };
 
