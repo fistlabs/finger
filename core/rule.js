@@ -284,7 +284,7 @@ Rule.prototype.match = function (url) {
 Rule.prototype._compileBuilderFunc = function () {
     var body = [];
     //  function _builderFunc(args) {
-    var func = this._astTypeFunctionDeclaration('_builderFunc', body, [
+    var func = au.typeFunctionDeclaration('_builderFunc', body, [
         au.typeIdentifier('args')
     ]);
     var stack = [];
@@ -797,26 +797,6 @@ Rule.prototype._astTypeLabeledStatement = function (name, body) {
     return {
         type: 'LabeledStatement',
         label: au.typeIdentifier(name),
-        body: au.typeBlockStatement(body)
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} name
- * @param {Array} body
- * @param {Array} params
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeFunctionDeclaration = function (name, body, params) {
-    return {
-        params: params,
-        type: 'FunctionDeclaration',
-        id: au.typeIdentifier(name),
         body: au.typeBlockStatement(body)
     };
 };

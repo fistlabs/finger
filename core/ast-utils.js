@@ -113,3 +113,12 @@ exports.typeBlockStatement = function (body) {
         body: body
     };
 };
+
+exports.typeFunctionDeclaration = function (name, body, params) {
+    return {
+        params: params,
+        type: 'FunctionDeclaration',
+        id: exports.typeIdentifier(name),
+        body: exports.typeBlockStatement(body)
+    };
+};
