@@ -48,3 +48,12 @@ exports.typeMemberExpression = function (object, property, computed) {
         computed: computed
     };
 };
+
+exports.typeAssignmentExpression = function (operator, left, right) {
+    return {
+        type: 'AssignmentExpression',
+        operator: operator,
+        left: left,
+        right: right
+    };
+};

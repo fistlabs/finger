@@ -762,7 +762,7 @@ Rule.prototype._astCaseResetPart = function () {
  * */
 Rule.prototype._astCaseAssignmentStatement = function (operator, left, right) {
     return this._astTypeExpressionStatement(
-        this._astTypeAssignmentExpression(operator, left, right));
+        au.typeAssignmentExpression(operator, left, right));
 };
 
 //  Scalar ast helpers
@@ -832,26 +832,6 @@ Rule.prototype._astTypeExpressionStatement = function (expression) {
     return {
         type: 'ExpressionStatement',
         expression: expression
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} operator
- * @param {*} left
- * @param {*} right
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeAssignmentExpression = function (operator, left, right) {
-    return {
-        type: 'AssignmentExpression',
-        operator: operator,
-        left: left,
-        right: right
     };
 };
 
