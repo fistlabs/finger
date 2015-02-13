@@ -138,3 +138,10 @@ exports.typeIfStatement = function (test, consequent) {
         consequent: exports.typeBlockStatement(consequent)
     };
 };
+
+exports.typeBreakStatement = function (name) {
+    return {
+        type: 'BreakStatement',
+        label: exports.typeIdentifier(name)
+    };
+};

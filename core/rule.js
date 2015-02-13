@@ -399,7 +399,7 @@ Rule.prototype._compileBuilderFunc = function () {
                         //  part = '';
                         this._astCaseResetPart(),
                         //  break RULE_SEQ_`n - 1`;
-                        this._astTypeBreakStatement('RULE_SEQ_' + (n - 1))]),
+                        au.typeBreakStatement('RULE_SEQ_' + (n - 1))]),
                 //  part += this._qStringify(value);
                 this._astCasePartSelfPlus(
                     this._astCaseQueryEscapeValue4Pathname()));
@@ -747,22 +747,6 @@ Rule.prototype._astCaseResetValue = function () {
 Rule.prototype._astCaseResetPart = function () {
     return this._astCaseAssignPart(
         au.typeLiteral(''));
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} name
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeBreakStatement = function (name) {
-    return {
-        type: 'BreakStatement',
-        label: au.typeIdentifier(name)
-    };
 };
 
 /**
