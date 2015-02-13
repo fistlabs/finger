@@ -326,7 +326,7 @@ Rule.prototype._compileBuilderFunc = function () {
                 body.push(
                     //  part = stack[`n`] + part;
                     this._astCaseAssignPart(
-                        this._astTypeBinaryExpression('+',
+                        au.typeBinaryExpression('+',
                             this._astTypeMemberExpression(
                                 au.typeIdentifier('stack'),
                                 au.typeLiteral(n),
@@ -605,13 +605,13 @@ Rule.prototype._compilePathRule = function () {
 Rule.prototype._astCaseValueCheckExpression = function (logicalOp, binaryOp) {
     return this._astTypeLogicalExpression(logicalOp,
         this._astTypeLogicalExpression(logicalOp,
-            this._astTypeBinaryExpression(binaryOp,
+            au.typeBinaryExpression(binaryOp,
                 au.typeIdentifier('value'),
                 this._astCaseUndef()),
-            this._astTypeBinaryExpression(binaryOp,
+            au.typeBinaryExpression(binaryOp,
                 au.typeIdentifier('value'),
                 au.typeLiteral(null))),
-        this._astTypeBinaryExpression(binaryOp,
+        au.typeBinaryExpression(binaryOp,
             au.typeIdentifier('value'),
             au.typeLiteral('')));
 };
@@ -929,25 +929,6 @@ Rule.prototype._astTypeBlockStatement = function (body) {
     };
 };
 
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} operator
- * @param {*} left
- * @param {*} right
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeBinaryExpression = function (operator, left, right) {
-    return {
-        type: 'BinaryExpression',
-        operator: operator,
-        left: left,
-        right: right
-    };
-};
 
 /**
  * @private

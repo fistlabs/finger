@@ -13,3 +13,12 @@ exports.typeIdentifier = function (name) {
         name: name
     };
 };
+
+exports.typeBinaryExpression = function (operator, left, right) {
+    return {
+        type: 'BinaryExpression',
+        operator: operator,
+        left: left,
+        right: right
+    };
+};
