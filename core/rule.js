@@ -68,14 +68,12 @@ function Rule(ruleString, params, data) {
     });
 
     _.forEach(this._pathParams, function (part) {
-        if (!part.kind) {
-            // default parameter kind
-            part.setRandomKind();
-            //  default type for parameters
-            part.setRegex('[^/?&]+?');
-        }
 
-        if (part.regex) {
+        if (!part.kind) {
+            part.setRandomKind();
+            if (!part.regex) {
+                part.setRegex('[^/?&]+?');
+            }
             this._types[part.kind] = new Type(part.kind, part.regex);
         }
 
