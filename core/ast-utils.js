@@ -31,3 +31,11 @@ exports.typeLogicalExpression = function (operator, left, right) {
         right: right
     };
 };
+
+exports.typeCallExpression = function (callee, args) {
+    return {
+        type: 'CallExpression',
+        callee: callee,
+        arguments: args
+    };
+};

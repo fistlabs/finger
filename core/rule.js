@@ -637,7 +637,7 @@ Rule.prototype._astCaseUndef = function () {
  * @returns {Object}
  * */
 Rule.prototype._astCaseHasPropertyCall = function (args) {
-    return this._astTypeCallExpression(
+    return au.typeCallExpression(
         this._astTypeMemberExpression(
             au.typeIdentifier('hasProperty'),
             au.typeIdentifier('call')),
@@ -652,7 +652,7 @@ Rule.prototype._astCaseHasPropertyCall = function (args) {
  * @returns {Object}
  * */
 Rule.prototype._astCaseQueryEscapeValue4Pathname = function () {
-    return this._astTypeCallExpression(
+    return au.typeCallExpression(
         this._astTypeMemberExpression(
             au.typeIdentifier('this'),
             au.typeIdentifier('_pStringify')),
@@ -668,7 +668,7 @@ Rule.prototype._astCaseQueryEscapeValue4Pathname = function () {
  * @returns {Object}
  * */
 Rule.prototype._astCaseIsValueArray = function () {
-    return this._astTypeCallExpression(
+    return au.typeCallExpression(
         this._astTypeMemberExpression(
             au.typeIdentifier('Array'),
             au.typeIdentifier('isArray')),
@@ -780,24 +780,6 @@ Rule.prototype._astTypeBreakStatement = function (name) {
     return {
         type: 'BreakStatement',
         label: au.typeIdentifier(name)
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {*} callee
- * @param {Array} args
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeCallExpression = function (callee, args) {
-    return {
-        type: 'CallExpression',
-        callee: callee,
-        arguments: args
     };
 };
 
