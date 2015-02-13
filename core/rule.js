@@ -350,7 +350,7 @@ Rule.prototype._compileBuilderFunc = function () {
             stack.push(body);
             //  RULE_SEQ_`n`: {
             body.push(
-                this._astTypeLabeledStatement('RULE_SEQ_' + n, body = []));
+                au.typeLabeledStatement('RULE_SEQ_' + n, body = []));
 
             return;
         }
@@ -780,24 +780,6 @@ Rule.prototype._astTypeIfStatement = function (test, consequent) {
         type: 'IfStatement',
         test: test,
         consequent: au.typeBlockStatement(consequent)
-    };
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} name
- * @param {Array} body
- *
- * @returns {Object}
- * */
-Rule.prototype._astTypeLabeledStatement = function (name, body) {
-    return {
-        type: 'LabeledStatement',
-        label: au.typeIdentifier(name),
-        body: au.typeBlockStatement(body)
     };
 };
 

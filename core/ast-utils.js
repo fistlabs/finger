@@ -122,3 +122,11 @@ exports.typeFunctionDeclaration = function (name, body, params) {
         body: exports.typeBlockStatement(body)
     };
 };
+
+exports.typeLabeledStatement = function (name, body) {
+    return {
+        type: 'LabeledStatement',
+        label: exports.typeIdentifier(name),
+        body: exports.typeBlockStatement(body)
+    };
+};
