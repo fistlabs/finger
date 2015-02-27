@@ -13,9 +13,10 @@ var _ = require('lodash-node');
 var au = require('./ast-utils');
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
+var matchValues = require('./match-values');
 var regesc = require('regesc');
 var uniqueId = require('unique-id');
-var util = require('util');
+var f = require('util').format;
 
 /**
  * @class Rule
@@ -63,24 +64,53 @@ function Rule(ruleString, params, data) {
      * @property
      * @type {Object}
      * */
+    this._queryParams = this._compileQueryParams();
+
+    /**
+     * @protected
+     * @memberOf {Rule}
+     * @property
+     * @type {Array}
+     * */
+    this._queryParamsNames = _.keys(this._queryParams);
+
+    /**
+     * @protected
+     * @memberOf {Rule}
+     * @property
+     * @type {Object}
+     * */
     this._types = _.mapValues(this.params.types, function (regex, kind) {
         return new Type(kind, regex);
     });
 
-    _.forEach(this._pathParams, function (part) {
-        if (!part.kind) {
-            // default parameter kind
-            part.setRandomKind();
-            //  default type for parameters
-            part.setRegex('[^/?&]+?');
+    _.forEach(this._pathParams, function (rule) {
+
+        if (!rule.kind) {
+            rule.setRandomKind();
+            if (!rule.regex) {
+                rule.setRegex('[^/?&]+?');
+            }
+            this._types[rule.kind] = new Type(rule.kind, rule.regex);
         }
 
-        if (part.regex) {
-            this._types[part.kind] = new Type(part.kind, part.regex);
+        if (!_.has(this._types, rule.kind)) {
+            throw new TypeError(f('Unknown %j parameter type %j', rule.name, rule.kind));
+        }
+    }, this);
+
+    _.forEach(this._pathRule.query, function (rule) {
+
+        if (!rule.kind) {
+            rule.setRandomKind();
+            if (!rule.regex) {
+                rule.setRegex('[\\s\\S]+');
+            }
+            this._types[rule.kind] = new Type(rule.kind, rule.regex);
         }
 
-        if (!_.has(this._types, part.kind)) {
-            throw new TypeError(util.format('Unknown %j parameter type %j', part.name, part.kind));
+        if (!_.has(this._types, rule.kind)) {
+            throw new TypeError(f('Unknown %j parameter type %j', rule.name, rule.kind));
         }
     }, this);
 
@@ -90,7 +120,7 @@ function Rule(ruleString, params, data) {
      * @property
      * @type {Object}
      * */
-    this._paramsCount = this._countPathParams();
+    this._paramsCount = this._compileParamsCount();
 
     /**
      * @protected
@@ -134,13 +164,21 @@ Rule.prototype.build = function (args) {
     var l;
     var queryArgs = [];
     var url;
+    var argName;
 
     args = Object(args);
-    keys = Object.keys(args);
     url = this._builderFunc(args);
 
+    for (i = 0, l = this._queryParamsNames.length; i < l; i += 1) {
+        argName = this._queryParamsNames[i];
+        args[argName] = this._matchQueryArg(args, argName);
+    }
+
+    keys = Object.keys(args);
+
     for (i = 0, l = keys.length; i < l; i += 1) {
-        queryArgs = this._reduceQArg(queryArgs, args[keys[i]], keys[i]);
+        argName = keys[i];
+        queryArgs = this._reduceQArg(queryArgs, args[argName], argName);
     }
 
     if (queryArgs.length) {
@@ -166,15 +204,16 @@ Rule.prototype._reduceQArg = function (allQArgs, value, name) {
     var l;
 
     if (hasProperty.call(this._paramsCount, name)) {
+        // the parameter are used in pathname. skip.
         return allQArgs;
     }
 
-    if (_.isArray(value)) {
-        for (i = 0, l = value.length; i < l; i += 1) {
-            allQArgs[allQArgs.length] = this._createQueryArg(name, value[i]);
-        }
-    } else {
-        allQArgs[allQArgs.length] = this._createQueryArg(name, value);
+    if (!_.isArray(value)) {
+        value = [value];
+    }
+
+    for (i = 0, l = value.length; i < l; i += 1) {
+        allQArgs[allQArgs.length] = this._createQueryArg(name, value[i]);
     }
 
     return allQArgs;
@@ -195,8 +234,6 @@ Rule.prototype._createQueryArg = function (name, value) {
 };
 
 /**
- * TODO: need to check url parameter type or replace exec to match to implicitly generate type error?
- *
  * @public
  * @memberOf {Rule}
  * @method
@@ -207,14 +244,13 @@ Rule.prototype._createQueryArg = function (name, value) {
  * */
 Rule.prototype.match = function (url) {
     /*eslint complexity: 0*/
-    var args = null;
+    var args = {};
     var i;
     var l;
     var match;
     var name;
     var pathParams;
     var queryObject;
-    var queryString;
     var value;
     var keys;
 
@@ -222,13 +258,12 @@ Rule.prototype.match = function (url) {
         url = url.replace(/^(\/[^.?\/]+[^\/?])(\?[^?]*)?$/, '$1/$2');
     }
 
-    match = this._matchRegExp.exec(url);
+    match = url.match(this._matchRegExp);
 
     if (match === null) {
-        return args;
+        return null;
     }
 
-    args = {};
     pathParams = this._pathParams;
 
     for (i = 0, l = pathParams.length; i < l; i += 1) {
@@ -250,16 +285,10 @@ Rule.prototype.match = function (url) {
         }
     }
 
-    queryString = match[l + 1];
+    queryObject = this.matchQueryString(match[l + 1]);
 
-    if (!queryString) {
-        return args;
-    }
-
-    queryObject = this._parseQs(queryString);
-
-    if (l === 0) {
-        return queryObject;
+    if (!queryObject) {
+        return null;
     }
 
     keys = Object.keys(args);
@@ -272,6 +301,89 @@ Rule.prototype.match = function (url) {
     }
 
     return queryObject;
+};
+
+/**
+ * @public
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} queryString
+ *
+ * @returns {Object|null}
+ * */
+Rule.prototype.matchQueryString = function (queryString) {
+    var queryObject = queryString ? this._parseQs(queryString) : {};
+    var paramNames = this._queryParamsNames;
+    var queryParams = this._queryParams;
+    var l = paramNames.length;
+    var rules;
+    var paramName;
+    var values;
+
+    while (l) {
+        l -= 1;
+        paramName = paramNames[l];
+        values = this._matchQueryArg(queryObject, paramName);
+
+        if (!values) {
+            return null;
+        }
+
+        rules = queryParams[paramName];
+
+        if (rules.length === 1 && !rules[0].multiple) {
+            values = values[0];
+        }
+
+        queryObject[paramName] = values;
+    }
+
+    return queryObject;
+};
+
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {Object} queryObject
+ * @param {String} paramName
+ *
+ * @returns {Array|null}
+ * */
+Rule.prototype._matchQueryArg = function (queryObject, paramName) {
+    var rules = this._queryParams[paramName];
+    var values;
+
+    if (!hasProperty.call(queryObject, paramName)) {
+        values = [];
+    } else if (_.isArray(queryObject[paramName])){
+        values = queryObject[paramName];
+    } else {
+        values = [queryObject[paramName]];
+    }
+
+    return matchValues(rules, this._types, values);
+};
+
+/**
+ * @protected
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
+Rule.prototype._compileQueryParams = function () {
+    var queryParams = {};
+    _.forEach(this._pathRule.query, function (rule) {
+        if (_.has(queryParams, rule.name)) {
+            queryParams[rule.name].push(rule);
+        } else {
+            queryParams[rule.name] = [rule];
+        }
+    });
+    return queryParams;
 };
 
 /**
@@ -463,7 +575,7 @@ Rule.prototype._compileMatchRegExpPart = function (part, stackPop, n) {
     if (type === RuleArg.TYPE) {
         type = this._types[part.kind];
 
-        return '(' + type.regexp + ')';
+        return '(' + type.regex + ')';
     }
 
     if (n === 0) {
@@ -524,7 +636,7 @@ Rule.prototype._compileMatchRegExpPartStatic = function (part) {
  *
  * @returns {Object}
  * */
-Rule.prototype._countPathParams = function () {
+Rule.prototype._compileParamsCount = function () {
     var count = {};
 
     _.forEach(this._pathParams, function (part) {

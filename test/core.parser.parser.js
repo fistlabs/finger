@@ -62,7 +62,8 @@ describe('core/parser/parser', function () {
                         {
                             type: RuleSep.TYPE
                         }
-                    ]
+                    ],
+                    query: []
                 }
             ],
             [
@@ -74,7 +75,8 @@ describe('core/parser/parser', function () {
                             type: RuleAny.TYPE,
                             text: 'foo'
                         }
-                    ]
+                    ],
+                    query: []
                 }
             ],
             [
@@ -89,7 +91,8 @@ describe('core/parser/parser', function () {
                             value: void 0,
                             regex: null
                         }
-                    ]
+                    ],
+                    query: []
                 }
             ],
             [
@@ -122,7 +125,8 @@ describe('core/parser/parser', function () {
                                 }
                             ]
                         }
-                    ]
+                    ],
+                    query: []
                 }
             ],
             [
@@ -137,7 +141,8 @@ describe('core/parser/parser', function () {
                             value: void 0,
                             regex: null
                         }
-                    ]
+                    ],
+                    query: []
                 }
             ],
             [
@@ -152,12 +157,10 @@ describe('core/parser/parser', function () {
                             value: '42',
                             regex: null
                         }
-                    ]
+                    ],
+                    query: []
                 }
-            ]
-        ];
-
-        var anonKindSamples = [
+            ],
             [
                 '<{\\d+}:foo>',
                 {
@@ -167,9 +170,11 @@ describe('core/parser/parser', function () {
                             type: RuleArg.TYPE,
                             name: 'foo',
                             value: void 0,
-                            regex: '\\d+'
+                            regex: '\\d+',
+                            kind: ''
                         }
-                    ]
+                    ],
+                    query: []
                 }
             ],
             [
@@ -181,7 +186,203 @@ describe('core/parser/parser', function () {
                             type: RuleArg.TYPE,
                             name: 'foo',
                             value: void 0,
-                            regex: '\\{\\}'
+                            regex: '\\{\\}',
+                            kind: ''
+                        }
+                    ],
+                    query: []
+                }
+            ],
+            [
+                '/?foo',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleSep.TYPE
+                        }
+                    ],
+                    query: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'foo',
+                            required: false,
+                            multiple: false,
+                            kind: '',
+                            value: void 0,
+                            regex: null
+                        }
+                    ]
+                }
+            ],
+            [
+                '/?foo+',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleSep.TYPE
+                        }
+                    ],
+                    query: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'foo',
+                            required: false,
+                            multiple: true,
+                            kind: '',
+                            value: void 0,
+                            regex: null
+                        }
+                    ]
+                }
+            ],
+            [
+                '/?Number:foo+',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleSep.TYPE
+                        }
+                    ],
+                    query: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'foo',
+                            required: false,
+                            multiple: true,
+                            kind: 'Number',
+                            value: void 0,
+                            regex: null
+                        }
+                    ]
+                }
+            ],
+            [
+                '/&bar',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleSep.TYPE
+                        }
+                    ],
+                    query: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'bar',
+                            required: true,
+                            multiple: false,
+                            kind: '',
+                            value: void 0,
+                            regex: null
+                        }
+                    ]
+                }
+            ],
+            [
+                '/&bar+',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleSep.TYPE
+                        }
+                    ],
+                    query: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'bar',
+                            required: true,
+                            multiple: true,
+                            kind: '',
+                            value: void 0,
+                            regex: null
+                        }
+                    ]
+                }
+            ],
+            [
+                '/&bar=OMG+',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleSep.TYPE
+                        }
+                    ],
+                    query: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'bar',
+                            required: true,
+                            multiple: true,
+                            kind: '',
+                            value: 'OMG',
+                            regex: null
+                        }
+                    ]
+                }
+            ],
+            [
+                '/?foo&bar',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleSep.TYPE
+                        }
+                    ],
+                    query: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'foo',
+                            required: false,
+                            multiple: false,
+                            kind: '',
+                            value: void 0,
+                            regex: null
+                        },
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'bar',
+                            required: true,
+                            multiple: false,
+                            kind: '',
+                            value: void 0,
+                            regex: null
+                        }
+                    ]
+                }
+            ],
+            [
+                '/?{\\d+}:foo=100500+&Number:bar',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleSep.TYPE
+                        }
+                    ],
+                    query: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'foo',
+                            required: false,
+                            multiple: true,
+                            kind: '',
+                            value: '100500',
+                            regex: '\\d+'
+                        },
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'bar',
+                            required: true,
+                            multiple: false,
+                            kind: 'Number',
+                            value: void 0,
+                            regex: null
                         }
                     ]
                 }
@@ -194,19 +395,6 @@ describe('core/parser/parser', function () {
             var shouldText = util.format(title, s[0], s[1]);
             it(shouldText, function () {
                 var ast = parser.parse(s[0]);
-                assert.deepEqual(ast, s[1]);
-            });
-        });
-
-        _.forEach(anonKindSamples, function (s) {
-            var shouldText = util.format(title, s[0], s[1]);
-            it(shouldText, function () {
-                var ast = parser.parse(s[0]);
-
-                // cannot test equality of unique ids
-                delete ast.parts[0].kind;
-                delete s[1].parts[0].kind;
-
                 assert.deepEqual(ast, s[1]);
             });
         });

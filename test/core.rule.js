@@ -403,6 +403,73 @@ describe('core/rule', function () {
                         null
                     ]
                 ]
+            ],
+            [
+                [
+                    '/&foo'
+                ],
+                [
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: 'bar'
+                        }
+                    ],
+                    [
+                        '/?foo=',
+                        null
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/&foo+'
+                ],
+                [
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: ['bar']
+                        }
+                    ],
+                    [
+                        '/?foo=&foo=bar&foo=baz',
+                        {
+                            foo: ['bar', 'baz']
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<foo>/&foo+'
+                ],
+                [
+                    [
+                        '/xyz/?foo=bar&foo=baz',
+                        {
+                            foo: 'xyz'
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<page>/&foo'
+                ],
+                [
+                    [
+                        '/news/?foo=bar',
+                        {
+                            page: 'news',
+                            foo: 'bar'
+                        }
+                    ],
+                    [
+                        '/news/',
+                        null
+                    ]
+                ]
             ]
         ];
 
@@ -596,6 +663,60 @@ describe('core/rule', function () {
                         }
                     ]
                 ]
+            ],
+            [
+                '/?foo',
+                [
+                    [
+                        '/',
+                        {}
+                    ],
+                    [
+                        '/',
+                        {
+                            foo: void 0
+                        }
+                    ],
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: 'bar'
+                        }
+                    ],
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: ['bar', 'baz']
+                        }
+                    ]
+                ]
+            ],
+            [
+                '/?foo=bar',
+                [
+                    [
+                        '/?foo=bar',
+                        {}
+                    ],
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: void 0
+                        }
+                    ],
+                    [
+                        '/?foo=baz',
+                        {
+                            foo: 'baz'
+                        }
+                    ],
+                    [
+                        '/?foo=baz',
+                        {
+                            foo: ['baz', 'zot']
+                        }
+                    ]
+                ]
             ]
         ];
 
@@ -628,6 +749,9 @@ describe('core/rule', function () {
                         Xyz: '\\w+'
                     }
                 });
+            });
+            assert.throws(function () {
+                return new Rule('/?TestSample:foo');
             });
         });
     });

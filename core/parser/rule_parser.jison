@@ -7,6 +7,7 @@
 %token ')'
 %token '?'
 %token '&'
+%token '+'
 %token REGEX
 %token ALL
 %token EOF
@@ -14,38 +15,72 @@
 %%
 
 INPUT :
-    RULE EOF {
+    PATH EOF {
         return $$ = $1;
     }
     ;
 
-RULE :
-    PATHNAME_RULE {
+PATH :
+    PATH QUERY_ARG {
+        $$ = $1.addQueryArgRule($2);
+    }
+    |
+    PATHNAME {
         $$ = $1;
     }
     ;
 
-PATHNAME_RULE :
-    PATHNAME_RULE PATHNAME_RULE_PART {
+PATHNAME :
+    PATHNAME SEGMENT {
         $$ = $1.addRule($2);
     }
     |
-    PATHNAME_RULE_PART {
+    SEGMENT {
+        $$ = yy.createRulePath().addRule($1);
+    }
+    ;
+
+QUERY_ARG :
+    '?' ARG '+' {
+        $2.required = false;
+        $2.multiple = true;
+        $$ = $2;
+    }
+    |
+    '&' ARG '+' {
+        $2.required = $2.multiple = true;
+        $$ = $2;
+    }
+    |
+    '?' ARG {
+        $2.required = $2.multiple = false;
+        $$ = $2;
+    }
+    |
+    '&' ARG {
+        $2.multiple = false;
+        $2.required = true;
+        $$ = $2;
+    }
+    ;
+
+SEQUENCE :
+    SEQUENCE SEGMENT {
+        $$ = $1.addRule($2);
+    }
+    |
+    SEGMENT {
         $$ = yy.createRuleSeq().addRule($1);
     }
     ;
 
-PATHNAME_RULE_PART :
-    '(' PATHNAME_RULE ')' {
+SEGMENT :
+    '(' SEQUENCE ')' {
         $$ = $2;
     }
     |
-    '<' PARAMETER '>' {
-        $$ = $2;
-    }
-    |
-    '<' PARAMETER '=' ALL '>' {
-        $$ = $2.setDefault($4);
+    PATHNAME_ARG {
+        $$ = $1;
     }
     |
     TEXT {
@@ -57,33 +92,49 @@ PATHNAME_RULE_PART :
     }
     ;
 
-PARAMETER :
-    ANON_KIND ':' PARAMETER_NAME {
-        $$ = $3.setRandomKind().setRegex($1);
+PATHNAME_ARG :
+    '<' ARG '>' {
+        $$ = $2;
+    }
+    ;
+
+ARG :
+    VAR '=' ALL {
+        $$ = $1.setDefault($3);
     }
     |
-    PARAMETER_KIND ':' PARAMETER_NAME {
-        $$ = $3.setKind($1);
-    }
-    |
-    PARAMETER_NAME {
+    VAR {
         $$ = $1;
     }
     ;
 
-ANON_KIND :
+VAR :
+    IMPL_KIND ':' ARG_NAME {
+        $$ = $3.setRegex($1);
+    }
+    |
+    EXPL_KIND ':' ARG_NAME {
+        $$ = $3.setKind($1);
+    }
+    |
+    ARG_NAME {
+        $$ = $1;
+    }
+    ;
+
+IMPL_KIND :
     REGEX {
         $$ = $1.substring(1, $1.length - 1);
     }
     ;
 
-PARAMETER_KIND :
+EXPL_KIND :
     ALL {
         $$ = $1;
     }
     ;
 
-PARAMETER_NAME :
+ARG_NAME :
     ALL {
         $$ = yy.createRuleArg().setName($1);
     }
