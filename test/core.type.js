@@ -44,4 +44,25 @@ describe('core/type', function () {
         });
     });
 
+    describe('type.check', function () {
+        it('Should be a function', function () {
+            var type = new Type('kind', '\\w+');
+            assert.strictEqual(typeof type.check, 'function');
+        });
+
+        it('Should check value by regexp', function () {
+            var type;
+            type = new Type('foo', '\\w+');
+            assert.ok(type.check('a'));
+            assert.ok(!type.check('|'));
+            type = new Type('foo', '\\d+|[a-z]+');
+            assert.ok(type.check('5'));
+            assert.ok(type.check('555'));
+            assert.ok(type.check('a'));
+            assert.ok(type.check('aaa'));
+            assert.ok(!type.check('|'));
+            assert.ok(!type.check('5a'));
+        });
+    });
+
 });

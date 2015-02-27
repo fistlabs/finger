@@ -4,6 +4,7 @@ var RuleSeq = /** @type RuleSeq */ require('./rule-seq');
 var RuleAny = /** @type RuleAny */ require('./rule-any');
 var RuleSep = /** @type RuleSep */ require('./rule-sep');
 var RuleArg = /** @type RuleArg */ require('./rule-arg');
+var RulePath = /** @type RulePath */ require('./rule-path');
 
 var parser = require('./build/rule_parser').parser;
 var lexer = require('./build/rule_lexer').lexer;
@@ -22,6 +23,9 @@ parser.yy = {
     },
     createRuleSep: function () {
         return new RuleSep();
+    },
+    createRulePath: function () {
+        return new RulePath();
     }
 };
 
