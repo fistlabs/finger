@@ -229,7 +229,6 @@ Rule.prototype.match = function (url) {
     var name;
     var pathParams;
     var queryObject;
-    var queryString;
     var value;
     var keys;
 
@@ -265,26 +264,7 @@ Rule.prototype.match = function (url) {
         }
     }
 
-    queryString = match[l + 1];
-
-    // QueryString was explicitly defined
-    if (this._queryParamsNames.length) {
-        queryObject = this.matchQueryString(queryString);
-        if (queryObject === null) {
-            return null;
-        }
-    } else {
-        if (!queryString) {
-            return args;
-        }
-
-        queryObject = this._parseQs(queryString);
-    }
-
-    if (l === 0) {
-        return queryObject;
-    }
-
+    queryObject = this.matchQueryString(match[l + 1]);
     keys = Object.keys(args);
     l = keys.length;
 
@@ -298,11 +278,10 @@ Rule.prototype.match = function (url) {
 };
 
 Rule.prototype.matchQueryString = function (queryString) {
-    var queryObject = this._parseQs(queryString);
+    var queryObject = queryString ? this._parseQs(queryString) : {};
     var paramNames = this._queryParamsNames;
     var queryParams = this._queryParams;
     var l = paramNames.length;
-    var result = {};
     var rules;
     var paramName;
     var values;
@@ -322,10 +301,10 @@ Rule.prototype.matchQueryString = function (queryString) {
             values = values[0];
         }
 
-        result[paramName] = values;
+        queryObject[paramName] = values;
     }
 
-    return result;
+    return queryObject;
 };
 
 Rule.prototype._matchQueryArg = function (queryObject, paramName) {

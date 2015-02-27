@@ -32,7 +32,8 @@ describe('core/rule#matchQueryString', function () {
                 [
                     'bar=baz',
                     {
-                        foo: void 0
+                        foo: void 0,
+                        bar: 'baz'
                     }
                 ]
             ]
@@ -43,7 +44,8 @@ describe('core/rule#matchQueryString', function () {
                 [
                     'bar',
                     {
-                        foo: 'def'
+                        foo: 'def',
+                        bar: ''
                     }
                 ],
                 [
