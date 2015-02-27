@@ -65,7 +65,7 @@ function matchValues(rules, types, values) {
                 } else {
                     alters[resultLength] = new Alternate(nextRuleIndex, prevMatchIndex);
 
-                    if (ruleMatchesCount < 2) {
+                    if (ruleMatchesCount === 1 && nextRule.value) {
                         alters[resultLength].match = new Match(nextRule.value);
                     }
                 }
@@ -87,7 +87,9 @@ function matchValues(rules, types, values) {
         }
 
         if (!nextRule.required) {
-            result.push(nextRule.value);
+            if (nextRule.value) {
+                result.push(nextRule.value);
+            }
             continue;
         }
 

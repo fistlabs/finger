@@ -84,13 +84,13 @@ describe('core/rule#matchQueryString', function () {
                 [
                     '',
                     {
-                        foo: [void 0, void 0]
+                        foo: []
                     }
                 ],
                 [
                     'foo=bar',
                     {
-                        foo: ['bar', void 0]
+                        foo: ['bar']
                     }
                 ],
                 [
@@ -125,15 +125,13 @@ describe('core/rule#matchQueryString', function () {
                 [
                     'foo=bar&foo=zot&foo=baz',
                     {
-                        foo: ['bar', 'zot', void 0, 'baz']
+                        foo: ['bar', 'zot', 'baz']
                     }
                 ],
                 [
                     'foo=bar&foo=6&foo=baz',
                     {
-                        // first rule eats '6', it's ok.
-                        // check /\w+(6)?\w+/.exec('asd6asd') // ['asd6asd', undefined]
-                        foo: ['bar', '6', void 0, 'baz']
+                        foo: ['bar', '6', 'baz']
                     }
                 ]
             ]
@@ -173,6 +171,98 @@ describe('core/rule#matchQueryString', function () {
                         'foo=3&foo=1&foo=5&foo=5&foo=2&foo=3&foo=5&foo=5&foo=4&foo=5',
                     {
                         foo: ['1', '1', '2', '1', '2', '3', '1', '2', '3', '4']
+                    }
+                ]
+            ]
+        ],
+        [
+            '/?{\\d+}:foo+',
+            [
+                [
+                    '',
+                    {
+                        foo: []
+                    }
+                ],
+                [
+                    'foo',
+                    {
+                        foo: []
+                    }
+                ],
+                [
+                    'foo=bar',
+                    {
+                        foo: []
+                    }
+                ],
+                [
+                    'foo=11',
+                    {
+                        foo: ['11']
+                    }
+                ],
+                [
+                    'foo=1&foo=2',
+                    {
+                        foo: ['1', '2']
+                    }
+                ]
+            ]
+        ],
+        [
+            '/?{\\d+}:foo=DEF+',
+            [
+                [
+                    '',
+                    {
+                        foo: ['DEF']
+                    }
+                ],
+                [
+                    'foo',
+                    {
+                        foo: ['DEF']
+                    }
+                ],
+                [
+                    'foo=bar',
+                    {
+                        foo: ['DEF']
+                    }
+                ],
+                [
+                    'foo=11',
+                    {
+                        foo: ['11']
+                    }
+                ],
+                [
+                    'foo=1&foo=2',
+                    {
+                        foo: ['1', '2']
+                    }
+                ]
+            ]
+        ],
+        [
+            '/?{\\d+}:foo&{\\d+}:foo+?{\\d+}:foo',
+            [
+                [
+                    'foo=5',
+                    {
+                        foo: ['5']
+                    }
+                ]
+            ]
+        ],
+        [
+            '/?{\\d+}:foo=42&{\\d+}:foo+?{\\d+}:foo',
+            [
+                [
+                    'foo=5',
+                    {
+                        foo: ['42', '5']
                     }
                 ]
             ]
