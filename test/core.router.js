@@ -12,10 +12,10 @@ describe('core/router', function () {
     /*eslint max-nested-callbacks: 0*/
     var Router = require('../core/router');
 
-    describe('{Router}.matchRules', function () {
-        it('Should have "matchRules" own method', function () {
+    describe('{Router}.findMatchesFor', function () {
+        it('Should have "findMatchesFor" own method', function () {
             var router = new Router();
-            assert.strictEqual(typeof router.matchRules, 'function');
+            assert.strictEqual(typeof router.findMatchesFor, 'function');
         });
 
         it('Should match routes according to passed verb', function () {
@@ -25,7 +25,7 @@ describe('core/router', function () {
             router.addRule('/', {name: 'index1'});
             router.addRule('POST /', {name: 'index2'});
             router.addRule('* /', {name: 'index3'});
-            assert.deepEqual(router.matchRules('/', router.getNamesByVerb('GET')), [
+            assert.deepEqual(router.findMatchesFor('/', router.getAllowedRules('GET')), [
                 {
                     args: {},
                     data: {
@@ -49,7 +49,7 @@ describe('core/router', function () {
                 }
             ]);
 
-            assert.deepEqual(router.matchRules('/', router.getNamesByVerb('POST')), [
+            assert.deepEqual(router.findMatchesFor('/', router.getAllowedRules('POST')), [
                 {
                     args: {},
                     data: {
@@ -68,14 +68,14 @@ describe('core/router', function () {
         });
     });
 
-    describe('{Router}.matchVerbs', function () {
+    describe('{Router}.findVerbs', function () {
         it('Should return unique verbs list', function () {
             var router = new Router();
             router.addRule('/', {name: 'index0'});
             router.addRule('/', {name: 'index1'});
             router.addRule('/foo/', {name: 'foo'});
             router.addRule('POST /', {name: 'upload'});
-            assert.deepEqual(router.matchVerbs('/').sort(), ['HEAD', 'GET', 'POST'].sort());
+            assert.deepEqual(router.findVerbs('/').sort(), ['HEAD', 'GET', 'POST'].sort());
         });
     });
 
