@@ -267,11 +267,19 @@ Rule.prototype.match = function (url) {
 
     queryString = match[l + 1];
 
-    if (!queryString) {
-        return args;
-    }
+    // QueryString was explicitly defined
+    if (this._queryParamsNames.length) {
+        queryObject = this.matchQueryString(queryString);
+        if (queryObject === null) {
+            return null;
+        }
+    } else {
+        if (!queryString) {
+            return args;
+        }
 
-    queryObject = this._parseQs(queryString);
+        queryObject = this._parseQs(queryString);
+    }
 
     if (l === 0) {
         return queryObject;

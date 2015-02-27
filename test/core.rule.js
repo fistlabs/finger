@@ -403,6 +403,55 @@ describe('core/rule', function () {
                         null
                     ]
                 ]
+            ],
+            [
+                [
+                    '/&foo'
+                ],
+                [
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: 'bar'
+                        }
+                    ],
+                    [
+                        '/?foo=',
+                        null
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/&foo+'
+                ],
+                [
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: ['bar']
+                        }
+                    ],
+                    [
+                        '/?foo=&foo=bar&foo=baz',
+                        {
+                            foo: ['bar', 'baz']
+                        }
+                    ]
+                ]
+            ],
+            [
+                [
+                    '/<foo>/&foo+'
+                ],
+                [
+                    [
+                        '/xyz/?foo=bar&foo=baz',
+                        {
+                            foo: 'xyz'
+                        }
+                    ]
+                ]
             ]
         ];
 
