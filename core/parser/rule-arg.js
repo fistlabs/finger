@@ -98,8 +98,8 @@ RuleArg.prototype.setKind = function (kind) {
  *
  * @returns {RuleArg}
  * */
-RuleArg.prototype.setRandomKind = function () {
-    return this.setKind(RuleArg.generateRandomKind());
+RuleArg.prototype.setUniqueKindName = function () {
+    return this.setKind(RuleArg.generateUniqueKindName());
 };
 
 /**
@@ -140,7 +140,7 @@ RuleArg.prototype.setDefault = function (text) {
  *
  * @returns {String}
  * */
-RuleArg.generateRandomKind = function () {
+RuleArg.generateUniqueKindName = function () {
     return uniqueId();
 };
 

@@ -104,26 +104,26 @@ describe('core/parser/rule-arg', function () {
         });
     });
 
-    describe('RuleArg.generateRandomKind()', function () {
+    describe('RuleArg.generateUniqueKindName()', function () {
         it('Should generate random id', function () {
-            assert.notStrictEqual(RuleArg.generateRandomKind(), RuleArg.generateRandomKind());
-            assert.notStrictEqual(RuleArg.generateRandomKind(), RuleArg.generateRandomKind());
-            assert.notStrictEqual(RuleArg.generateRandomKind(), RuleArg.generateRandomKind());
-            assert.notStrictEqual(RuleArg.generateRandomKind(), RuleArg.generateRandomKind());
-            assert.notStrictEqual(RuleArg.generateRandomKind(), RuleArg.generateRandomKind());
+            assert.notStrictEqual(RuleArg.generateUniqueKindName(), RuleArg.generateUniqueKindName());
+            assert.notStrictEqual(RuleArg.generateUniqueKindName(), RuleArg.generateUniqueKindName());
+            assert.notStrictEqual(RuleArg.generateUniqueKindName(), RuleArg.generateUniqueKindName());
+            assert.notStrictEqual(RuleArg.generateUniqueKindName(), RuleArg.generateUniqueKindName());
+            assert.notStrictEqual(RuleArg.generateUniqueKindName(), RuleArg.generateUniqueKindName());
         });
     });
 
-    describe('{RuleArg}.setRandomKind()', function () {
+    describe('{RuleArg}.generateUniqueKindName()', function () {
         it('Should set random generated kind', function () {
-            var generateRandomKind = RuleArg.generateRandomKind;
+            var generateUniqueKindName = RuleArg.generateUniqueKindName;
             var rule = new RuleArg();
-            RuleArg.generateRandomKind = function () {
+            RuleArg.generateUniqueKindName = function () {
                 return 'foo';
             };
-            rule.setRandomKind();
+            rule.setUniqueKindName();
             assert.strictEqual(rule.kind, 'foo');
-            RuleArg.generateRandomKind = generateRandomKind;
+            RuleArg.generateUniqueKindName = generateUniqueKindName;
         });
     });
 });

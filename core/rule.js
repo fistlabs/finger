@@ -91,7 +91,7 @@ function Rule(ruleString, params, data) {
 
         if (!rule.kind) {
             if (rule.regex) {
-                rule.setRandomKind();
+                rule.setUniqueKindName();
                 this._types[rule.kind] = new Type(rule.kind, rule.regex);
             } else {
                 rule.kind = 'Segment';
@@ -107,7 +107,7 @@ function Rule(ruleString, params, data) {
 
         if (!rule.kind) {
             if (rule.regex) {
-                rule.setRandomKind();
+                rule.setUniqueKindName();
                 this._types[rule.kind] = new Type(rule.kind, rule.regex);
             } else {
                 rule.kind = 'String';
