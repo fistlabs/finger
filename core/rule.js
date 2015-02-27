@@ -17,6 +17,7 @@ var matchValues = require('./match-values');
 var regesc = require('regesc');
 var uniqueId = require('unique-id');
 var f = require('util').format;
+var commonTypes = require('./common-types');
 
 /**
  * @class Rule
@@ -74,6 +75,8 @@ function Rule(ruleString, params, data) {
      * */
     this._queryParamsNames = _.keys(this._queryParams);
 
+    this.params.types = _.extend({}, commonTypes, this.params.types);
+
     /**
      * @protected
      * @memberOf {Rule}
@@ -87,11 +90,12 @@ function Rule(ruleString, params, data) {
     _.forEach(this._pathParams, function (rule) {
 
         if (!rule.kind) {
-            rule.setRandomKind();
-            if (!rule.regex) {
-                rule.setRegex('[^/?&]+?');
+            if (rule.regex) {
+                rule.setUniqueKindName();
+                this._types[rule.kind] = new Type(rule.kind, rule.regex);
+            } else {
+                rule.kind = 'Segment';
             }
-            this._types[rule.kind] = new Type(rule.kind, rule.regex);
         }
 
         if (!_.has(this._types, rule.kind)) {
@@ -102,11 +106,12 @@ function Rule(ruleString, params, data) {
     _.forEach(this._pathRule.query, function (rule) {
 
         if (!rule.kind) {
-            rule.setRandomKind();
-            if (!rule.regex) {
-                rule.setRegex('[\\s\\S]+');
+            if (rule.regex) {
+                rule.setUniqueKindName();
+                this._types[rule.kind] = new Type(rule.kind, rule.regex);
+            } else {
+                rule.kind = 'String';
             }
-            this._types[rule.kind] = new Type(rule.kind, rule.regex);
         }
 
         if (!_.has(this._types, rule.kind)) {
