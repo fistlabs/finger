@@ -38,10 +38,10 @@ Router.prototype.constructor = Router;
  *
  * @param {String} verb
  *
- * @returns {Boolean}
+ * @returns {Array<String>|undefined}
  * */
-Router.prototype.isImplemented = function (verb) {
-    return verb.toUpperCase() in this._implemented;
+Router.prototype.getNamesByVerb = function (verb) {
+    return this._implemented[verb.toUpperCase()];
 };
 
 /**
@@ -147,29 +147,18 @@ Router.prototype.matchVerbs = function (url) {
  * @method
  *
  * @param {String} url
- * @param {String} [verb]
+ * @param {Array<String>} names
  *
  * @returns {Array}
  * */
-Router.prototype.matchAll = function (url, verb) {
-    var matches = [];
-    var names;
-    var rule;
+Router.prototype.matchRules = function (url, names) {
+    var args;
     var i;
     var l;
-    var args;
+    var rule;
     var rules = this.rules;
     var index = this._index;
-
-    verb = verb ? String(verb).toUpperCase() : 'GET';
-
-    //  Do not check is verb implemented, let throw error.
-    //  We should check it manually by router.isImplemented
-    // if (!(verb in this._implemented)) {
-    //     return matches;
-    // }
-
-    names = this._implemented[verb];
+    var matches = [];
 
     for (i = 0, l = names.length; i < l; i += 1) {
         rule = rules[index[names[i]]];

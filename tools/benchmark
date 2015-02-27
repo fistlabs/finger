@@ -221,9 +221,9 @@ function benchSusaninVerbRouter() {
 }
 
 function benchFingerVerbRouter() {
-    global.__test__ = fingerVerbRouter.matchAll('/', methods[0]);
-    global.__test__ = fingerVerbRouter.matchAll('/foo/', methods[5]);
-    global.__test__ = fingerVerbRouter.matchAll('/bar/', methods[10]);
+    global.__test__ = fingerVerbRouter.matchRules('/', fingerVerbRouter.getNamesByVerb(methods[0]));
+    global.__test__ = fingerVerbRouter.matchRules('/foo/', fingerVerbRouter.getNamesByVerb(methods[5]));
+    global.__test__ = fingerVerbRouter.matchRules('/bar/', fingerVerbRouter.getNamesByVerb(methods[10]));
 }
 
 //  Warm up!

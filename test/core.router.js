@@ -12,30 +12,10 @@ describe('core/router', function () {
     /*eslint max-nested-callbacks: 0*/
     var Router = require('../core/router');
 
-    describe('{Router}.isImplemented', function () {
-        it('Should have "isImplemented" own method', function () {
+    describe('{Router}.matchRules', function () {
+        it('Should have "matchRules" own method', function () {
             var router = new Router();
-            assert.strictEqual(typeof router.isImplemented, 'function');
-        });
-
-        it('Should check if method is implemented', function () {
-            var router = new Router();
-            assert.ok(!router.isImplemented('POST'));
-            router.addRule('POST /upload/', {name: 'upload'});
-            router.addRule('POST /upload2/', {name: 'upload2'});
-            assert.ok(router.isImplemented('POST'));
-            assert.ok(router.isImplemented('post'));
-            router.delRule('upload');
-            assert.ok(router.isImplemented('POST'));
-            router.delRule('upload2');
-            assert.ok(!router.isImplemented('POST'));
-        });
-    });
-
-    describe('{Router}.matchAll', function () {
-        it('Should have "matchAll" own method', function () {
-            var router = new Router();
-            assert.strictEqual(typeof router.matchAll, 'function');
+            assert.strictEqual(typeof router.matchRules, 'function');
         });
 
         it('Should match routes according to passed verb', function () {
@@ -45,7 +25,7 @@ describe('core/router', function () {
             router.addRule('/', {name: 'index1'});
             router.addRule('POST /', {name: 'index2'});
             router.addRule('* /', {name: 'index3'});
-            assert.deepEqual(router.matchAll('/', 'GET'), [
+            assert.deepEqual(router.matchRules('/', router.getNamesByVerb('GET')), [
                 {
                     args: {},
                     data: {
@@ -69,7 +49,7 @@ describe('core/router', function () {
                 }
             ]);
 
-            assert.deepEqual(router.matchAll('/', 'POST'), [
+            assert.deepEqual(router.matchRules('/', router.getNamesByVerb('POST')), [
                 {
                     args: {},
                     data: {
@@ -82,22 +62,6 @@ describe('core/router', function () {
                     data: {
                         name: 'index3',
                         verbs: methods
-                    }
-                }
-            ]);
-        });
-
-        it('Should accept "GET" as default verb if omitted', function () {
-            var router = new Router();
-            router.addRule('/', {
-                name: 'foo'
-            });
-            assert.deepEqual(router.matchAll('/'), [
-                {
-                    args: {},
-                    data: {
-                        name: 'foo',
-                        verbs: ['GET', 'HEAD']
                     }
                 }
             ]);
@@ -193,4 +157,25 @@ describe('core/router', function () {
         });
     });
 
+    describe('router.delRule()', function () {
+        it('Should be a function', function () {
+            var router = new Router();
+            assert.strictEqual(typeof router.delRule, 'function');
+        });
+
+        it('Should remove rule', function () {
+            var router = new Router();
+            router.addRule('/', {
+                name: 'foo'
+            });
+            router.addRule('/', {
+                name: 'bar'
+            });
+            assert.strictEqual(router.rules.length, 2);
+            router.delRule('foo');
+            assert.strictEqual(router.rules.length, 1);
+            router.delRule('bar');
+            assert.strictEqual(router.rules.length, 0);
+        });
+    });
 });
