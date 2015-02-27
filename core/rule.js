@@ -222,7 +222,7 @@ Rule.prototype._createQueryArg = function (name, value) {
  * */
 Rule.prototype.match = function (url) {
     /*eslint complexity: 0*/
-    var args = null;
+    var args = {};
     var i;
     var l;
     var match;
@@ -239,10 +239,9 @@ Rule.prototype.match = function (url) {
     match = url.match(this._matchRegExp);
 
     if (match === null) {
-        return args;
+        return null;
     }
 
-    args = {};
     pathParams = this._pathParams;
 
     for (i = 0, l = pathParams.length; i < l; i += 1) {
@@ -265,6 +264,11 @@ Rule.prototype.match = function (url) {
     }
 
     queryObject = this.matchQueryString(match[l + 1]);
+
+    if (!queryObject) {
+        return null;
+    }
+
     keys = Object.keys(args);
     l = keys.length;
 

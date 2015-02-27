@@ -452,6 +452,24 @@ describe('core/rule', function () {
                         }
                     ]
                 ]
+            ],
+            [
+                [
+                    '/<page>/&foo'
+                ],
+                [
+                    [
+                        '/news/?foo=bar',
+                        {
+                            page: 'news',
+                            foo: 'bar'
+                        }
+                    ],
+                    [
+                        '/news/',
+                        null
+                    ]
+                ]
             ]
         ];
 
