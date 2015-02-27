@@ -178,4 +178,16 @@ describe('core/router', function () {
             assert.strictEqual(router.rules.length, 0);
         });
     });
+
+    describe('Router.Matcher', function () {
+        it('Should have Matcher link', function () {
+            assert.strictEqual(Router.Matcher, require('../core/matcher'));
+        });
+    });
+
+    describe('Router.Rule', function () {
+        it('Should have Rule link', function () {
+            assert.strictEqual(Router.Rule, require('../core/rule'));
+        });
+    })
 });

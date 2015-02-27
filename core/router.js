@@ -285,4 +285,22 @@ Router._createRuleParams = function (defaultParams, routeFlags) {
     return params;
 };
 
+/**
+ * @public
+ * @static
+ * @memberOf {Router}
+ * @property
+ * @type Matcher
+ * */
+Router.Matcher = Matcher;
+
+/**
+ * @public
+ * @static
+ * @memberOf {Router}
+ * @property
+ * @type Rule
+ * */
+Router.Rule = Rule;
+
 module.exports = Router;
