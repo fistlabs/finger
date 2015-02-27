@@ -212,8 +212,6 @@ Rule.prototype._createQueryArg = function (name, value) {
 };
 
 /**
- * TODO: need to check url parameter type or replace exec to match to implicitly generate type error?
- *
  * @public
  * @memberOf {Rule}
  * @method
@@ -239,7 +237,7 @@ Rule.prototype.match = function (url) {
         url = url.replace(/^(\/[^.?\/]+[^\/?])(\?[^?]*)?$/, '$1/$2');
     }
 
-    match = this._matchRegExp.exec(url);
+    match = url.match(this._matchRegExp);
 
     if (match === null) {
         return args;
