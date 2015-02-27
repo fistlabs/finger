@@ -177,13 +177,15 @@ Let's add the types to parameters:
 ```js
 var matcher = new Matcher({
     types: {
-        Num: '\\d+'
+        MyType: '\\d+'
     }
 });
-matcher.addRule('/news/<Num:postId>/');
+matcher.addRule('/news/<MyType:postId>/');
 ```
 
 Now the rule is valid for `/news/42/` but not for `/news/foo/`.
+
+There are several builtin [common types](/core/common-types.js)
 
 ###Anonymous parameter types
 Also you can directly specify parameter type by regexp:
