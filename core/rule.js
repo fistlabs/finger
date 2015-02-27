@@ -277,6 +277,15 @@ Rule.prototype.match = function (url) {
     return queryObject;
 };
 
+/**
+ * @public
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {String} queryString
+ *
+ * @returns {Object|null}
+ * */
 Rule.prototype.matchQueryString = function (queryString) {
     var queryObject = queryString ? this._parseQs(queryString) : {};
     var paramNames = this._queryParamsNames;
@@ -307,6 +316,16 @@ Rule.prototype.matchQueryString = function (queryString) {
     return queryObject;
 };
 
+/**
+ * @private
+ * @memberOf {Rule}
+ * @method
+ *
+ * @param {Object} queryObject
+ * @param {String} paramName
+ *
+ * @returns {Array|null}
+ * */
 Rule.prototype._matchQueryArg = function (queryObject, paramName) {
     var rules = this._queryParams[paramName];
     var values;
