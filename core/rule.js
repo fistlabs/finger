@@ -151,13 +151,21 @@ Rule.prototype.build = function (args) {
     var l;
     var queryArgs = [];
     var url;
+    var argName;
 
     args = Object(args);
-    keys = Object.keys(args);
     url = this._builderFunc(args);
 
+    for (i = 0, l = this._queryParamsNames.length; i < l; i += 1) {
+        argName = this._queryParamsNames[i];
+        args[argName] = this._matchQueryArg(args, argName);
+    }
+
+    keys = Object.keys(args);
+
     for (i = 0, l = keys.length; i < l; i += 1) {
-        queryArgs = this._reduceQArg(queryArgs, args[keys[i]], keys[i]);
+        argName = keys[i];
+        queryArgs = this._reduceQArg(queryArgs, args[argName], argName);
     }
 
     if (queryArgs.length) {
@@ -183,15 +191,16 @@ Rule.prototype._reduceQArg = function (allQArgs, value, name) {
     var l;
 
     if (hasProperty.call(this._paramsCount, name)) {
+        // the parameter are used in pathname. skip.
         return allQArgs;
     }
 
-    if (_.isArray(value)) {
-        for (i = 0, l = value.length; i < l; i += 1) {
-            allQArgs[allQArgs.length] = this._createQueryArg(name, value[i]);
-        }
-    } else {
-        allQArgs[allQArgs.length] = this._createQueryArg(name, value);
+    if (!_.isArray(value)) {
+        value = [value];
+    }
+
+    for (i = 0, l = value.length; i < l; i += 1) {
+        allQArgs[allQArgs.length] = this._createQueryArg(name, value[i]);
     }
 
     return allQArgs;

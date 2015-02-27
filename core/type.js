@@ -84,7 +84,7 @@ Type.checkRegExp = function (regexp) {
  * @returns {Boolean}
  * */
 Type.prototype.check = function (v) {
-    return this._compiledRegExp.test(v);
+    return Boolean(v) && this._compiledRegExp.test(v);
 };
 
 module.exports = Type;

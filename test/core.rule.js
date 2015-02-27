@@ -663,6 +663,60 @@ describe('core/rule', function () {
                         }
                     ]
                 ]
+            ],
+            [
+                '/?foo',
+                [
+                    [
+                        '/',
+                        {}
+                    ],
+                    [
+                        '/',
+                        {
+                            foo: void 0
+                        }
+                    ],
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: 'bar'
+                        }
+                    ],
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: ['bar', 'baz']
+                        }
+                    ]
+                ]
+            ],
+            [
+                '/?foo=bar',
+                [
+                    [
+                        '/?foo=bar',
+                        {}
+                    ],
+                    [
+                        '/?foo=bar',
+                        {
+                            foo: void 0
+                        }
+                    ],
+                    [
+                        '/?foo=baz',
+                        {
+                            foo: 'baz'
+                        }
+                    ],
+                    [
+                        '/?foo=baz',
+                        {
+                            foo: ['baz', 'zot']
+                        }
+                    ]
+                ]
             ]
         ];
 
