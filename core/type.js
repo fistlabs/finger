@@ -1,19 +1,17 @@
 'use strict';
 
-var util = require('util');
+var f = require('util').format;
 
 /**
  * @class Type
  *
  * @param {String} name
- * @param {String} regexp
+ * @param {String} regex
  * */
-function Type(name, regexp) {
+function Type(name, regex) {
 
-    if (!Type.checkRegExp(regexp)) {
-        regexp = util.format('Invalid %j type regexp %j', name, regexp);
-
-        throw new TypeError(regexp);
+    if (!Type.checkRegExp(regex)) {
+        throw new TypeError(f('Invalid %j type regexp %j', name, regex));
     }
 
     /**
@@ -28,9 +26,17 @@ function Type(name, regexp) {
      * @public
      * @memberOf {Type}
      * @property
+     * @type {String}
+     * */
+    this.regex = regex;
+
+    /**
+     * @public
+     * @memberOf {Type}
+     * @property
      * @type {RegExp}
      * */
-    this.regexp = regexp;
+    this._compiledRegExp = new RegExp(f('^(?:%s)$', this.regex));
 }
 
 /**
@@ -66,6 +72,19 @@ Type.checkRegExp = function (regexp) {
     }
 
     return true;
+};
+
+/**
+ * @public
+ * @memberOf {Type}
+ * @method
+ *
+ * @param {String} v
+ *
+ * @returns {Boolean}
+ * */
+Type.prototype.check = function (v) {
+    return this._compiledRegExp.test(v);
 };
 
 module.exports = Type;

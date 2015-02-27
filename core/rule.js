@@ -13,9 +13,10 @@ var _ = require('lodash-node');
 var au = require('./ast-utils');
 var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
+var matchValues = require('./match-values');
 var regesc = require('regesc');
 var uniqueId = require('unique-id');
-var util = require('util');
+var f = require('util').format;
 
 /**
  * @class Rule
@@ -63,23 +64,41 @@ function Rule(ruleString, params, data) {
      * @property
      * @type {Object}
      * */
+    this._queryParams = this._compileQueryParams();
+
+    /**
+     * @protected
+     * @memberOf {Rule}
+     * @property
+     * @type {Array}
+     * */
+    this._queryParamsNames = _.keys(this._queryParams);
+
+    /**
+     * @protected
+     * @memberOf {Rule}
+     * @property
+     * @type {Object}
+     * */
     this._types = _.mapValues(this.params.types, function (regex, kind) {
         return new Type(kind, regex);
     });
 
-    _.forEach(this._pathParams, function (part) {
+    _.forEach([this._pathParams, this._pathRule.query], function (rules) {
+        _.forEach(rules, function (rule) {
 
-        if (!part.kind) {
-            part.setRandomKind();
-            if (!part.regex) {
-                part.setRegex('[^/?&]+?');
+            if (!rule.kind) {
+                rule.setRandomKind();
+                if (!rule.regex) {
+                    rule.setRegex('[^/?&]+?');
+                }
+                this._types[rule.kind] = new Type(rule.kind, rule.regex);
             }
-            this._types[part.kind] = new Type(part.kind, part.regex);
-        }
 
-        if (!_.has(this._types, part.kind)) {
-            throw new TypeError(util.format('Unknown %j parameter type %j', part.name, part.kind));
-        }
+            if (!_.has(this._types, rule.kind)) {
+                throw new TypeError(f('Unknown %j parameter type %j', rule.name, rule.kind));
+            }
+        }, this);
     }, this);
 
     /**
@@ -88,7 +107,7 @@ function Rule(ruleString, params, data) {
      * @property
      * @type {Object}
      * */
-    this._paramsCount = this._countPathParams();
+    this._paramsCount = this._compileParamsCount();
 
     /**
      * @protected
@@ -270,6 +289,71 @@ Rule.prototype.match = function (url) {
     }
 
     return queryObject;
+};
+
+Rule.prototype.matchQueryString = function (queryString) {
+    var queryObject = this._parseQs(queryString);
+    var paramNames = this._queryParamsNames;
+    var queryParams = this._queryParams;
+    var l = paramNames.length;
+    var result = {};
+    var rules;
+    var paramName;
+    var values;
+
+    while (l) {
+        l -= 1;
+        paramName = paramNames[l];
+        values = this._matchQueryArg(queryObject, paramName);
+
+        if (!values) {
+            return null;
+        }
+
+        rules = queryParams[paramName];
+
+        if (rules.length === 1 && !rules[0].multiple) {
+            values = values[0];
+        }
+
+        result[paramName] = values;
+    }
+
+    return result;
+};
+
+Rule.prototype._matchQueryArg = function (queryObject, paramName) {
+    var rules = this._queryParams[paramName];
+    var values;
+
+    if (!hasProperty.call(queryObject, paramName)) {
+        values = [];
+    } else if (_.isArray(queryObject[paramName])){
+        values = queryObject[paramName];
+    } else {
+        values = [queryObject[paramName]];
+    }
+
+    return matchValues(rules, this._types, values);
+};
+
+/**
+ * @protected
+ * @memberOf {Rule}
+ * @method
+ *
+ * @returns {Object}
+ * */
+Rule.prototype._compileQueryParams = function () {
+    var queryParams = {};
+    _.forEach(this._pathRule.query, function (rule) {
+        if (_.has(queryParams, rule.name)) {
+            queryParams[rule.name].push(rule);
+        } else {
+            queryParams[rule.name] = [rule];
+        }
+    });
+    return queryParams;
 };
 
 /**
@@ -461,7 +545,7 @@ Rule.prototype._compileMatchRegExpPart = function (part, stackPop, n) {
     if (type === RuleArg.TYPE) {
         type = this._types[part.kind];
 
-        return '(' + type.regexp + ')';
+        return '(' + type.regex + ')';
     }
 
     if (n === 0) {
@@ -522,7 +606,7 @@ Rule.prototype._compileMatchRegExpPartStatic = function (part) {
  *
  * @returns {Object}
  * */
-Rule.prototype._countPathParams = function () {
+Rule.prototype._compileParamsCount = function () {
     var count = {};
 
     _.forEach(this._pathParams, function (part) {
