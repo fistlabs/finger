@@ -189,5 +189,5 @@ describe('core/router', function () {
         it('Should have Rule link', function () {
             assert.strictEqual(Router.Rule, require('../core/rule'));
         });
-    })
+    });
 });
