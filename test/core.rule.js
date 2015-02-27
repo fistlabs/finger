@@ -854,4 +854,88 @@ describe('core/rule', function () {
             });
         });
     });
+
+    describe('behaviour: Common types', function () {
+        it('Should auto add common types', function () {
+            var rule = new Rule('/');
+            assert.ok(rule.params.types.hasOwnProperty('Number'));
+            assert.ok(rule.params.types.hasOwnProperty('String'));
+            assert.ok(rule.params.types.hasOwnProperty('Path'));
+            assert.ok(rule.params.types.hasOwnProperty('Ident'));
+            assert.ok(rule.params.types.hasOwnProperty('Alnum'));
+        });
+
+        it('Should not throw error if common type used', function () {
+            assert.doesNotThrow(function () {
+                return new Rule('<Number:foo>');
+            });
+            assert.doesNotThrow(function () {
+                return new Rule('<String:foo>');
+            });
+            assert.doesNotThrow(function () {
+                return new Rule('<Path:foo>');
+            });
+            assert.doesNotThrow(function () {
+                return new Rule('<Ident:foo>');
+            });
+            assert.doesNotThrow(function () {
+                return new Rule('<Alnum:foo>');
+            });
+            assert.doesNotThrow(function () {
+                return new Rule('<Segment:foo>');
+            });
+        });
+
+        it('Possible to be redefined', function () {
+            var rule;
+
+            rule = new Rule('<Number:foo>', {
+                types: {
+                    Number: 'asd'
+                }
+            });
+            assert.ok(rule.match('asd'));
+            assert.ok(!rule.match('asda'));
+
+            rule = new Rule('<String:foo>', {
+                types: {
+                    String: 'asd'
+                }
+            });
+            assert.ok(rule.match('asd'));
+            assert.ok(!rule.match('asda'));
+
+            rule = new Rule('<Path:foo>', {
+                types: {
+                    Path: 'asd'
+                }
+            });
+            assert.ok(rule.match('asd'));
+            assert.ok(!rule.match('asda'));
+
+            rule = new Rule('<Ident:foo>', {
+                types: {
+                    Ident: 'asd'
+                }
+            });
+            assert.ok(rule.match('asd'));
+            assert.ok(!rule.match('asda'));
+
+            rule = new Rule('<Alnum:foo>', {
+                types: {
+                    Alnum: 'asd'
+                }
+            });
+            assert.ok(rule.match('asd'));
+            assert.ok(!rule.match('asda'));
+
+            rule = new Rule('<Segment:foo>', {
+                types: {
+                    Segment: 'asd'
+                }
+            });
+            assert.ok(rule.match('asd'));
+            assert.ok(!rule.match('asda'));
+        });
+    });
 });
