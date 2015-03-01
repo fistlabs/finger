@@ -154,6 +154,20 @@ Router.prototype.findVerbsFor = function (url, rules) {
 };
 
 /**
+ * @public
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} verb
+ * @param {String} url
+ *
+ * @returns {Array<Rule>}
+ * */
+Router.prototype.findAllowedMatches = function (verb, url) {
+    return this.findMatchesFor(url, this.getAllowedRules(verb));
+};
+
+/**
  * @protected
  * @memberOf {Router}
  * @method

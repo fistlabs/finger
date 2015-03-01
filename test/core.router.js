@@ -28,6 +28,20 @@ describe('core/router', function () {
         });
     });
 
+    describe('router.findAllowedMatches', function () {
+        it('Should be a function', function () {
+            var router = new Router();
+            assert.strictEqual(typeof router.findAllowedMatches, 'function');
+        });
+        it('Should return allowed matches', function () {
+            var router = new Router();
+            var rule1 = router.addRule('GET /');
+            var rule2 = router.addRule('PUT /');
+            assert.strictEqual(router.findAllowedMatches('GET', '/')[0].data.name, rule1.data.name);
+            assert.strictEqual(router.findAllowedMatches('PUT', '/')[0].data.name, rule2.data.name);
+        });
+    });
+
     describe('{Router}.findMatchesFor', function () {
         it('Should have "findMatchesFor" own method', function () {
             var router = new Router();
