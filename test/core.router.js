@@ -12,6 +12,22 @@ describe('core/router', function () {
     /*eslint max-nested-callbacks: 0*/
     var Router = require('../core/router');
 
+    describe('router.getAllowedRules', function () {
+        it('Should be a function', function () {
+            var router = new Router();
+            assert.strictEqual(typeof router.getAllowedRules, 'function');
+        });
+        it('Should return array of allowed rules', function () {
+            var router = new Router();
+            var rule = router.addRule('GET /');
+            assert.deepEqual(router.getAllowedRules('GET'), [rule]);
+        });
+        it('Should return empty array even if no rule allowed for method', function () {
+            var router = new Router();
+            assert.deepEqual(router.getAllowedRules('GET'), []);
+        });
+    });
+
     describe('{Router}.findMatchesFor', function () {
         it('Should have "findMatchesFor" own method', function () {
             var router = new Router();

@@ -40,7 +40,7 @@ Router.prototype.constructor = Router;
  * @returns {Array<String>|undefined}
  * */
 Router.prototype.getAllowedRules = function (verb) {
-    return this._rulesByVerb[verb.toUpperCase()];
+    return this._rulesByVerb[verb.toUpperCase()] || [];
 };
 
 /**
