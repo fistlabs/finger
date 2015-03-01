@@ -235,24 +235,33 @@ Returns all rules that allowed for passed verb.
 
 ####`Array<Match> router.findMatchesFor(String url, Array<Rule>)`
 
-Returs all matches for passed url and rules.
+Returns all matches for passed url and rules.
 
-###Usage
+###Common usage
+
+```js
+var matches = router.getAllowedMatches(req.method, req.url);
+if (!matches.length) {
+    res.statusCode = 404;
+    res.end();
+    return;
+}
+doSomethingWithMatches(matches);
+```
+
+###Advanced usage
 
 ```js
 // Get all rules that potentially may handle request
 var allowedRules = router.getAllowedRules(req.method);
-
 if (!allowedRules.length) {
     // The method is not implemented
     res.statusCode = 501;
     res.end();
     return;
 }
-
 // Find all matched
 var matches = router.findMatchesFor(req.url, allowedRules);
-
 if (!matches.length) {
     // No matches found. Maybe incorrect request method
     var allowedVerbs = router.findVerbs(req.url);
@@ -269,7 +278,6 @@ if (!matches.length) {
     res.end();
     return;
 }
-
 // Score!
 doSomethingWithMatches(matches);
 ```
