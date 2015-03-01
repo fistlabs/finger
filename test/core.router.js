@@ -12,30 +12,40 @@ describe('core/router', function () {
     /*eslint max-nested-callbacks: 0*/
     var Router = require('../core/router');
 
-    describe('{Router}.isImplemented', function () {
-        it('Should have "isImplemented" own method', function () {
+    describe('router.getAllowedRules', function () {
+        it('Should be a function', function () {
             var router = new Router();
-            assert.strictEqual(typeof router.isImplemented, 'function');
+            assert.strictEqual(typeof router.getAllowedRules, 'function');
         });
-
-        it('Should check if method is implemented', function () {
+        it('Should return array of allowed rules', function () {
             var router = new Router();
-            assert.ok(!router.isImplemented('POST'));
-            router.addRule('POST /upload/', {name: 'upload'});
-            router.addRule('POST /upload2/', {name: 'upload2'});
-            assert.ok(router.isImplemented('POST'));
-            assert.ok(router.isImplemented('post'));
-            router.delRule('upload');
-            assert.ok(router.isImplemented('POST'));
-            router.delRule('upload2');
-            assert.ok(!router.isImplemented('POST'));
+            var rule = router.addRule('GET /');
+            assert.deepEqual(router.getAllowedRules('GET'), [rule]);
+        });
+        it('Should return empty array even if no rule allowed for method', function () {
+            var router = new Router();
+            assert.deepEqual(router.getAllowedRules('GET'), []);
         });
     });
 
-    describe('{Router}.matchAll', function () {
-        it('Should have "matchAll" own method', function () {
+    describe('router.findAllowedMatches', function () {
+        it('Should be a function', function () {
             var router = new Router();
-            assert.strictEqual(typeof router.matchAll, 'function');
+            assert.strictEqual(typeof router.findAllowedMatches, 'function');
+        });
+        it('Should return allowed matches', function () {
+            var router = new Router();
+            var rule1 = router.addRule('GET /');
+            var rule2 = router.addRule('PUT /');
+            assert.strictEqual(router.findAllowedMatches('GET', '/')[0].data.name, rule1.data.name);
+            assert.strictEqual(router.findAllowedMatches('PUT', '/')[0].data.name, rule2.data.name);
+        });
+    });
+
+    describe('{Router}.findMatchesFor', function () {
+        it('Should have "findMatchesFor" own method', function () {
+            var router = new Router();
+            assert.strictEqual(typeof router.findMatchesFor, 'function');
         });
 
         it('Should match routes according to passed verb', function () {
@@ -45,7 +55,7 @@ describe('core/router', function () {
             router.addRule('/', {name: 'index1'});
             router.addRule('POST /', {name: 'index2'});
             router.addRule('* /', {name: 'index3'});
-            assert.deepEqual(router.matchAll('/', 'GET'), [
+            assert.deepEqual(router.findMatchesFor('/', router.getAllowedRules('GET')), [
                 {
                     args: {},
                     data: {
@@ -69,7 +79,7 @@ describe('core/router', function () {
                 }
             ]);
 
-            assert.deepEqual(router.matchAll('/', 'POST'), [
+            assert.deepEqual(router.findMatchesFor('/', router.getAllowedRules('POST')), [
                 {
                     args: {},
                     data: {
@@ -86,32 +96,16 @@ describe('core/router', function () {
                 }
             ]);
         });
-
-        it('Should accept "GET" as default verb if omitted', function () {
-            var router = new Router();
-            router.addRule('/', {
-                name: 'foo'
-            });
-            assert.deepEqual(router.matchAll('/'), [
-                {
-                    args: {},
-                    data: {
-                        name: 'foo',
-                        verbs: ['GET', 'HEAD']
-                    }
-                }
-            ]);
-        });
     });
 
-    describe('{Router}.matchVerbs', function () {
+    describe('{Router}.findVerbs', function () {
         it('Should return unique verbs list', function () {
             var router = new Router();
             router.addRule('/', {name: 'index0'});
             router.addRule('/', {name: 'index1'});
             router.addRule('/foo/', {name: 'foo'});
             router.addRule('POST /', {name: 'upload'});
-            assert.deepEqual(router.matchVerbs('/').sort(), ['HEAD', 'GET', 'POST'].sort());
+            assert.deepEqual(router.findVerbs('/').sort(), ['HEAD', 'GET', 'POST'].sort());
         });
     });
 
@@ -193,4 +187,37 @@ describe('core/router', function () {
         });
     });
 
+    describe('router.delRule()', function () {
+        it('Should be a function', function () {
+            var router = new Router();
+            assert.strictEqual(typeof router.delRule, 'function');
+        });
+
+        it('Should remove rule', function () {
+            var router = new Router();
+            router.addRule('/', {
+                name: 'foo'
+            });
+            router.addRule('/', {
+                name: 'bar'
+            });
+            assert.strictEqual(router.rules.length, 2);
+            router.delRule('foo');
+            assert.strictEqual(router.rules.length, 1);
+            router.delRule('bar');
+            assert.strictEqual(router.rules.length, 0);
+        });
+    });
+
+    describe('Router.Matcher', function () {
+        it('Should have Matcher link', function () {
+            assert.strictEqual(Router.Matcher, require('../core/matcher'));
+        });
+    });
+
+    describe('Router.Rule', function () {
+        it('Should have Rule link', function () {
+            assert.strictEqual(Router.Rule, require('../core/rule'));
+        });
+    });
 });

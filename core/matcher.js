@@ -130,13 +130,26 @@ Matcher.prototype._createRule = function (ruleString, params, ruleData) {
  *
  * @returns {Array}
  * */
-Matcher.prototype.matchAll = function (url) {
+Matcher.prototype.findMatches = function (url) {
+    return this.findMatchesFor(url, this.rules);
+};
+
+/**
+ * @public
+ * @memberOf {Matcher}
+ * @method
+ *
+ * @param {String} url
+ * @param {Array<Rule>} rules
+ *
+ * @returns {Array}
+ * */
+Matcher.prototype.findMatchesFor = function (url, rules) {
     var args;
     var i;
     var l;
-    var matches = [];
     var rule;
-    var rules = this.rules;
+    var matches = [];
 
     for (i = 0, l = rules.length; i < l; i += 1) {
         rule = rules[i];

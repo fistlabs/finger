@@ -2,7 +2,6 @@
 
 var R_ADVANCED_PATTERN = /^\s*(?:([a-z]+(?:\s*,\s*[a-z]+)*|\*)\s+)?([\s\S]+?)(?:\s+([a-z]+))?\s*$/i;
 
-var Match = /** @type Match */ require('./match');
 var Matcher = /** @type Matcher */ require('./matcher');
 var Rule = /** @type Rule */ require('./rule');
 
@@ -24,7 +23,7 @@ function Router(params) {
      * @property
      * @type {Object}
      * */
-    this._implemented = Object.create(null);
+    this._rulesByVerb = Object.create(null);
 }
 
 Router.prototype = Object.create(Matcher.prototype);
@@ -38,10 +37,10 @@ Router.prototype.constructor = Router;
  *
  * @param {String} verb
  *
- * @returns {Boolean}
+ * @returns {Array<String>|undefined}
  * */
-Router.prototype.isImplemented = function (verb) {
-    return verb.toUpperCase() in this._implemented;
+Router.prototype.getAllowedRules = function (verb) {
+    return this._rulesByVerb[verb.toUpperCase()] || [];
 };
 
 /**
@@ -58,13 +57,13 @@ Router.prototype.addRule = function (ruleString, ruleData) {
     var rule = Matcher.prototype.addRule.call(this, ruleString, ruleData);
 
     _.forEach(rule.data.verbs, function (verb) {
-        var rules = this._implemented[verb];
+        var rules = this._rulesByVerb[verb];
 
         if (!rules) {
-            rules = this._implemented[verb] = [];
+            rules = this._rulesByVerb[verb] = [];
         }
 
-        rules[rules.length] = rule.data.name;
+        rules[rules.length] = rule;
     }, this);
 
     return rule;
@@ -87,12 +86,12 @@ Router.prototype.delRule = function (name) {
     }
 
     _.forEach(rule.data.verbs, function (verb) {
-        var rules = this._implemented[verb];
+        var rules = this._rulesByVerb[verb];
 
-        _.pull(rules, name);
+        _.remove(rules, {data: {name: name}});
 
-        if (!rules.length) {
-            delete this._implemented[verb];
+        if (!_.size(rules)) {
+            delete this._rulesByVerb[verb];
         }
     }, this);
 
@@ -108,7 +107,21 @@ Router.prototype.delRule = function (name) {
  *
  * @returns {Array}
  * */
-Router.prototype.matchVerbs = function (url) {
+Router.prototype.findVerbs = function (url) {
+    return this.findVerbsFor(url, this.rules);
+};
+
+/**
+ * @public
+ * @memberOf {Router}
+ * @method
+ *
+ * @param {String} url
+ * @param {Array<Rule>} rules
+ *
+ * @returns {Array}
+ * */
+Router.prototype.findVerbsFor = function (url, rules) {
     var args;
     var data;
     var i;
@@ -116,7 +129,6 @@ Router.prototype.matchVerbs = function (url) {
     var k;
     var l;
     var rule;
-    var rules = this.rules;
     var verbs = [];
 
     for (i = 0, l = rules.length; i < l; i += 1) {
@@ -146,41 +158,13 @@ Router.prototype.matchVerbs = function (url) {
  * @memberOf {Router}
  * @method
  *
+ * @param {String} verb
  * @param {String} url
- * @param {String} [verb]
  *
- * @returns {Array}
+ * @returns {Array<Rule>}
  * */
-Router.prototype.matchAll = function (url, verb) {
-    var matches = [];
-    var names;
-    var rule;
-    var i;
-    var l;
-    var args;
-    var rules = this.rules;
-    var index = this._index;
-
-    verb = verb ? String(verb).toUpperCase() : 'GET';
-
-    //  Do not check is verb implemented, let throw error.
-    //  We should check it manually by router.isImplemented
-    // if (!(verb in this._implemented)) {
-    //     return matches;
-    // }
-
-    names = this._implemented[verb];
-
-    for (i = 0, l = names.length; i < l; i += 1) {
-        rule = rules[index[names[i]]];
-        args = rule.match(url);
-
-        if (args) {
-            matches[matches.length] = new Match(args, rule.data);
-        }
-    }
-
-    return matches;
+Router.prototype.findAllowedMatches = function (verb, url) {
+    return this.findMatchesFor(url, this.getAllowedRules(verb));
 };
 
 /**
@@ -295,5 +279,23 @@ Router._createRuleParams = function (defaultParams, routeFlags) {
 
     return params;
 };
+
+/**
+ * @public
+ * @static
+ * @memberOf {Router}
+ * @property
+ * @type Matcher
+ * */
+Router.Matcher = Matcher;
+
+/**
+ * @public
+ * @static
+ * @memberOf {Router}
+ * @property
+ * @type Rule
+ * */
+Router.Rule = Rule;
 
 module.exports = Router;

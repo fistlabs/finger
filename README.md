@@ -3,62 +3,92 @@ finger [![Build Status](https://travis-ci.org/fistlabs/finger.svg?branch=master)
 
 Finger is a powerful and fast nodejs router
 
-##[core/rule](core/rule.js)
-`Rule` is a part of `Matcher` that can match and build urls described in special syntax.
+###Rule
+`Rule` is a class that can match and build urls described in special syntax.
 
-###`Rule new Rule(String ruleString[, Object options[, Object data]])`
+```js
+var Rule = require('finger').Rule;
+```
+
+####`Rule new Rule(String ruleString[, Object options[, Object data]])`
 Creates new rule.
 
 ```js
 var rule = new Rule('/');
 ```
 
-####`String ruleString`
-`ruleString` is a `String` describing url both for matching and building.
-It consists of static rule parts, parameters captures and optional parts.
+#####`String ruleString`
+
+`ruleString` is a string that consists of pathname description nad optional query string description
+
+######Pathname description
+
+Pathname rule is a string that should describe url.
 
 ```
-/news/(42/)
+/news/
 ```
-The `/news/` part describes required part of url, and `42/` - optional.
-Let's make optional part more dynamic:
+
+Pathname rule may include parameters.
+
+```
+/news/<postId>
+```
+
+The rule above both valid for any url that starts with `/news/` and ends with any character sequence except of `/`.
+
+Parameters can have a type.
+
+```
+/news/<Number:postId>
+```
+
+`Number` is a type of `postId` parameter. It is a named type. `Number` type is included in set of [builtin common types](/core/common-types.js).
+
+Types may also be anonymous.
+
+```
+/news/<{\\d+}:postId>
+```
+
+Regular expression may be passed between the `{}`. Parameter are for retreiving values while matching and passing while buiding urls.
+
+Pathname consists of required and optional parts.
 
 ```
 /news/(<postId>/)
 ```
 
-Now, `postId` is parameter now. This rule both valid for `/news/` and `/news/146/` urls.
+In the rule above `postId` parameter including trailing `/` is optinal. The rule both valid for `/news/` and `/news/42/` urls.
 
-Rule string support not only pathname declaration. There is an ability to declare query arguments.
+######Query description
 
-```
-/news/&postId
-```
-
-Now, `postId` is required query parameter.
-
-Urls are not contain `postId` query argument will not be matched.
-
-Query parameters may be multiple:
+Query description is a sequence of query parameters rules. Query parameter may be required or optional.
 
 ```
-/news/<postId>/?tag+
+/news&postId?rnd
 ```
 
-`Tag` is not required parameter but match result will contain all the matched `tag` arguments.
+The rule above describes `/news/` pathname with any query, but `postId` parameter is required. `/news?postId=42` is valid, but `/news` is invalid. `rnd` parameter is optional.
 
-You can specify any count of query parameters rules, even with same names:
+Any query parameter may also have a type.
 
 ```
-/&tag?tag+
+/news/&Number:postId
 ```
 
-First tag argument is required, but all remaining are optional.
+One parameter rule describes one parameter by default. But parameter rules may be multiple.
 
-####`Object options`
+```
+/news/?Number:tag+
+```
+
+The rule above describes news feed, that can be filtered by tags.
+
+#####`Object options`
 Rule object support some options
 
-#####`Boolean options.ignoreCase`
+######`Boolean options.ignoreCase`
 Disables case sensitivity for pathname rule
 
 ```js
@@ -69,7 +99,7 @@ var rule = new Rule('/news/', {
 
 For this rule both `/news/` and `/NeWs/` urls are identical.
 
-#####`Boolean options.appendSlash`
+######`Boolean options.appendSlash`
 Allows url to do not contain trailing slash
 
 ```js
@@ -80,7 +110,7 @@ var rule = new Rule('/news/', {
 
 For this rule both `/news/` and `/news` urls are valid.
 
-####`Object data`
+#####`Object data`
 The data will be appended to rule
 
 ```js
@@ -91,7 +121,7 @@ var rule = new Rule('/news/', {
 });
 ```
 
-###`Object|null rule.match(String url)`
+####`Object|null rule.match(String url)`
 Matches the url to the rule. Returns the set of values according to described arguments
 
 ```js
@@ -101,27 +131,33 @@ rule.match('/news/146/?date=42'); // -> {postId: '146', date: '42'}
 rule.match('/forum/'); // -> null
 ```
 
-###`String rule.build([Object args])`
+####`String rule.build([Object args])`
 Builds url from rule
 
 ```js
 var rule = new Rule('/news/(<postId>/)');
+
 rule.build(); // -> '/news/'
 rule.build({postId: 146}); // -> '/news/146/'
 rule.build({date: 42}); // -> /news/?date=42
 rule.build({postId: 146, date: 42}); // -> /news/146/?date=42
 ```
 
-##[core/matcher](core/matcher.js)
+###Matcher
+
 `Matcher` is a set of rules that gives an interface to manage rules e.g. adding, deleting, matching.
 
-###`Matcher new Matcher([Object options])`
+```js
+var Matcher = require('finger').Matcher;
+```
+
+####`Matcher new Matcher([Object options])`
 Creates new `matcher` object. `options` is a general options for all rules.
 
-###`Rule matcher.addRule(String ruleString[, Object ruleData])`
+####`Rule matcher.addRule(String ruleString[, Object data])`
 Adds a ```rule``` to `matcher`.
 `ruleString` is a rule declaration that I mentioned above.
-`ruleData` is an object that will be associated with rule. `ruleData.name` is required, it will be random generated if omitted.
+`data` is an object that will be associated with rule. `data.name` is required, it will be random generated if omitted.
 
 ```js
 var matcher = new Matcher();
@@ -130,7 +166,7 @@ rule.data.name // -> 'index'
 rule.data.foo // -> 42
 ```
 
-###`Rule|null matcher.delRule(String name)`
+####`Rule|null matcher.delRule(String name)`
 Deletes the rule from set
 
 ```js
@@ -139,7 +175,7 @@ var rule = matcher.addRule('/', {name: 'index'});
 assert.strictEqual(rule, matcher.delRule('index'));
 ```
 
-###`Rule|void matcher.getRule(String name)`
+####`Rule|void matcher.getRule(String name)`
 Returns the `rule` by `name`
 
 ```js
@@ -148,7 +184,7 @@ var rule = matcher.addRule('/', {name: 'index'});
 assert.strictEqual(rule, matcher.getRule('index'));
 ```
 
-###`Array<Object> matcher.matchAll(String url)`
+####`Array<Object> matcher.findMatches(String url)`
 Returns all match results
 
 ```js
@@ -169,45 +205,81 @@ assert.deepEqual(matcher.matchAll('/news/'), [
 ]);
 ```
 
-##Features
+###Router
 
-###Parameter types
-Let's add the types to parameters:
+`Router` is a subclass of `Matcher`.
 
 ```js
-var matcher = new Matcher({
-    types: {
-        MyType: '\\d+'
-    }
-});
-matcher.addRule('/news/<MyType:postId>/');
+var Router = require('finger');
 ```
 
-Now the rule is valid for `/news/42/` but not for `/news/foo/`.
+`Router` is a matches that optimized and improved for match http requests.
 
-There are several builtin [common types](/core/common-types.js)
+`Router`'s rules had extended rule string. `Router`'s rules may describe not only url, but also request method and some options.
 
-###Anonymous parameter types
-Also you can directly specify parameter type by regexp:
-
-```js
-matcher.addRule('/news/<{\\d+}:postId>/')
+```
+POST,PUT /upload/ si
 ```
 
-###Query parameters types
-Query arguments also support typing syntax
+That means that the should match url only if request method are `POST` or `PUT`. Also two last characters at the and of rule means that rule should ignore case and append slash to url. Flags in lower letter case enables options, but in upper, disables.
+
+If method does not specified, that `GET` should be implicitly added. Special value for method is `*`. `*` means that any method will be matched.
+
+####`Array<String> router.findVerbs(String url)`
+
+Find all methods that allowed for passed url.
+
+####`Array<Rule> router.getAllowedRules(String verb)`
+
+Returns all rules that allowed for passed verb.
+
+####`Array<Match> router.findMatchesFor(String url, Array<Rule>)`
+
+Returns all matches for passed url and rules.
+
+###Common usage
 
 ```js
-matcher.addRule('/news/<postId>/&{\\d+}:tag?{\\d+}:tag+');
+var matches = router.getAllowedMatches(req.method, req.url);
+if (!matches.length) {
+    res.statusCode = 404;
+    res.end();
+    return;
+}
+doSomethingWithMatches(matches);
 ```
 
-###Default values
-Let's set default parameter values
+###Advanced usage
 
 ```js
-var rule = new Rule('/news/(<postId=42>/)');
-rule.match('/news/'); // -> {postId: '42'}
-rule.build(); // -> /news/42/
+// Get all rules that potentially may handle request
+var allowedRules = router.getAllowedRules(req.method);
+if (!allowedRules.length) {
+    // The method is not implemented
+    res.statusCode = 501;
+    res.end();
+    return;
+}
+// Find all matched
+var matches = router.findMatchesFor(req.url, allowedRules);
+if (!matches.length) {
+    // No matches found. Maybe incorrect request method
+    var allowedVerbs = router.findVerbs(req.url);
+    if (!allowedVerbs.length) {
+        // No any handlers. Document Not Found
+        res.statusCode = 404;
+        res.end();
+        return;
+    }    
+    // Found other rules, that can handle the request
+    res.setHeader('Allow', allowedVerbs.join(','));
+    // Method Not Allowed
+    res.statusCode = 405;
+    res.end();
+    return;
+}
+// Score!
+doSomethingWithMatches(matches);
 ```
 
 ---------

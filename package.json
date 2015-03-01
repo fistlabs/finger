@@ -38,7 +38,7 @@
     "build"
   ],
   "license": "MIT",
-  "main": "core/matcher",
+  "main": "core/router",
   "name": "finger",
   "repository": {
     "type": "git",
