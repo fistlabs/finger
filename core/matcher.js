@@ -174,7 +174,7 @@ Matcher.prototype.findMatchesFor = function (url, rules) {
  *
  * @param {String} basePath
  *
- * @return {Matcher}
+ * @returns {Matcher}
  * */
 Matcher.prototype.setBasePath = function (basePath) {
     this.params.basePath = basePath;
