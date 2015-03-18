@@ -37,7 +37,9 @@ describe('core/parser/parser', function () {
             '<Type}:foo>',
             '<{{}:foo>',
             '<{}}:foo>',
-            '<{{}}:foo>'
+            '<{{}}:foo>',
+            ':',
+            '<Foo::bar>'
         ];
         var title = 'Should throw error while parsing %j';
 
