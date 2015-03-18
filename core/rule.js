@@ -37,6 +37,7 @@ function Rule(ruleString, params, data) {
      * @type {Object}
      * */
     this.params = _.extend({
+        basePath: '',
         queryEq: '=',
         querySep: '&'
     }, params);
@@ -163,7 +164,7 @@ Rule.prototype.build = function (args) {
     var argName;
 
     args = Object(args);
-    url = this._builderFunc(args);
+    url = this.params.basePath + this._builderFunc(args);
 
     for (i = 0, l = this._queryParamsNames.length; i < l; i += 1) {
         argName = this._queryParamsNames[i];
@@ -249,6 +250,12 @@ Rule.prototype.match = function (url) {
     var queryObject;
     var value;
     var keys;
+
+    if (url.indexOf(this.params.basePath) !== 0) {
+        return null;
+    }
+
+    url = url.substr(this.params.basePath.length);
 
     if (this.params.appendSlash) {
         url = url.replace(/^(\/[^.?\/]+[^\/?])(\?[^?]*)?$/, '$1/$2');
