@@ -2,6 +2,7 @@
 
 var assert = require('assert');
 var Rule = require('../core/rule');
+var Matcher = require('../core/matcher');
 
 describe('base-path-support', function () {
     it('Should have basePath="" param by default', function () {
@@ -31,5 +32,48 @@ describe('base-path-support', function () {
             basePath: '/foo'
         });
         assert.strictEqual(rule.build(), '/foo/bar');
+    });
+
+    describe('Matcher base path', function () {
+        it('Should have basePath="" by default', function () {
+            var matcher = new Matcher();
+            assert.strictEqual(matcher.params.basePath, '');
+        });
+        it('Should pass basePath to all rules', function () {
+            var matcher = new Matcher({
+                basePath: '/foo'
+            });
+            var rule;
+
+            assert.strictEqual(matcher.params.basePath, '/foo');
+
+            rule = matcher.addRule('/bar');
+            assert.strictEqual(rule.params.basePath, '/foo');
+
+            rule = matcher.addRule('/bar');
+            assert.strictEqual(rule.params.basePath, '/foo');
+
+            rule = matcher.addRule('/bar');
+            assert.strictEqual(rule.params.basePath, '/foo');
+        });
+        it('Should have method setBasePath', function () {
+            var matcher = new Matcher();
+            assert.strictEqual(typeof matcher.setBasePath, 'function');
+        });
+
+        it('Should set base path to matcher and all existing rules', function () {
+            var matcher = new Matcher();
+            matcher.addRule('/bar');
+            matcher.addRule('/baz');
+            matcher.addRule('/zot');
+            assert.ok(!matcher.findMatches('/foo/bar').length);
+            assert.ok(!matcher.findMatches('/foo/baz').length);
+            assert.ok(!matcher.findMatches('/foo/zot').length);
+            matcher.setBasePath('/foo');
+            assert.strictEqual(matcher.params.basePath, '/foo');
+            assert.ok(matcher.findMatches('/foo/bar').length);
+            assert.ok(matcher.findMatches('/foo/baz').length);
+            assert.ok(matcher.findMatches('/foo/zot').length);
+        });
     });
 });

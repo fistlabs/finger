@@ -3,6 +3,8 @@
 var Match = /** @type Match */ require('./match');
 var Rule = /** @type Rule */ require('./rule');
 
+var _ = require('lodash-node');
+
 /**
  * @class Matcher
  * @param {Object} params
@@ -15,7 +17,9 @@ function Matcher(params) {
      * @property
      * @type {Object}
      * */
-    this.params = Object(params);
+    this.params = _.extend({
+        basePath: ''
+    }, params);
 
     /**
      * @public
@@ -161,6 +165,23 @@ Matcher.prototype.findMatchesFor = function (url, rules) {
     }
 
     return matches;
+};
+
+/**
+ * @public
+ * @memberOf {Matcher}
+ * @method
+ *
+ * @param {String} basePath
+ *
+ * @return {Matcher}
+ * */
+Matcher.prototype.setBasePath = function (basePath) {
+    this.params.basePath = basePath;
+    _.forEach(this.rules, function (rule) {
+        rule.params.basePath = basePath;
+    });
+    return this;
 };
 
 module.exports = Matcher;
