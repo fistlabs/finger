@@ -8,6 +8,7 @@ exports.Alnum = '\\w+';
 
 exports.Path = '[^?&]+?';
 
-exports.Ident = '[a-zA-Z]\\w*(?:-[a-zA-Z]\\w*)*';
+exports.Ident = '(?:[$a-zA-Z][$a-zA-Z\\d]*)(?:_[$a-zA-Z][$a-zA-Z\\d]*)*' +
+    '(?:-(?:[$a-zA-Z][$a-zA-Z\\d]*)(?:_[$a-zA-Z][$a-zA-Z\\d]*)*)*';
 
 exports.Segment = '[^/?&]+?';
