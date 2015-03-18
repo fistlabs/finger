@@ -3,111 +3,109 @@
 function Alternate(ruleIndex, valueIndex) {
     this.ruleIndex = ruleIndex;
     this.valueIndex = valueIndex;
-    this.match = null;
-}
-
-function Match(value) {
-    this.value = value;
+    this.value = null;
 }
 
 function matchValues(rules, types, values) {
     /*eslint
-        no-labels: 0,
         max-depth: 0,
-        block-scoped-var: 0,
         no-constant-condition: 0,
         complexity: 0
         */
     var result = [];
     var alters = [];
     var valuesLength = values.length;
-    var ruleIndex = -1;
     var rulesLength = rules.length;
+    var matchLength = 0;
+    var ruleIndex = 0;
+    var matchCount = 0;
+    var matchIndex = -1;
+    var valueIndex = matchIndex;
 
-    var alternate;
-    var nextRule;
-    var ruleMatchesCount;
-    var prevMatchIndex = -1;
-    var resultLength;
-    var nextRuleKind;
-    var nextValueIndex;
+    var path = null;
+    var rule = void 0;
+    var type = void 0;
 
-    overAllRules: while (rulesLength - ruleIndex > 1) {
-        ruleIndex += 1;
-        nextRule = rules[ruleIndex];
-        ruleMatchesCount = 0;
-        nextRuleKind = types[nextRule.kind];
-        nextValueIndex = prevMatchIndex;
+    do {
+        rule = rules[ruleIndex];
+        type = types[rule.kind];
+        matchCount = 0;
+        valueIndex = matchIndex;
 
-        while (valuesLength - nextValueIndex > 1) {
-            nextValueIndex += 1;
+        while (valuesLength - valueIndex > 1) {
+            valueIndex += 1;
             // find next matched value
-            if (!nextRuleKind.check(values[nextValueIndex])) {
-                // false?
+            if (!type.check(values[valueIndex])) {
                 continue;
             }
 
-            ruleMatchesCount += 1;
+            matchCount += 1;
+            matchLength = result.push(values[valueIndex]) - 1;
 
-            resultLength = result.push(values[nextValueIndex]) - 1;
-
-            if (nextRule.required) {
-                if (ruleMatchesCount > 1) {
-                    alters[resultLength] = new Alternate(ruleIndex, prevMatchIndex);
+            if (rule.required) {
+                if (matchCount > 1) {
+                    alters[matchLength] = new Alternate(ruleIndex, matchIndex);
                 }
             } else {
-                alters[resultLength] = new Alternate(ruleIndex, prevMatchIndex);
+                path = alters[matchLength] = new Alternate(ruleIndex, matchIndex);
 
-                if (ruleMatchesCount === 1 && nextRule.value) {
-                    alters[resultLength].match = new Match(nextRule.value);
+                if (matchCount === 1) {
+                    path.value = rule.value;
                 }
             }
 
-            prevMatchIndex = nextValueIndex;
+            matchIndex = valueIndex;
 
-            if (nextRule.multiple) {
+            if (rule.multiple) {
                 continue;
             }
 
             break;
         }
 
-        if (ruleMatchesCount > 0) {
+        if (matchCount > 0) {
+            // ok!
             continue;
         }
 
-        if (!nextRule.required) {
-            if (nextRule.value) {
-                result.push(nextRule.value);
+        if (!rule.required) {
+            if (rule.value) {
+                // push default value if rule is not required
+                result.push(rule.value);
             }
             continue;
         }
 
-        ruleIndex -= 1;
+        path = null;
 
         // back to alternate path
-        while (result.length) {
-            result.pop();
+        while (result.pop()) {
+            matchLength = result.length;
             // find alternate
-            alternate = alters[result.length];
+            path = alters[matchLength];
             // remove alternate (used)
-            alters[result.length] = null;
+            alters[matchLength] = null;
 
-            if (alternate) {
+            if (path) {
                 // alternate found
-                prevMatchIndex = alternate.valueIndex;
-                ruleIndex = alternate.ruleIndex;
+                matchIndex = path.valueIndex;
+                ruleIndex = path.ruleIndex;
 
-                if (alternate.match) {
-                    result.push(alternate.match.value);
+                if (path.value) {
+                    result.push(path.value);
                 }
 
-                continue overAllRules;
+                break;
             }
         }
 
-        return null;
-    }
+        // how to avoid double `if (alter)` with no labels?
+        if (!path) {
+            // no alternates found
+            return null;
+        }
+
+    } while ((ruleIndex += 1) < rulesLength);
 
     return result;
 }
