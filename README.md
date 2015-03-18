@@ -51,7 +51,7 @@ Types may also be anonymous.
 /news/<{\\d+}:postId>
 ```
 
-Regular expression may be passed between the `{}`. Parameter are for retreiving values while matching and passing while buiding urls.
+Regular expression may be passed between the `{}`. Parameter are for retrieving values while matching and passing while building urls.
 
 Pathname consists of required and optional parts.
 
@@ -59,7 +59,7 @@ Pathname consists of required and optional parts.
 /news/(<postId>/)
 ```
 
-In the rule above `postId` parameter including trailing `/` is optinal. The rule both valid for `/news/` and `/news/42/` urls.
+In the rule above `postId` parameter including trailing `/` is optional. The rule both valid for `/news/` and `/news/42/` urls.
 
 ######Query description
 
