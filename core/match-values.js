@@ -41,42 +41,37 @@ function matchValues(rules, types, values) {
         ruleMatchesCount = 0;
         prevMatchIndex = valueIndex;
         nextRuleKind = types[nextRule.kind];
+        nextValueIndex = valueIndex + 1;
 
-        overNextRule: while (true) {
-            // iterate over current rule while it will not be matched at all
-            nextValueIndex = valueIndex + 1;
+        while (nextValueIndex < valuesLength) {
+            // find next matched value
+            if (!nextRuleKind.check(values[nextValueIndex])) {
+                nextValueIndex += 1;
+                continue;
+            }
 
-            while (nextValueIndex < valuesLength) {
-                // find next matched value
-                if (!nextRuleKind.check(values[nextValueIndex])) {
-                    nextValueIndex += 1;
-                    continue;
-                }
+            matchIndex = nextValueIndex;
+            ruleMatchesCount += 1;
 
-                matchIndex = nextValueIndex;
-                ruleMatchesCount += 1;
+            resultLength = result.push(values[matchIndex]) - 1;
 
-                resultLength = result.push(values[matchIndex]) - 1;
-
-                if (nextRule.required) {
-                    if (ruleMatchesCount > 1) {
-                        alters[resultLength] = new Alternate(nextRuleIndex, prevMatchIndex);
-                    }
-                } else {
+            if (nextRule.required) {
+                if (ruleMatchesCount > 1) {
                     alters[resultLength] = new Alternate(nextRuleIndex, prevMatchIndex);
-
-                    if (ruleMatchesCount === 1 && nextRule.value) {
-                        alters[resultLength].match = new Match(nextRule.value);
-                    }
                 }
+            } else {
+                alters[resultLength] = new Alternate(nextRuleIndex, prevMatchIndex);
 
-                valueIndex = prevMatchIndex = matchIndex;
-
-                if (nextRule.multiple) {
-                    continue overNextRule;
+                if (ruleMatchesCount === 1 && nextRule.value) {
+                    alters[resultLength].match = new Match(nextRule.value);
                 }
+            }
 
-                break overNextRule;
+            valueIndex = prevMatchIndex = matchIndex;
+
+            if (nextRule.multiple) {
+                nextValueIndex = valueIndex + 1;
+                continue;
             }
 
             break;
