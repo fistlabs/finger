@@ -111,7 +111,7 @@ var rule = new Rule('/news/', {
 For this rule both `/news/` and `/news` urls are valid.
 
 ######`String options.queryEq`
-A character which separates query argument name and value. Defaults to '='.
+A character which separates query argument name and value. Defaults to `'='`.
 
 ```js
 var rule = new Rule('/', {
@@ -121,7 +121,7 @@ rule.match('/?foo:bar'); // -> {foo: 'bar'}
 ```
 
 ######`String options.querySep`
-A character which separates query arguments. Defaults to '&'.
+A character which separates query arguments. Defaults to `'&'`.
 
 ```js
 var rule = new Rule('/', {
