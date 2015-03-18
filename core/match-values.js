@@ -1,9 +1,10 @@
 'use strict';
 
-function Path(ruleIndex, valueIndex) {
-    this.ruleIndex = ruleIndex;
+function Path(rulesIndex, valueIndex, matchLength) {
+    this.rulesIndex = rulesIndex;
     this.valueIndex = valueIndex;
-    this.value = null;
+    this.matchLength = matchLength;
+    this.value = '';
 }
 
 function matchValues(rules, kinds, value) {
@@ -19,87 +20,80 @@ function matchValues(rules, kinds, value) {
     var valueIndex = matchIndex;
     var valueLength = value.length;
     var rulesLength = rules.length;
-    var matchLength = 0;
 
     do {
+        // match current rule
         rule = rules[rulesIndex];
         kind = kinds[rule.kind];
         matchCount = 0;
         valueIndex = matchIndex;
 
         while (valueLength - valueIndex > 1) {
+            // match all values to rule
             valueIndex += 1;
-            // find next matched value
+
             if (!kind.check(value[valueIndex])) {
+                // the value is not suitable
                 continue;
             }
 
+            // Score! We have a match!
             matchCount += 1;
-            matchLength = match.push(value[valueIndex]) - 1;
 
             if (rule.required) {
                 if (matchCount > 1) {
-                    paths[matchLength] = new Path(rulesIndex, matchIndex);
+                    // every optional match in required rule is an alternate path
+                    // save link to previous match
+                    paths.push(new Path(rulesIndex, matchIndex, match.length));
                 }
             } else {
-                path = paths[matchLength] = new Path(rulesIndex, matchIndex);
+                // every match on optional rule is an alternate path
+                path = new Path(rulesIndex, matchIndex, match.length);
 
                 if (matchCount === 1) {
+                    // save default value for the case when alternate is to skip the rule
                     path.value = rule.value;
                 }
-            }
 
+                paths.push(path);
+            }
+            // Save result
+            match.push(value[valueIndex]);
+            // save success match index
             matchIndex = valueIndex;
 
-            if (rule.multiple) {
-                continue;
+            if (!rule.multiple) {
+                // rule supports single match, stop matching rule
+                break;
             }
-
-            break;
+            // the rule supports for multiple matches
         }
 
         if (matchCount > 0) {
-            // ok!
+            // matches found, jump to next rule
             continue;
         }
 
-        if (!rule.required) {
-            if (rule.value) {
-                // push default value if rule is not required
-                match.push(rule.value);
-            }
-            continue;
-        }
-
-        path = null;
-
-        // back to alternate path
-        while (match.pop()) {
-            matchLength = match.length;
-            // find alternate
-            path = paths[matchLength];
-            // remove alternate (used)
-            paths[matchLength] = null;
-
-            if (!path) {
-                continue;
+        if (rule.required) {
+            // rule is required, need to find alternate path
+            if (!paths.length) {
+                // no alternates
+                return null;
             }
 
-            // alternate found
+            path = paths.pop();
+
+            // alternate found, unpack state
             matchIndex = path.valueIndex;
-            rulesIndex = path.ruleIndex;
-
-            if (path.value) {
-                match.push(path.value);
-            }
-
-            break;
+            rulesIndex = path.rulesIndex;
+            rule = rules[rulesIndex];
+            // crop match result
+            match.length = path.matchLength;
         }
 
-        // how to avoid double `if (alter)` with no labels?
-        if (!path) {
-            // no alternates found
-            return null;
+        if (rule.value) {
+            // have value with alternate
+            match.push(rule.value);
         }
 
     } while ((rulesIndex += 1) < rulesLength);
