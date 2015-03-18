@@ -22,14 +22,13 @@ function matchValues(rules, types, values) {
     var alters = [];
     var valuesLength = values.length;
     var ruleIndex = -1;
-    var valueIndex = -1;
     var rulesLength = rules.length;
 
     var alternate;
     var nextRuleIndex;
     var nextRule;
     var ruleMatchesCount;
-    var prevMatchIndex;
+    var prevMatchIndex = -1;
     var resultLength;
     var matchIndex;
     var nextRuleKind;
@@ -39,9 +38,8 @@ function matchValues(rules, types, values) {
         nextRuleIndex = ruleIndex += 1;
         nextRule = rules[nextRuleIndex];
         ruleMatchesCount = 0;
-        prevMatchIndex = valueIndex;
         nextRuleKind = types[nextRule.kind];
-        nextValueIndex = valueIndex + 1;
+        nextValueIndex = prevMatchIndex + 1;
 
         while (nextValueIndex < valuesLength) {
             // find next matched value
@@ -67,10 +65,10 @@ function matchValues(rules, types, values) {
                 }
             }
 
-            valueIndex = prevMatchIndex = matchIndex;
+            prevMatchIndex = matchIndex;
 
             if (nextRule.multiple) {
-                nextValueIndex = valueIndex + 1;
+                nextValueIndex += 1;
                 continue;
             }
 
@@ -100,7 +98,7 @@ function matchValues(rules, types, values) {
 
             if (alternate) {
                 // alternate found
-                valueIndex = alternate.valueIndex;
+                prevMatchIndex = alternate.valueIndex;
                 ruleIndex = alternate.ruleIndex;
 
                 if (alternate.match) {
