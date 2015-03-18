@@ -110,6 +110,38 @@ var rule = new Rule('/news/', {
 
 For this rule both `/news/` and `/news` urls are valid.
 
+######`String options.queryEq`
+A character which separates query argument name and value. Defaults to '='.
+
+```js
+var rule = new Rule('/', {
+    queryEq: ':'
+});
+rule.match('/?foo:bar'); // -> {foo: 'bar'}
+```
+
+######`String options.querySep`
+A character which separates query arguments. Defaults to '&'.
+
+```js
+var rule = new Rule('/', {
+    querySep: ','
+});
+rule.match('/?foo=bar,bar=baz'); // -> {foo: 'bar', bar: 'baz'}
+```
+
+######`String options.basePath`
+Base urls path.
+
+```js
+var rule = new Rule('/news/', {
+    basePath: '/site/'
+});
+rule.match('/news/'); // -> null
+rule.match('/site/news/'); // -> {}
+rule.build(); // -> /site/news/
+```
+
 #####`Object data`
 The data will be appended to rule
 
@@ -203,6 +235,17 @@ assert.deepEqual(matcher.matchAll('/news/'), [
         }
     }
 ]);
+```
+
+####`Matcher matcher.setBasePath(String basePath)`
+Set basePath to all existing rules. Also basePath will be applied to all new rules.
+
+```js
+var matcher = new Matcher();
+matcher.addRule('/news/', {name: 'news'});
+matcher.findMatches('/site/news/'); // -> []
+matcher.setBasePath('/site/');
+matcher.findMatches('/site/news/'); // -> [{name: 'news', args: {}}]
 ```
 
 ###Router
