@@ -256,7 +256,7 @@ matcher.findMatches('/site/news/'); // -> [{name: 'news', args: {}}]
 var Router = require('finger');
 ```
 
-`Router` is a matches that optimized and improved for match http requests.
+`Router` is a `Matcher` that optimized and improved to match http requests.
 
 `Router`'s rules had extended rule string. `Router`'s rules may describe not only url, but also request method and some options.
 
