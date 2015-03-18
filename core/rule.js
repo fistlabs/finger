@@ -87,36 +87,27 @@ function Rule(ruleString, params, data) {
         return new Type(kind, regex);
     });
 
-    _.forEach(this._pathParams, function (rule) {
-
-        if (!rule.kind) {
-            if (rule.regex) {
-                rule.setUniqueKindName();
-                this._types[rule.kind] = new Type(rule.kind, rule.regex);
-            } else {
-                rule.kind = 'Segment';
+    _.forEach([{
+        rules: this._pathParams,
+        defaultKind: 'Segment'
+    }, {
+        rules: this._pathRule.query,
+        defaultKind: 'String'
+    }], function (setup) {
+        _.forEach(setup.rules, function (rule) {
+            if (!rule.kind) {
+                if (rule.regex) {
+                    rule.setUniqueKindName();
+                    this._types[rule.kind] = new Type(rule.kind, rule.regex);
+                } else {
+                    rule.kind = setup.defaultKind;
+                }
             }
-        }
 
-        if (!_.has(this._types, rule.kind)) {
-            throw new TypeError(f('Unknown %j parameter type %j', rule.name, rule.kind));
-        }
-    }, this);
-
-    _.forEach(this._pathRule.query, function (rule) {
-
-        if (!rule.kind) {
-            if (rule.regex) {
-                rule.setUniqueKindName();
-                this._types[rule.kind] = new Type(rule.kind, rule.regex);
-            } else {
-                rule.kind = 'String';
+            if (!_.has(this._types, rule.kind)) {
+                throw new TypeError(f('Unknown %j parameter type %j', rule.name, rule.kind));
             }
-        }
-
-        if (!_.has(this._types, rule.kind)) {
-            throw new TypeError(f('Unknown %j parameter type %j', rule.name, rule.kind));
-        }
+        }, this);
     }, this);
 
     /**
