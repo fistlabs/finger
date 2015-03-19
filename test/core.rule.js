@@ -717,6 +717,17 @@ describe('core/rule', function () {
                         }
                     ]
                 ]
+            ],
+            [
+                '/&postId',
+                [
+                    [
+                        '/?postId=42',
+                        {
+                            postId: 42
+                        }
+                    ]
+                ]
             ]
         ];
 

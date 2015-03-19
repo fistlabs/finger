@@ -84,7 +84,7 @@ Kind.checkRegExp = function (regexp) {
  * @returns {Boolean}
  * */
 Kind.prototype.check = function (v) {
-    return Boolean(v) && this._compiledRegExp.test(v);
+    return v !== void 0 &&  v !== null && v !== '' && this._compiledRegExp.test(v);
 };
 
 module.exports = Kind;

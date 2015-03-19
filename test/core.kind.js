@@ -50,6 +50,21 @@ describe('core/kind', function () {
             assert.strictEqual(typeof kind.check, 'function');
         });
 
+        it('Should always return false for empty strings', function () {
+            var kind = new Kind('kind', '[\\s\\S]*');
+            assert.ok(!kind.check(''));
+        });
+
+        it('Should always return false for null', function () {
+            var kind = new Kind('kind', '[\\s\\S]*');
+            assert.ok(!kind.check(null));
+        });
+
+        it('Should always return false for undefined', function () {
+            var kind = new Kind('kind', '[\\s\\S]*');
+            assert.ok(!kind.check(void 0));
+        });
+
         it('Should check value by regexp', function () {
             var kind;
             kind = new Kind('foo', '\\w+');
