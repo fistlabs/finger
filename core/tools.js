@@ -3,13 +3,14 @@
 var RuleSeq = /** @type RuleSeq */ require('./parser/rule-seq');
 var Parser = /** @type Parser */ require('./parser/parser');
 
+var parser = new Parser();
+
 /**
  * @class Tools
  * @extends Parser
  * @param {String} ruleString
  * */
 function Tools(ruleString) {
-    Parser.call(this);
 
     /**
      * @protected
@@ -27,8 +28,6 @@ function Tools(ruleString) {
      * */
     this._pathRule = this._compilePathRule();
 }
-
-Tools.prototype = Object.create(Parser.prototype);
 
 Tools.prototype.constructor = Tools;
 
@@ -84,7 +83,7 @@ Tools.prototype.toString = function () {
  * @returns {RulePath}
  * */
 Tools.prototype._compilePathRule = function () {
-    return this.parse(this._ruleString);
+    return parser.parse(this._ruleString);
 };
 
 /**

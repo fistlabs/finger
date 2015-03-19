@@ -678,7 +678,7 @@ Rule.prototype._findPathParams = function () {
  * @memberOf {Rule}
  * @method
  *
- * @returns {RuleSeq}
+ * @returns {RulePath}
  * */
 Rule.prototype._compilePathRule = function () {
     var rule = Tools.prototype._compilePathRule.call(this);
