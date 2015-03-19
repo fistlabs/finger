@@ -5,11 +5,13 @@ var gulpJisonLex = require('gulp-jison-lex');
 
 var parserPipe = gulpJison({
     type: 'slr',
-    moduleType: 'commonjs'
+    moduleType: 'commonjs',
+    moduleName: 'jisonParser'
 });
 
 var lexerPipe = gulpJisonLex({
-    moduleType: 'commonjs'
+    moduleType: 'commonjs',
+    moduleName: 'jisonLexer'
 });
 
 module.exports = function (gulp) {
