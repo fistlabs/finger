@@ -3,20 +3,20 @@
 var f = require('util').format;
 
 /**
- * @class Type
+ * @class Kind
  *
  * @param {String} name
  * @param {String} regex
  * */
-function Type(name, regex) {
+function Kind(name, regex) {
 
-    if (!Type.checkRegExp(regex)) {
+    if (!Kind.checkRegExp(regex)) {
         throw new TypeError(f('Invalid %j type regexp %j', name, regex));
     }
 
     /**
      * @public
-     * @memberOf {Type}
+     * @memberOf {Kind}
      * @property
      * @type {String}
      * */
@@ -24,7 +24,7 @@ function Type(name, regex) {
 
     /**
      * @public
-     * @memberOf {Type}
+     * @memberOf {Kind}
      * @property
      * @type {String}
      * */
@@ -32,7 +32,7 @@ function Type(name, regex) {
 
     /**
      * @public
-     * @memberOf {Type}
+     * @memberOf {Kind}
      * @property
      * @type {RegExp}
      * */
@@ -42,13 +42,13 @@ function Type(name, regex) {
 /**
  * @public
  * @static
- * @memberOf {Type}
+ * @memberOf {Kind}
  *
  * @param {String} regexp
  *
  * @returns {Boolean}
  * */
-Type.checkRegExp = function (regexp) {
+Kind.checkRegExp = function (regexp) {
     var $;
     var r;
 
@@ -76,15 +76,15 @@ Type.checkRegExp = function (regexp) {
 
 /**
  * @public
- * @memberOf {Type}
+ * @memberOf {Kind}
  * @method
  *
  * @param {String} v
  *
  * @returns {Boolean}
  * */
-Type.prototype.check = function (v) {
+Kind.prototype.check = function (v) {
     return Boolean(v) && this._compiledRegExp.test(v);
 };
 
-module.exports = Type;
+module.exports = Kind;

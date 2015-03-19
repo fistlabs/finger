@@ -1,6 +1,6 @@
 'use strict';
 
-var Type = require('../core/type');
+var Kind = require('../core/kind');
 
 var _ = require('lodash-node');
 var assert = require('assert');
@@ -9,7 +9,7 @@ describe('core/common-types', function () {
     var types = require('../core/common-types');
 
     describe('Ident', function () {
-        var ident = new Type('Ident', types.Ident);
+        var ident = new Kind('Ident', types.Ident);
 
         it('Should have Ident type', function () {
             assert.ok(_.has(types, 'Ident'));

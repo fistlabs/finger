@@ -7,7 +7,7 @@ var RuleSep = /** @type RuleSep */ require('./parser/rule-sep');
 var RuleSeq = /** @type RuleSeq */ require('./parser/rule-seq');
 
 var Tools = /** @type Tools */ require('./tools');
-var Type = /** @type Type */ require('./type');
+var Kind = /** @type Kind */ require('./kind');
 
 var _ = require('lodash-node');
 var au = require('./ast-utils');
@@ -84,8 +84,8 @@ function Rule(ruleString, params, data) {
      * @property
      * @type {Object}
      * */
-    this._types = _.mapValues(this.params.types, function (regex, kind) {
-        return new Type(kind, regex);
+    this._kinds = _.mapValues(this.params.types, function (regex, kind) {
+        return new Kind(kind, regex);
     });
 
     _.forEach([{
@@ -99,13 +99,13 @@ function Rule(ruleString, params, data) {
             if (!rule.kind) {
                 if (rule.regex) {
                     rule.setUniqueKindName();
-                    this._types[rule.kind] = new Type(rule.kind, rule.regex);
+                    this._kinds[rule.kind] = new Kind(rule.kind, rule.regex);
                 } else {
                     rule.kind = setup.defaultKind;
                 }
             }
 
-            if (!_.has(this._types, rule.kind)) {
+            if (!_.has(this._kinds, rule.kind)) {
                 throw new TypeError(f('Unknown %j parameter type %j', rule.name, rule.kind));
             }
         }, this);
@@ -367,7 +367,7 @@ Rule.prototype._matchQueryArg = function (queryObject, paramName) {
         values = [queryObject[paramName]];
     }
 
-    return matchValues(rules, this._types, values);
+    return matchValues(rules, this._kinds, values);
 };
 
 /**
@@ -576,7 +576,7 @@ Rule.prototype._compileMatchRegExpPart = function (part, stackPop, n) {
     }
 
     if (type === RuleArg.TYPE) {
-        type = this._types[part.kind];
+        type = this._kinds[part.kind];
 
         return '(' + type.regex + ')';
     }

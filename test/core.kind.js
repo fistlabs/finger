@@ -5,11 +5,11 @@ var _ = require('lodash-node');
 var assert = require('assert');
 var util = require('util');
 
-describe('core/type', function () {
+describe('core/kind', function () {
     /*eslint max-nested-callbacks: 0*/
-    var Type = require('../core/type');
+    var Kind = require('../core/kind');
 
-    describe('Type.checkRegExp', function () {
+    describe('Kind.checkRegExp', function () {
         var samples = [
             ['', true],
             ['()', false],
@@ -23,7 +23,7 @@ describe('core/type', function () {
         ];
 
         it('Should have static method "checkRegExp"', function () {
-            assert.strictEqual(typeof Type.checkRegExp, 'function');
+            assert.strictEqual(typeof Kind.checkRegExp, 'function');
         });
 
         _.forEach(samples, function (s) {
@@ -31,37 +31,37 @@ describe('core/type', function () {
             shouldText = util.format(shouldText, s[0], s[1]);
 
             it(shouldText, function () {
-                assert.strictEqual(Type.checkRegExp(s[0]), s[1]);
+                assert.strictEqual(Kind.checkRegExp(s[0]), s[1]);
             });
         });
     });
 
-    describe('Type', function () {
+    describe('Kind', function () {
         it('Should throw TypeError on invalid regexps', function () {
             assert.throws(function () {
-                return new Type('kind', '(');
+                return new Kind('kind', '(');
             }, TypeError);
         });
     });
 
-    describe('type.check', function () {
+    describe('kind.check', function () {
         it('Should be a function', function () {
-            var type = new Type('kind', '\\w+');
-            assert.strictEqual(typeof type.check, 'function');
+            var kind = new Kind('kind', '\\w+');
+            assert.strictEqual(typeof kind.check, 'function');
         });
 
         it('Should check value by regexp', function () {
-            var type;
-            type = new Type('foo', '\\w+');
-            assert.ok(type.check('a'));
-            assert.ok(!type.check('|'));
-            type = new Type('foo', '\\d+|[a-z]+');
-            assert.ok(type.check('5'));
-            assert.ok(type.check('555'));
-            assert.ok(type.check('a'));
-            assert.ok(type.check('aaa'));
-            assert.ok(!type.check('|'));
-            assert.ok(!type.check('5a'));
+            var kind;
+            kind = new Kind('foo', '\\w+');
+            assert.ok(kind.check('a'));
+            assert.ok(!kind.check('|'));
+            kind = new Kind('foo', '\\d+|[a-z]+');
+            assert.ok(kind.check('5'));
+            assert.ok(kind.check('555'));
+            assert.ok(kind.check('a'));
+            assert.ok(kind.check('aaa'));
+            assert.ok(!kind.check('|'));
+            assert.ok(!kind.check('5a'));
         });
     });
 
