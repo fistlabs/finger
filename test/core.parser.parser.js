@@ -11,8 +11,9 @@ describe('core/parser/parser', function () {
     var RuleArg = require('../core/parser/rule-arg');
     var RuleSep = require('../core/parser/rule-sep');
     var RuleSeq = require('../core/parser/rule-seq');
+    var Parser = require('../core/parser/parser');
 
-    var parser = require('../core/parser/parser');
+    var parser = new Parser();
 
     describe('Expecting Errors', function () {
         var samples = [

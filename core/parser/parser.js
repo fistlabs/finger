@@ -5,13 +5,10 @@ var RuleAny = /** @type RuleAny */ require('./rule-any');
 var RuleSep = /** @type RuleSep */ require('./rule-sep');
 var RuleArg = /** @type RuleArg */ require('./rule-arg');
 var RulePath = /** @type RulePath */ require('./rule-path');
-
-var parser = require('./build/rule_parser').parser;
+var StdParser = /** @type StdParser */ require('./build/rule_parser').Parser;
 var lexer = require('./build/rule_lexer').lexer;
 
-parser.lexer = lexer;
-
-parser.yy = {
+var yy = {
     createRuleArg: function () {
         return new RuleArg();
     },
@@ -29,4 +26,18 @@ parser.yy = {
     }
 };
 
-module.exports = parser;
+/**
+ * @class Parser
+ * @extends StdParser
+ * */
+function Parser() {
+    StdParser.call(this);
+    this.lexer = lexer;
+    this.yy = yy;
+}
+
+Parser.prototype = Object.create(StdParser.prototype);
+
+Parser.prototype.constructor = Parser;
+
+module.exports = Parser;

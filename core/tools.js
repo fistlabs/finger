@@ -1,14 +1,15 @@
 'use strict';
 
 var RuleSeq = /** @type RuleSeq */ require('./parser/rule-seq');
-
-var parser = require('./parser/parser');
+var Parser = /** @type Parser */ require('./parser/parser');
 
 /**
  * @class Tools
+ * @extends Parser
  * @param {String} ruleString
  * */
 function Tools(ruleString) {
+    Parser.call(this);
 
     /**
      * @protected
@@ -22,10 +23,14 @@ function Tools(ruleString) {
      * @protected
      * @memberOf {Tools}
      * @property
-     * @type {RuleSeq}
+     * @type {RulePath}
      * */
     this._pathRule = this._compilePathRule();
 }
+
+Tools.prototype = Object.create(Parser.prototype);
+
+Tools.prototype.constructor = Tools;
 
 /**
  * @public
@@ -76,10 +81,10 @@ Tools.prototype.toString = function () {
  * @memberOf {Tools}
  * @method
  *
- * @returns {RuleSeq}
+ * @returns {RulePath}
  * */
 Tools.prototype._compilePathRule = function () {
-    return parser.parse(this._ruleString);
+    return this.parse(this._ruleString);
 };
 
 /**
