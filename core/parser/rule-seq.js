@@ -41,7 +41,7 @@ RuleSeq.TYPE = 'RULE_SEQ';
  * @returns {RuleSeq}
  * */
 RuleSeq.prototype.addRule = function (rule) {
-    this.parts[this.parts.length] = rule;
+    this.parts.push(rule);
     return this;
 };
 

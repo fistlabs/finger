@@ -8,7 +8,7 @@
 %token '?'
 %token '&'
 %token '+'
-%token REGEX
+%token RGX
 %token ALL
 %token EOF
 
@@ -48,18 +48,20 @@ QUERY_ARG :
     }
     |
     '&' ARG '+' {
-        $2.required = $2.multiple = true;
+        $2.required = true;
+        $2.multiple = true;
         $$ = $2;
     }
     |
     '?' ARG {
-        $2.required = $2.multiple = false;
+        $2.required = false;
+        $2.multiple = false;
         $$ = $2;
     }
     |
     '&' ARG {
-        $2.multiple = false;
         $2.required = true;
+        $2.multiple = false;
         $$ = $2;
     }
     ;
@@ -123,7 +125,7 @@ VAR :
     ;
 
 IMPL_KIND :
-    REGEX {
+    RGX {
         $$ = $1.substring(1, $1.length - 1);
     }
     ;

@@ -114,7 +114,7 @@ describe('core/parser/rule-arg', function () {
         });
     });
 
-    describe('{RuleArg}.generateUniqueKindName()', function () {
+    describe('{RuleArg}.setUniqueKindName()', function () {
         it('Should set random generated kind', function () {
             var generateUniqueKindName = RuleArg.generateUniqueKindName;
             var rule = new RuleArg();
@@ -124,6 +124,19 @@ describe('core/parser/rule-arg', function () {
             rule.setUniqueKindName();
             assert.strictEqual(rule.kind, 'foo');
             RuleArg.generateUniqueKindName = generateUniqueKindName;
+        });
+    });
+
+    describe('{RuleArg}.setDefault', function () {
+        it('Should set rule.value', function () {
+            var rule = new RuleArg();
+            rule.setDefault('foo');
+            assert.strictEqual(rule.value, 'foo');
+        });
+        it('Should unescape value', function () {
+            var rule = new RuleArg();
+            rule.setDefault('\\fo\\o');
+            assert.strictEqual(rule.value, 'foo');
         });
     });
 });

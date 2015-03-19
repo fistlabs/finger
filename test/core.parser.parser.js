@@ -91,7 +91,9 @@ describe('core/parser/parser', function () {
                             name: 'foo',
                             kind: '',
                             value: void 0,
-                            regex: null
+                            regex: null,
+                            required: true,
+                            multiple: false
                         }
                     ],
                     query: []
@@ -120,7 +122,9 @@ describe('core/parser/parser', function () {
                                     name: 'postId',
                                     kind: '',
                                     value: void 0,
-                                    regex: null
+                                    regex: null,
+                                    required: true,
+                                    multiple: false
                                 },
                                 {
                                     type: RuleSep.TYPE
@@ -141,7 +145,9 @@ describe('core/parser/parser', function () {
                             name: 'name',
                             kind: 'kind',
                             value: void 0,
-                            regex: null
+                            regex: null,
+                            required: true,
+                            multiple: false
                         }
                     ],
                     query: []
@@ -157,7 +163,9 @@ describe('core/parser/parser', function () {
                             name: 'postId',
                             kind: '',
                             value: '42',
-                            regex: null
+                            regex: null,
+                            required: true,
+                            multiple: false
                         }
                     ],
                     query: []
@@ -173,7 +181,9 @@ describe('core/parser/parser', function () {
                             name: 'foo',
                             value: void 0,
                             regex: '\\d+',
-                            kind: ''
+                            kind: '',
+                            required: true,
+                            multiple: false
                         }
                     ],
                     query: []
@@ -189,7 +199,9 @@ describe('core/parser/parser', function () {
                             name: 'foo',
                             value: void 0,
                             regex: '\\{\\}',
-                            kind: ''
+                            kind: '',
+                            required: true,
+                            multiple: false
                         }
                     ],
                     query: []
@@ -353,6 +365,28 @@ describe('core/parser/parser', function () {
                             multiple: false,
                             kind: '',
                             value: void 0,
+                            regex: null
+                        }
+                    ]
+                }
+            ],
+            [
+                '/?foo=\\=',
+                {
+                    type: RuleSeq.TYPE,
+                    parts: [
+                        {
+                            type: RuleSep.TYPE
+                        }
+                    ],
+                    query: [
+                        {
+                            type: RuleArg.TYPE,
+                            name: 'foo',
+                            required: false,
+                            multiple: false,
+                            kind: '',
+                            value: '=',
                             regex: null
                         }
                     ]

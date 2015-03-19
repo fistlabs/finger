@@ -48,6 +48,22 @@ function RuleArg() {
      * @type {String}
      * */
     this.regex = null;
+
+    /**
+     * @public
+     * @memberOf {RuleArg}
+     * @property
+     * @type {Boolean}
+     * */
+    this.required = true;
+
+    /**
+     * @public
+     * @memberOf {RuleArg}
+     * @property
+     * @type {Boolean}
+     * */
+    this.multiple = false;
 }
 
 /**
@@ -84,9 +100,7 @@ RuleArg.prototype.setName = function (name) {
  * @returns {RuleArg}
  * */
 RuleArg.prototype.setKind = function (kind) {
-    kind = RuleAny.unBackSlash(kind);
-
-    this.kind = kind;
+    this.kind = RuleAny.unBackSlash(kind);
 
     return this;
 };
@@ -107,12 +121,12 @@ RuleArg.prototype.setUniqueKindName = function () {
  * @memberOf {RuleArg}
  * @method
  *
- * @param {String} regexSrc
+ * @param {String} regex
  *
  * @returns {RuleArg}
  * */
-RuleArg.prototype.setRegex = function (regexSrc) {
-    this.regex = regexSrc;
+RuleArg.prototype.setRegex = function (regex) {
+    this.regex = regex;
 
     return this;
 };

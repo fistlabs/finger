@@ -40,9 +40,7 @@ RuleAny.TYPE = 'RULE_ANY';
  * @returns {RuleAny}
  * */
 RuleAny.prototype.addText = function (text) {
-    text = RuleAny.unBackSlash(text);
-
-    this.text += text;
+    this.text += RuleAny.unBackSlash(text);
 
     return this;
 };

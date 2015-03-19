@@ -9,6 +9,12 @@ var RuleSeq = /** @type RuleSeq */ require('./rule-seq');
 function RulePath() {
     RuleSeq.call(this);
 
+    /**
+     * @public
+     * @memberOf {RulePath}
+     * @property
+     * @type {Array}
+     * */
     this.query = [];
 }
 
