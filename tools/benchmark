@@ -184,7 +184,7 @@ function benchSusaninRouterFind() {
     global.__test__ = susaninRouter.find('/a/b/c/d/e/f/?foo=bar');
 }
 
-function benchFingerMatcherMatchAll() {
+function benchFingerMatcherFindMatches() {
     global.__test__ = fingerMatcher.findMatches('/');
     global.__test__ = fingerMatcher.findMatches('/?foo=bar');
     global.__test__ = fingerMatcher.findMatches('/a/');
@@ -221,9 +221,9 @@ function benchSusaninVerbRouter() {
 }
 
 function benchFingerVerbRouter() {
-    global.__test__ = fingerVerbRouter.findMatchesFor('/', fingerVerbRouter.getAllowedRules(methods[0]));
-    global.__test__ = fingerVerbRouter.findMatchesFor('/foo/', fingerVerbRouter.getAllowedRules(methods[5]));
-    global.__test__ = fingerVerbRouter.findMatchesFor('/bar/', fingerVerbRouter.getAllowedRules(methods[10]));
+    global.__test__ = fingerVerbRouter.findAllowedMatches(methods[0], '/');
+    global.__test__ = fingerVerbRouter.findAllowedMatches(methods[5], '/foo/');
+    global.__test__ = fingerVerbRouter.findAllowedMatches(methods[10], '/bar/');
 }
 
 //  Warm up!
@@ -234,7 +234,7 @@ benchSusaninRouteBuild();
 benchFingerRuleBuild();
 
 benchSusaninRouterFind();
-benchFingerMatcherMatchAll();
+benchFingerMatcherFindMatches();
 
 benchSusaninVerbRouter();
 benchFingerVerbRouter();
@@ -246,10 +246,10 @@ suite.add('Susanin.Route#build', benchSusaninRouteBuild);
 suite.add('finger/core/rule#build', benchFingerRuleBuild);
 
 suite.add('Susanin#find', benchSusaninRouterFind);
-suite.add('finger/core/matcher#matchAll', benchFingerMatcherMatchAll);
+suite.add('finger/core/matcher#findMatches', benchFingerMatcherFindMatches);
 
 suite.add('Susanin#find() + method', benchSusaninVerbRouter);
-suite.add('finger/core/router#matchAll() + method', benchFingerVerbRouter);
+suite.add('finger/core/router#findAlloweMatches() + method', benchFingerVerbRouter);
 
 suite.on('cycle', function (event) {
     console.log(String(event.target));
