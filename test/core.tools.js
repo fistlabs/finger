@@ -38,15 +38,10 @@ describe('core/tools', function () {
             assert.strictEqual(typeof tools.inspectRule, 'function');
         });
 
-        it('Should inspect the rule', function () {
+        it('Should inspect the rule 1', function () {
             var tools = new Tools('/foo/(<bar>/)');
-            var spy = [];
-            tools.inspectRule(function (rule, stackPop, n) {
-                assert.strictEqual(tools, this);
-                spy.push([rule.type, stackPop, n]);
-            });
-
-            assert.deepEqual(spy, [
+            var actual = [];
+            var expected = [
                 [RuleSeq.TYPE, false, 0],
                 [RuleSep.TYPE, false, 1],
                 [RuleAny.TYPE, false, 1],
@@ -56,7 +51,18 @@ describe('core/tools', function () {
                 [RuleSep.TYPE, false, 2],
                 [RuleSeq.TYPE, true, 1],
                 [RuleSeq.TYPE, true, 0]
-            ]);
+            ];
+
+            tools.inspectRule(function (rule, stackPop, n) {
+                assert.strictEqual(tools, this);
+                actual.push([rule.type, stackPop, n]);
+            });
+
+            // console.log(actual);
+            // console.log();
+            // console.log(expected);
+
+            assert.deepEqual(actual, expected);
         });
 
         it('Should return {Tools} (self)', function () {

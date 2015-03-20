@@ -1,6 +1,5 @@
 'use strict';
 
-var RuleSeq = /** @type RuleSeq */ require('./parser/rule-seq');
 var Parser = /** @type Parser */ require('./parser/parser');
 
 var parser = new Parser();
@@ -57,8 +56,8 @@ Tools.prototype.inspectRule = function (func) {
 Tools.prototype.reduceRule = function (func) {
     var result = '';
 
-    this.inspectRule(function () {
-        result += func.apply(this, arguments);
+    this.inspectRule(function (rule, stackPop, depth) {
+        result += func.call(this, rule, stackPop, depth);
     });
 
     return result;
@@ -94,39 +93,50 @@ Tools.prototype._compilePathRule = function () {
  *
  * @param {Object} rule
  * @param {Function} func
- * @param {*} [ctx]
+ * @param {*} [thisp]
  * */
-Tools._inspectRule = function (rule, func, ctx) {
-    Tools.__forEachRule(rule, func, ctx, 0);
-};
+Tools._inspectRule = function (rule, func, thisp) {
+    var index = 0;
+    var parts = [rule];
+    var stack = [];
+    var depth = stack.length;
+    var count = parts.length;
+    var state;
 
-/**
- * @private
- * @static
- * @memberOf {Tools}
- * @method
- *
- * @param {Object} rule
- * @param {Function} func
- * @param {*} ctx
- * @param {Number} n
- * */
-Tools.__forEachRule = function (rule, func, ctx, n) {
-    var i;
-    var l;
-    var parts;
+    do {
+        if (count === index) {
+            // do not check if depth === 0, coz 0 depth always have child nodes
+            state = stack.pop();
+            depth = stack.length;
+            parts = state.parts;
+            index = state.index;
+            count = parts.length;
+            func.call(thisp, parts[index], true, depth);
+            index += 1;
 
-    func.call(ctx, rule, false, n);
-
-    if (rule.type === RuleSeq.TYPE) {
-        parts = rule.parts;
-
-        for (i = 0, l = parts.length; i < l; i += 1) {
-            Tools.__forEachRule(parts[i], func, ctx, n + 1);
+            continue;
         }
 
-        func.call(ctx, rule, true, n);
-    }
+        rule = parts[index];
+
+        func.call(thisp, rule, false, depth);
+
+        if (rule.parts) {
+            depth = stack.push(new State(parts, index));
+            parts = rule.parts;
+            index = 0;
+            count = parts.length;
+
+            continue;
+        }
+
+        index += 1;
+    } while (depth > 0);
 };
+
+function State(parts, index) {
+    this.parts = parts;
+    this.index = index;
+}
 
 module.exports = Tools;
