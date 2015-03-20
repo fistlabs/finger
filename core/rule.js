@@ -414,9 +414,9 @@ Rule.prototype._compileBuilderFunc = function () {
         //  var value;
         au.varDeclaration('value'));
 
-    this.inspect(function (part, stackPop, n) {
+    this.inspect(function (rule, stackPop, depth) {
 
-        if (part.type === RuleSep.TYPE) {
+        if (rule.type === RuleSep.TYPE) {
             //  part += '/';
             body.push(
                 this._astCasePartSelfPlus(
@@ -425,26 +425,26 @@ Rule.prototype._compileBuilderFunc = function () {
             return;
         }
 //
-        if (part.type === RuleAny.TYPE) {
+        if (rule.type === RuleAny.TYPE) {
             body.push(
                 //  part += `this._valEscape(part.text)`;
                 this._astCasePartSelfPlus(
-                    au.literal(this._valEscape(part.text))));
+                    au.literal(this._valEscape(rule.text))));
 
             return;
         }
 
-        if (part.type === RuleSeq.TYPE) {
+        if (rule.type === RuleSeq.TYPE) {
 //            //  optional
             if (stackPop) {
                 body = stack.pop();
                 body.push(
-                    //  part = stack[`n`] + part;
+                    //  part = stack[`depth`] + part;
                     this._astCaseAssignPart(
                         au.binaryExpression('+',
                             au.memberExpression(
                                 au.identifier('stack'),
-                                au.literal(n),
+                                au.literal(depth),
                                 true),
                             au.identifier('part'))));
 
@@ -452,20 +452,20 @@ Rule.prototype._compileBuilderFunc = function () {
             }
 
             body.push(
-                //  stack[`n`] = part;
+                //  stack[`depth`] = part;
                 au.assignmentStatement('=',
                     au.memberExpression(
                         au.identifier('stack'),
-                        au.literal(n),
+                        au.literal(depth),
                         true),
                     au.identifier('part')),
                 //  part = '';
                 this._astCaseResetPart());
 
             stack.push(body);
-            //  RULE_SEQ_`n`: {
+            //  RULE_SEQ_`depth`: {
             body.push(
-                au.labeledStatement('RULE_SEQ_' + n, body = []));
+                au.labeledStatement('RULE_SEQ_' + depth, body = []));
 
             return;
         }
@@ -476,13 +476,13 @@ Rule.prototype._compileBuilderFunc = function () {
                 this._astCaseHasPropertyCall(
                     [
                         au.identifier('args'),
-                        au.literal(part.name)]),
+                        au.literal(rule.name)]),
                 [
                     au.assignmentStatement('=',
                         au.identifier('value'),
                         au.memberExpression(
                             au.identifier('args'),
-                            au.literal(part.name),
+                            au.literal(rule.name),
                             true)),
                     au.ifStatement(
                         au.unaryExpression('!',
@@ -493,7 +493,7 @@ Rule.prototype._compileBuilderFunc = function () {
                                 au.identifier('value'),
                                 au.arrayExpression([
                                     au.identifier('value')]))]),
-                    this._astCaseGetNthValue(part.used)]));
+                    this._astCaseGetNthValue(rule.used)]));
 
         body.push(
             au.ifStatement(
@@ -501,9 +501,9 @@ Rule.prototype._compileBuilderFunc = function () {
                 [
                     au.assignmentStatement('=',
                         au.identifier('value'),
-                        au.literal(part.value === void 0 ? null : part.value))]));
+                        au.literal(rule.value === void 0 ? null : rule.value))]));
 
-        if (n > 1) {
+        if (depth > 1) {
             body.push(
                 au.ifStatement(
                     //  if (value === undefined || value === null || value === ') {
@@ -511,8 +511,8 @@ Rule.prototype._compileBuilderFunc = function () {
                     [
                         //  part = '';
                         this._astCaseResetPart(),
-                        //  break RULE_SEQ_`n - 1`;
-                        au.breakStatement('RULE_SEQ_' + (n - 1))]),
+                        //  break RULE_SEQ_`depth - 1`;
+                        au.breakStatement('RULE_SEQ_' + (depth - 1))]),
                 //  part += this._qStringify(value);
                 this._astCasePartSelfPlus(
                     this._astCaseQueryEscapeValue4Pathname()));
@@ -556,14 +556,14 @@ Rule.prototype._compileMatchRegExp = function () {
  * @memberOf {Rule}
  * @method
  *
- * @param {Object} part
+ * @param {Object} rule
  * @param {Boolean} stackPop
- * @param {Number} n
+ * @param {Number} depth
  *
  * @returns {Object}
  * */
-Rule.prototype._compileMatchRegExpPart = function (part, stackPop, n) {
-    var type = part.type;
+Rule.prototype._compileMatchRegExpPart = function (rule, stackPop, depth) {
+    var type = rule.type;
 
     if (type === RuleSep.TYPE) {
 
@@ -572,16 +572,16 @@ Rule.prototype._compileMatchRegExpPart = function (part, stackPop, n) {
 
     if (type === RuleAny.TYPE) {
 
-        return this._compileMatchRegExpPartStatic(part);
+        return this._compileMatchRegExpPartStatic(rule);
     }
 
     if (type === RuleArg.TYPE) {
-        type = this._kinds[part.kind];
+        type = this._kinds[rule.kind];
 
         return '(' + type.regex + ')';
     }
 
-    if (n === 0) {
+    if (depth === 0) {
         return '';
     }
 
@@ -598,16 +598,16 @@ Rule.prototype._compileMatchRegExpPart = function (part, stackPop, n) {
  * @memberOf {Rule}
  * @method
  *
- * @param {Object} part
+ * @param {Object} rule
  *
  * @returns {String}
  * */
-Rule.prototype._compileMatchRegExpPartStatic = function (part) {
+Rule.prototype._compileMatchRegExpPartStatic = function (rule) {
     var char;
     var i;
     var l;
     var result = '';
-    var text = part.text;
+    var text = rule.text;
 
     for (i = 0, l = text.length; i < l; i += 1) {
         char = text.charAt(i);
@@ -642,8 +642,8 @@ Rule.prototype._compileMatchRegExpPartStatic = function (part) {
 Rule.prototype._compileParamsCount = function () {
     var count = {};
 
-    _.forEach(this._pathParams, function (part) {
-        var name = part.name;
+    _.forEach(this._pathParams, function (rule) {
+        var name = rule.name;
         if (_.has(count, name)) {
             count[name] += 1;
         } else {
@@ -664,9 +664,9 @@ Rule.prototype._compileParamsCount = function () {
 Rule.prototype._findPathParams = function () {
     var order = [];
 
-    this.inspect(function (part) {
-        if (part.type === RuleArg.TYPE) {
-            order[order.length] = part;
+    this.inspect(function (rule) {
+        if (rule.type === RuleArg.TYPE) {
+            order[order.length] = rule;
         }
     });
 
@@ -684,10 +684,10 @@ Rule.prototype._compilePathRule = function () {
     var rule = Tools.prototype._compilePathRule.call(this);
     var used = Object.create(null);
 
-    Tools.inspectRule(rule, function (part) {
-        var name = part.name;
+    Tools.inspectRule(rule, function (rule) {
+        var name = rule.name;
 
-        if (part.type !== RuleArg.TYPE) {
+        if (rule.type !== RuleArg.TYPE) {
             return;
         }
 
@@ -697,7 +697,7 @@ Rule.prototype._compilePathRule = function () {
             used[name] += 1;
         }
 
-        part.used = used[name];
+        rule.used = used[name];
     });
 
     return rule;
