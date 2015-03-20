@@ -414,7 +414,7 @@ Rule.prototype._compileBuilderFunc = function () {
         //  var value;
         au.varDeclaration('value'));
 
-    this.inspectRule(function (part, stackPop, n) {
+    this.inspect(function (part, stackPop, n) {
 
         if (part.type === RuleSep.TYPE) {
             //  part += '/';
@@ -544,7 +544,7 @@ Rule.prototype._compileBuilderFunc = function () {
  * @returns {RegExp}
  * */
 Rule.prototype._compileMatchRegExp = function () {
-    var source = this.reduceRule(this._compileMatchRegExpPart);
+    var source = this.reduce(this._compileMatchRegExpPart);
 
     source = '^' + source + '(?:\\?([\\s\\S]*))?$';
 
@@ -664,7 +664,7 @@ Rule.prototype._compileParamsCount = function () {
 Rule.prototype._findPathParams = function () {
     var order = [];
 
-    this.inspectRule(function (part) {
+    this.inspect(function (part) {
         if (part.type === RuleArg.TYPE) {
             order[order.length] = part;
         }
@@ -684,7 +684,7 @@ Rule.prototype._compilePathRule = function () {
     var rule = Tools.prototype._compilePathRule.call(this);
     var used = Object.create(null);
 
-    Tools._inspectRule(rule, function (part) {
+    Tools.inspectRule(rule, function (part) {
         var name = part.name;
 
         if (part.type !== RuleArg.TYPE) {
