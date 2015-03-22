@@ -544,7 +544,7 @@ Rule.prototype._compileBuilderFunc = function () {
  * @returns {RegExp}
  * */
 Rule.prototype._compileMatchRegExp = function () {
-    var source = this.reduce(this._compileMatchRegExpPart);
+    var source = this.reduce(this._compileMatchRegExpPart, '');
 
     source = '^' + source + '(?:\\?([\\s\\S]*))?$';
 
@@ -556,41 +556,42 @@ Rule.prototype._compileMatchRegExp = function () {
  * @memberOf {Rule}
  * @method
  *
+ * @param {String} result
  * @param {Object} rule
  * @param {Boolean} stackPop
  * @param {Number} depth
  *
  * @returns {Object}
  * */
-Rule.prototype._compileMatchRegExpPart = function (rule, stackPop, depth) {
+Rule.prototype._compileMatchRegExpPart = function (result, rule, stackPop, depth) {
     var type = rule.type;
 
     if (type === RuleSep.TYPE) {
 
-        return regesc('/');
+        return result + regesc('/');
     }
 
     if (type === RuleAny.TYPE) {
 
-        return this._compileMatchRegExpPartStatic(rule);
+        return result + this._compileMatchRegExpPartStatic(rule);
     }
 
     if (type === RuleArg.TYPE) {
         type = this._kinds[rule.kind];
 
-        return '(' + type.regex + ')';
+        return result + '(' + type.regex + ')';
     }
 
     if (depth === 0) {
-        return '';
+        return result;
     }
 
     if (stackPop) {
 
-        return ')?';
+        return result + ')?';
     }
 
-    return '(?:';
+    return result + '(?:';
 };
 
 /**
@@ -681,10 +682,10 @@ Rule.prototype._findPathParams = function () {
  * @returns {RulePath}
  * */
 Rule.prototype._compilePathRule = function () {
-    var rule = Tools.prototype._compilePathRule.call(this);
+    var pathRule = Tools.prototype._compilePathRule.call(this);
     var used = Object.create(null);
 
-    Tools.inspectRule(rule, function (rule) {
+    Tools.inspectRule(pathRule, function (rule) {
         var name = rule.name;
 
         if (rule.type !== RuleArg.TYPE) {
@@ -700,7 +701,7 @@ Rule.prototype._compilePathRule = function () {
         rule.used = used[name];
     });
 
-    return rule;
+    return pathRule;
 };
 
 //  Ast cases

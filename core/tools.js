@@ -50,17 +50,16 @@ Tools.prototype.inspect = function (func) {
  * @method
  *
  * @param {Function} func
+ * @param {*} accum
  *
  * @returns {String}
  * */
-Tools.prototype.reduce = function (func) {
-    var result = '';
-
+Tools.prototype.reduce = function (func, accum) {
     this.inspect(function (rule, stackPop, depth) {
-        result += func.call(this, rule, stackPop, depth);
+        accum = func.call(this, accum, rule, stackPop, depth);
     });
 
-    return result;
+    return accum;
 };
 
 /**

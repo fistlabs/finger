@@ -80,9 +80,9 @@ describe('core/tools', function () {
 
         it('Should reduce the rule', function () {
             var tools = new Tools('/foo/(<bar>/)');
-            var actual = tools.reduce(function (rule, stackPop, n) {
-                return rule.type + '|' + String(Number(stackPop)) + '|' + String(n) + ',';
-            });
+            var actual = tools.reduce(function (result, rule, stackPop, n) {
+                return result + rule.type + '|' + String(Number(stackPop)) + '|' + String(n) + ',';
+            }, '');
 
             var expected = [
                 [RuleSeq.TYPE, false, 0],
