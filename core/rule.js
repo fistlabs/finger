@@ -156,18 +156,23 @@ Rule.prototype.constructor = Rule;
 * @returns {String}
 * */
 Rule.prototype.build = function (args) {
-    var keys;
+    var argName;
     var i;
+    var keys;
     var l;
     var queryArgs = [];
     var url;
-    var argName;
 
     args = Object(args);
+
+    // build pathname
     url = this.params.basePath + this._builderFunc(args);
 
-    for (i = 0, l = this._queryParamsNames.length; i < l; i += 1) {
-        argName = this._queryParamsNames[i];
+    // prepare args to build query string
+    keys = this._queryParamsNames;
+
+    for (i = 0, l = keys.length; i < l; i += 1) {
+        argName = keys[i];
         args[argName] = this._matchQueryArg(args, argName);
     }
 
@@ -175,7 +180,13 @@ Rule.prototype.build = function (args) {
 
     for (i = 0, l = keys.length; i < l; i += 1) {
         argName = keys[i];
-        queryArgs = this._reduceQArg(queryArgs, args[argName], argName);
+
+        if (hasProperty.call(this._paramsCount, argName)) {
+            // the parameter with such name is used in pathname rule, skip
+            continue;
+        }
+
+        queryArgs = this._reduceQueryArgs(queryArgs, args[argName], argName);
     }
 
     if (queryArgs.length) {
@@ -190,30 +201,25 @@ Rule.prototype.build = function (args) {
  * @memberOf {Rule}
  * @method
  *
- * @param {Array} allQArgs
+ * @param {Array} queryArgs
  * @param {*} value
- * @param {String} name
+ * @param {String} argName
  *
  * @returns {Array}
  * */
-Rule.prototype._reduceQArg = function (allQArgs, value, name) {
+Rule.prototype._reduceQueryArgs = function (queryArgs, value, argName) {
     var i;
     var l;
 
-    if (hasProperty.call(this._paramsCount, name)) {
-        // the parameter are used in pathname. skip.
-        return allQArgs;
+    if (_.isArray(value)) {
+        for (i = 0, l = value.length; i < l; i += 1) {
+            queryArgs[queryArgs.length] = this._createQueryArg(argName, value[i]);
+        }
+    } else {
+        queryArgs[queryArgs.length] = this._createQueryArg(argName, value);
     }
 
-    if (!_.isArray(value)) {
-        value = [value];
-    }
-
-    for (i = 0, l = value.length; i < l; i += 1) {
-        allQArgs[allQArgs.length] = this._createQueryArg(name, value[i]);
-    }
-
-    return allQArgs;
+    return queryArgs;
 };
 
 /**
@@ -281,7 +287,7 @@ Rule.prototype.match = function (url) {
 
         if (!hasProperty.call(args, name)) {
             args[name] = value;
-        } else if (Array.isArray(args[name])) {
+        } else if (_.isArray(args[name])) {
             args[name].push(value);
         } else {
             args[name] = [args[name], value];
@@ -317,16 +323,16 @@ Rule.prototype.match = function (url) {
  * */
 Rule.prototype.matchQueryString = function (queryString) {
     var queryObject = queryString ? this._parseQs(queryString) : {};
-    var paramNames = this._queryParamsNames;
+    var queryParamsNames = this._queryParamsNames;
     var queryParams = this._queryParams;
-    var l = paramNames.length;
+    var l = queryParamsNames.length;
     var rules;
     var paramName;
     var values;
 
     while (l) {
         l -= 1;
-        paramName = paramNames[l];
+        paramName = queryParamsNames[l];
         values = this._matchQueryArg(queryObject, paramName);
 
         if (!values) {
@@ -556,42 +562,39 @@ Rule.prototype._compileMatchRegExp = function () {
  * @memberOf {Rule}
  * @method
  *
- * @param {String} result
+ * @param {String} accum
  * @param {Object} rule
  * @param {Boolean} stackPop
  * @param {Number} depth
  *
  * @returns {Object}
  * */
-Rule.prototype._compileMatchRegExpPart = function (result, rule, stackPop, depth) {
+Rule.prototype._compileMatchRegExpPart = function (accum, rule, stackPop, depth) {
     var type = rule.type;
 
     if (type === RuleSep.TYPE) {
-
-        return result + regesc('/');
+        return accum + regesc('/');
     }
 
     if (type === RuleAny.TYPE) {
-
-        return result + this._compileMatchRegExpPartStatic(rule);
+        return accum + this._compileMatchRegExpPartStatic(rule);
     }
 
     if (type === RuleArg.TYPE) {
         type = this._kinds[rule.kind];
 
-        return result + '(' + type.regex + ')';
+        return accum + '(' + type.regex + ')';
     }
 
     if (depth === 0) {
-        return result;
+        return accum;
     }
 
     if (stackPop) {
-
-        return result + ')?';
+        return accum + ')?';
     }
 
-    return result + '(?:';
+    return accum + '(?:';
 };
 
 /**
@@ -621,8 +624,7 @@ Rule.prototype._compileMatchRegExpPartStatic = function (rule) {
 
         if (this.params.ignoreCase) {
             result += '(?:' + regesc(char) + '|' +
-            this._valEscape(char.toLowerCase()) + '|' +
-            this._valEscape(char.toUpperCase()) + ')';
+                this._valEscape(char.toLowerCase()) + '|' + this._valEscape(char.toUpperCase()) + ')';
 
             continue;
         }
@@ -896,7 +898,7 @@ Rule.prototype._parseQs = function (queryString) {
 
         if (!hasProperty.call(queryObject, key)) {
             queryObject[key] = val;
-        } else if (Array.isArray(queryObject[key])) {
+        } else if (_.isArray(queryObject[key])) {
             queryObject[key].push(val);
         } else {
             queryObject[key] = [queryObject[key], val];
@@ -936,7 +938,6 @@ Rule.prototype._qStringify = function (v) {
     }
 
     if (t === 'boolean' || t === 'number' && isFinite(v)) {
-
         return String(v);
     }
 
@@ -962,16 +963,19 @@ Rule.prototype._valEscape = encodeURIComponent;
  * @returns {String}
  * */
 Rule.prototype._valUnescape = function (subj) {
-
     if (subj.indexOf('%') === -1) {
         return subj;
     }
 
+    return decode(subj);
+};
+
+function decode(subj) {
     try {
         return decodeURIComponent(subj);
     } catch (err) {
         return subj;
     }
-};
+}
 
 module.exports = Rule;
