@@ -395,64 +395,70 @@ Rule.prototype._compileQueryParams = function () {
  * @returns {String}
  * */
 Rule.prototype._buildPathname = function (accum, args) {
+    var count = 1; // parts.length
+    var depth = 0; // stack.length
+    var index = 0; // current rule index
+    var parts = [this._pathRule];
     var stack = [];
+
+    var $rule = void 0;
     var state = void 0;
-    var index = 0;
-    var rule = this._pathRule;
-    var parts = [rule];
-    var value;
+    var value = void 0;
 
     do {
-        if (parts.length === index) {
-            state = stack.pop();
+        if (count === index) {
+            depth -= 1;
+            state = stack[depth];
             accum = state.accum + accum;
             parts = state.parts;
             index = state.index + 1;
+            count = parts.length;
 
             continue;
         }
 
-        rule = parts[index];
+        $rule = parts[index];
         index += 1;
 
-        if (rule.type === RuleSep.TYPE) {
+        if ($rule.type === RuleSep.TYPE) {
             accum += '/';
 
             continue;
         }
 
-        if (rule.type === RuleAny.TYPE) {
-            accum += this._valEscape(rule.text);
+        if ($rule.type === RuleAny.TYPE) {
+            accum += this._valEscape($rule.text);
 
             continue;
         }
 
-        if (rule.type === RuleArg.TYPE) {
+        if ($rule.type === RuleArg.TYPE) {
             value = null;
 
-            if (hasProperty.call(args, rule.name)) {
-                value = args[rule.name];
+            if (hasProperty.call(args, $rule.name)) {
+                value = args[$rule.name];
                 if (!_.isArray(value)) {
                     value = [value];
                 }
 
-                value = value[rule.used];
+                value = value[$rule.used];
             }
 
             if (value === null || value === void 0 || value === '') {
-                value = rule.value;
+                value = $rule.value;
             }
 
             if (value === null || value === void 0 || value === '') {
-                if (stack.length < 2) {
+                if (depth < 2) {
 
                     continue;
                 }
 
-                state = stack.pop();
+                depth -= 1;
+                state = stack[depth];
                 accum = state.accum;
                 parts = state.parts;
-                index = parts.length;
+                count = index = parts.length;
 
                 continue;
             }
@@ -463,12 +469,14 @@ Rule.prototype._buildPathname = function (accum, args) {
             continue;
         }
 
-        stack.push(new State(accum, parts, index - 1));
+        stack[depth] = new State(accum, parts, index - 1);
+        depth += 1;
         accum = '';
-        parts = rule.parts;
+        parts = $rule.parts;
         index = 0;
+        count = parts.length;
 
-    } while (stack.length);
+    } while (depth);
 
     return accum;
 };
