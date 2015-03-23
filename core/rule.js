@@ -432,49 +432,51 @@ Rule.prototype._buildPathname = function (accum, args) {
             continue;
         }
 
-        if ($rule.type === RuleArg.TYPE) {
-            value = null;
-
-            if (hasProperty.call(args, $rule.name)) {
-                value = args[$rule.name];
-                if (!_.isArray(value)) {
-                    value = [value];
-                }
-
-                value = value[$rule.used];
-            }
-
-            if (value === null || value === void 0 || value === '') {
-                value = $rule.value;
-            }
-
-            if (value === null || value === void 0 || value === '') {
-                if (depth < 2) {
-
-                    continue;
-                }
-
-                depth -= 1;
-                state = stack[depth];
-                accum = state.accum;
-                parts = state.parts;
-                count = index = parts.length;
-
-                continue;
-            }
-
-            // value ok
-            accum += this._pStringify(value);
+        if ($rule.parts) {
+            // RuleSeq
+            stack[depth] = new State(accum, parts, index - 1);
+            depth += 1;
+            accum = '';
+            parts = $rule.parts;
+            index = 0;
+            count = parts.length;
 
             continue;
         }
 
-        stack[depth] = new State(accum, parts, index - 1);
-        depth += 1;
-        accum = '';
-        parts = $rule.parts;
-        index = 0;
-        count = parts.length;
+        // RuleArg
+        value = null;
+
+        if (hasProperty.call(args, $rule.name)) {
+            value = args[$rule.name];
+            if (!_.isArray(value)) {
+                value = [value];
+            }
+
+            value = value[$rule.used];
+        }
+
+        if (value === null || value === void 0 || value === '') {
+            value = $rule.value;
+        }
+
+        if (value === null || value === void 0 || value === '') {
+            if (depth < 2) {
+
+                continue;
+            }
+
+            depth -= 1;
+            state = stack[depth];
+            accum = state.accum;
+            parts = state.parts;
+            count = index = parts.length;
+
+            continue;
+        }
+
+        // value ok
+        accum += this._pStringify(value);
 
     } while (depth);
 
