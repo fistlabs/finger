@@ -4,7 +4,6 @@
 var RuleAny = /** @type RuleAny */ require('./parser/rule-any');
 var RuleArg = /** @type RuleArg */ require('./parser/rule-arg');
 var RuleSep = /** @type RuleSep */ require('./parser/rule-sep');
-var RuleSeq = /** @type RuleSeq */ require('./parser/rule-seq');
 
 var Tools = /** @type Tools */ require('./tools');
 var Kind = /** @type Kind */ require('./kind');
@@ -156,7 +155,7 @@ Rule.prototype.build = function (args) {
     args = Object(args);
 
     // build pathname
-    url = this.params.basePath + this._builderFunc(args);
+    url = this._buildPathname(this.params.basePath, args);
 
     // prepare args to build query string
     keys = this._queryParamsNames;
@@ -390,82 +389,94 @@ Rule.prototype._compileQueryParams = function () {
  * @memberOf {Rule}
  * @method
  *
+ * @param {String} accum
  * @param {Object} args
  *
  * @returns {String}
  * */
-Rule.prototype._builderFunc = function (args) {
+Rule.prototype._buildPathname = function (accum, args) {
     var stack = [];
     var validDepth = 0;
     var state = void 0;
 
-    return this.reduce(function (accum, rule, stackPop, depth) {
+    // Maybe inline this.inspect to improve the performance?
+    Tools.inspectRule(this._pathRule, function (rule, stackPop, depth) {
         var value;
+        var type;
 
         if (depth > validDepth) {
-            return accum;
+            return;
         }
 
-        if (rule.type === RuleSep.TYPE) {
-            return accum + '/';
+        type = rule.type;
+
+        if (type === RuleSep.TYPE) {
+            accum += '/';
+            return;
         }
 
-        if (rule.type === RuleAny.TYPE) {
-            return accum + this._valEscape(rule.text);
+        if (type === RuleAny.TYPE) {
+            accum += this._valEscape(rule.text);
+            return;
         }
 
-        if (rule.type === RuleSeq.TYPE) {
-            validDepth = depth;
+        if (type === RuleArg.TYPE) {
+            value = null;
 
-            if (stackPop) {
-                stack.pop();
-            } else {
-                validDepth += 1;
-                stack.push({
-                    accum: accum,
-                    depth: depth
-                });
+            if (hasProperty.call(args, rule.name)) {
+                value = args[rule.name];
+                if (!_.isArray(value)) {
+                    value = [value];
+                }
+
+                value = value[rule.used];
             }
 
-            return accum;
-        }
-
-        value = null;
-
-        if (hasProperty.call(args, rule.name)) {
-            value = args[rule.name];
-            if (!_.isArray(value)) {
-                value = [value];
-            }
-
-            value = value[rule.used];
-        }
-
-        if (value === null || value === void 0 || value === '') {
-            value = rule.value;
-        }
-
-        if (depth > 1) {
             if (value === null || value === void 0 || value === '') {
-                // need to cancel optional part
-                state = stack.pop();
-                accum = state.accum;
-                validDepth = state.depth;
-
-                return accum;
+                value = rule.value;
             }
 
-            // value ok
-            return accum + this._pStringify(value);
+            if (depth > 1) {
+                if (value === null || value === void 0 || value === '') {
+                    state = stack[depth - 1];
+                    accum = state.accum;
+                    validDepth = state.depth;
+
+                    return;
+                }
+
+                // value ok
+                accum += this._pStringify(value);
+                return;
+            }
+
+            if (value === null || value === void 0 || value === '') {
+                return;
+            }
+
+            accum += this._pStringify(value);
+
+            return;
         }
 
-        if (value === null || value === void 0 || value === '') {
-            return accum;
+        if (stackPop) {
+            validDepth -= 1;
+            return;
         }
 
-        return accum + this._pStringify(value);
-    }, '');
+        validDepth = depth + 1;
+
+        stack[depth] = new State(accum, depth);
+
+    }, this);
+
+    return accum;
 };
+
+function State(accum, depth) {
+    this.accum = accum;
+    this.depth = depth;
+}
 
 /**
  * @private

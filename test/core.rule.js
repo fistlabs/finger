@@ -588,6 +588,34 @@ describe('core/rule', function () {
                 ]
             ],
             [
+                '/news(/<postId>(/<tagId>))',
+                [
+                    [
+                        '/news/42/auto',
+                        {
+                            postId: 42,
+                            tagId: 'auto'
+                        }
+                    ],
+                    [
+                        '/news/42',
+                        {
+                            postId: 42
+                        }
+                    ],
+                    [
+                        '/news',
+                        {}
+                    ],
+                    [
+                        '/news',
+                        {
+                            tagId: 'auto'
+                        }
+                    ]
+                ]
+            ],
+            [
                 '/news/(<postId>/)',
                 [
                     [
