@@ -396,31 +396,38 @@ Rule.prototype._compileQueryParams = function () {
  * */
 Rule.prototype._buildPathname = function (accum, args) {
     var stack = [];
-    var validDepth = 0;
     var state = void 0;
+    var index = 0;
+    var rule = this._pathRule;
+    var parts = [rule];
+    var value;
 
-    // Maybe inline this.inspect to improve the performance?
-    Tools.inspectRule(this._pathRule, function (rule, stackPop, depth) {
-        var value;
-        var type;
+    do {
+        if (parts.length === index) {
+            state = stack.pop();
+            accum = state.accum + accum;
+            parts = state.parts;
+            index = state.index + 1;
 
-        if (depth > validDepth) {
-            return;
+            continue;
         }
 
-        type = rule.type;
+        rule = parts[index];
+        index += 1;
 
-        if (type === RuleSep.TYPE) {
+        if (rule.type === RuleSep.TYPE) {
             accum += '/';
-            return;
+
+            continue;
         }
 
-        if (type === RuleAny.TYPE) {
+        if (rule.type === RuleAny.TYPE) {
             accum += this._valEscape(rule.text);
-            return;
+
+            continue;
         }
 
-        if (type === RuleArg.TYPE) {
+        if (rule.type === RuleArg.TYPE) {
             value = null;
 
             if (hasProperty.call(args, rule.name)) {
@@ -436,46 +443,40 @@ Rule.prototype._buildPathname = function (accum, args) {
                 value = rule.value;
             }
 
-            if (depth > 1) {
-                if (value === null || value === void 0 || value === '') {
-                    state = stack[depth - 1];
-                    accum = state.accum;
-                    validDepth = state.depth;
+            if (value === null || value === void 0 || value === '') {
+                if (stack.length < 2) {
 
-                    return;
+                    continue;
                 }
 
-                // value ok
-                accum += this._pStringify(value);
-                return;
+                state = stack.pop();
+                accum = state.accum;
+                parts = state.parts;
+                index = parts.length;
+
+                continue;
             }
 
-            if (value === null || value === void 0 || value === '') {
-                return;
-            }
-
+            // value ok
             accum += this._pStringify(value);
 
-            return;
+            continue;
         }
 
-        if (stackPop) {
-            validDepth -= 1;
-            return;
-        }
+        stack.push(new State(accum, parts, index - 1));
+        accum = '';
+        parts = rule.parts;
+        index = 0;
 
-        validDepth = depth + 1;
-
-        stack[depth] = new State(accum, depth);
-
-    }, this);
+    } while (stack.length);
 
     return accum;
 };
 
-function State(accum, depth) {
+function State(accum, parts, index) {
     this.accum = accum;
-    this.depth = depth;
+    this.parts = parts;
+    this.index = index;
 }
 
 /**
