@@ -10,8 +10,6 @@ var Tools = /** @type Tools */ require('./tools');
 var Kind = /** @type Kind */ require('./kind');
 
 var _ = require('lodash-node');
-var au = require('./ast-utils');
-var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
 var matchValues = require('./match-values');
 var regesc = require('regesc');
@@ -126,14 +124,6 @@ function Rule(ruleString, params, data) {
      * @type {RegExp}
      * */
     this._matchRegExp = this._compileMatchRegExp();
-
-    /**
-    * @protected
-    * @memberOf {Rule}
-    * @property
-    * @type {Function}
-    * */
-    this._builderFunc = this._compileBuilderFunc();
 }
 
 Rule.prototype = Object.create(Tools.prototype);
@@ -400,146 +390,81 @@ Rule.prototype._compileQueryParams = function () {
  * @memberOf {Rule}
  * @method
  *
- * @returns {Function}
+ * @param {Object} args
+ *
+ * @returns {String}
  * */
-Rule.prototype._compileBuilderFunc = function () {
-    var body = [];
-    //  function _builderFunc(args) {
-    var func = au.functionDeclaration('_builderFunc', body, [
-        au.identifier('args')
-    ]);
+Rule.prototype._builderFunc = function (args) {
     var stack = [];
+    var validDepth = 0;
+    var state = void 0;
 
-    body.push(
-        //  var part = '';'
-        au.varDeclaration('part',
-            au.literal('')),
-        //  var stack = [];
-        au.varDeclaration('stack',
-            au.arrayExpression([])),
-        //  var value;
-        au.varDeclaration('value'));
+    return this.reduce(function (accum, rule, stackPop, depth) {
+        var value;
 
-    this.inspect(function (rule, stackPop, depth) {
+        if (depth > validDepth) {
+            return accum;
+        }
 
         if (rule.type === RuleSep.TYPE) {
-            //  part += '/';
-            body.push(
-                this._astCasePartSelfPlus(
-                    au.literal('/')));
-
-            return;
+            return accum + '/';
         }
-//
-        if (rule.type === RuleAny.TYPE) {
-            body.push(
-                //  part += `this._valEscape(part.text)`;
-                this._astCasePartSelfPlus(
-                    au.literal(this._valEscape(rule.text))));
 
-            return;
+        if (rule.type === RuleAny.TYPE) {
+            return accum + this._valEscape(rule.text);
         }
 
         if (rule.type === RuleSeq.TYPE) {
-//            //  optional
-            if (stackPop) {
-                body = stack.pop();
-                body.push(
-                    //  part = stack[`depth`] + part;
-                    this._astCaseAssignPart(
-                        au.binaryExpression('+',
-                            au.memberExpression(
-                                au.identifier('stack'),
-                                au.literal(depth),
-                                true),
-                            au.identifier('part'))));
+            validDepth = depth;
 
-                return;
+            if (stackPop) {
+                stack.pop();
+            } else {
+                validDepth += 1;
+                stack.push({
+                    accum: accum,
+                    depth: depth
+                });
             }
 
-            body.push(
-                //  stack[`depth`] = part;
-                au.assignmentStatement('=',
-                    au.memberExpression(
-                        au.identifier('stack'),
-                        au.literal(depth),
-                        true),
-                    au.identifier('part')),
-                //  part = '';
-                this._astCaseResetPart());
-
-            stack.push(body);
-            //  RULE_SEQ_`depth`: {
-            body.push(
-                au.labeledStatement('RULE_SEQ_' + depth, body = []));
-
-            return;
+            return accum;
         }
 
-        body.push(
-            this._astCaseResetValue(),
-            au.ifStatement(
-                this._astCaseHasPropertyCall(
-                    [
-                        au.identifier('args'),
-                        au.literal(rule.name)]),
-                [
-                    au.assignmentStatement('=',
-                        au.identifier('value'),
-                        au.memberExpression(
-                            au.identifier('args'),
-                            au.literal(rule.name),
-                            true)),
-                    au.ifStatement(
-                        au.unaryExpression('!',
-                            this._astCaseIsValueArray(),
-                            true),
-                        [
-                            au.assignmentStatement('=',
-                                au.identifier('value'),
-                                au.arrayExpression([
-                                    au.identifier('value')]))]),
-                    this._astCaseGetNthValue(rule.used)]));
+        value = null;
 
-        body.push(
-            au.ifStatement(
-                this._astCaseValueCheckExpression('||', '==='),
-                [
-                    au.assignmentStatement('=',
-                        au.identifier('value'),
-                        au.literal(rule.value === void 0 ? null : rule.value))]));
+        if (hasProperty.call(args, rule.name)) {
+            value = args[rule.name];
+            if (!_.isArray(value)) {
+                value = [value];
+            }
+
+            value = value[rule.used];
+        }
+
+        if (value === null || value === void 0 || value === '') {
+            value = rule.value;
+        }
 
         if (depth > 1) {
-            body.push(
-                au.ifStatement(
-                    //  if (value === undefined || value === null || value === ') {
-                    this._astCaseValueCheckExpression('||', '==='),
-                    [
-                        //  part = '';
-                        this._astCaseResetPart(),
-                        //  break RULE_SEQ_`depth - 1`;
-                        au.breakStatement('RULE_SEQ_' + (depth - 1))]),
-                //  part += this._qStringify(value);
-                this._astCasePartSelfPlus(
-                    this._astCaseQueryEscapeValue4Pathname()));
-        } else {
-            body.push(
-                au.ifStatement(
-                    //  if (value !== undefined && value !== null && value !== '') {
-                    this._astCaseValueCheckExpression('&&', '!=='),
-                    [
-                        //  part += this._qStringify(value);
-                        this._astCasePartSelfPlus(
-                            this._astCaseQueryEscapeValue4Pathname())]));
+            if (value === null || value === void 0 || value === '') {
+                // need to cancel optional part
+                state = stack.pop();
+                accum = state.accum;
+                validDepth = state.depth;
+
+                return accum;
+            }
+
+            // value ok
+            return accum + this._pStringify(value);
         }
-    });
 
-    body.push(au.returnStatement(au.identifier('part')));
+        if (value === null || value === void 0 || value === '') {
+            return accum;
+        }
 
-    func = escodegen.generate(func);
-
-    return new Function('hasProperty', 'undefined',
-        'return ' + func)(hasProperty, void 0);
+        return accum + this._pStringify(value);
+    }, '');
 };
 
 /**
@@ -704,165 +629,6 @@ Rule.prototype._compilePathRule = function () {
     });
 
     return pathRule;
-};
-
-//  Ast cases
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} logicalOp
- * @param {String} binaryOp
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseValueCheckExpression = function (logicalOp, binaryOp) {
-    return au.logicalExpression(logicalOp,
-        au.logicalExpression(logicalOp,
-            au.binaryExpression(binaryOp,
-                au.identifier('value'),
-                this._astCaseUndef()),
-            au.binaryExpression(binaryOp,
-                au.identifier('value'),
-                au.literal(null))),
-        au.binaryExpression(binaryOp,
-            au.identifier('value'),
-            au.literal('')));
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseUndef = function () {
-    return au.identifier('undefined');
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {Array} args
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseHasPropertyCall = function (args) {
-    return au.callExpression(
-        au.memberExpression(
-            au.identifier('hasProperty'),
-            au.identifier('call')),
-        args);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseQueryEscapeValue4Pathname = function () {
-    return au.callExpression(
-        au.memberExpression(
-            au.identifier('this'),
-            au.identifier('_pStringify')),
-        [
-            au.identifier('value')]);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseIsValueArray = function () {
-    return au.callExpression(
-        au.memberExpression(
-            au.identifier('Array'),
-            au.identifier('isArray')),
-        [
-            au.identifier('value')]);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {Number} nth
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseGetNthValue = function (nth) {
-    return au.assignmentStatement('=',
-        au.identifier('value'),
-        au.memberExpression(
-            au.identifier('value'),
-            au.literal(nth),
-            true));
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {*} plus
- *
- * @returns {Object}
- * */
-Rule.prototype._astCasePartSelfPlus = function (plus) {
-    return au.assignmentStatement('+=',
-        au.identifier('part'),
-        plus);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {*} assign
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseAssignPart = function (assign) {
-    return au.assignmentStatement('=',
-        au.identifier('part'),
-        assign);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseResetValue = function () {
-    return au.assignmentStatement('=',
-        au.identifier('value'),
-        this._astCaseUndef());
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseResetPart = function () {
-    return this._astCaseAssignPart(
-        au.literal(''));
 };
 
 /**

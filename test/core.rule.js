@@ -568,6 +568,22 @@ describe('core/rule', function () {
                             postId: ['42'],
                             foo: 'xxx'
                         }
+                    ],
+                    [
+                        '/news//',
+                        {
+                            postId: null
+                        }
+                    ],
+                    [
+                        '/news//',
+                        {
+                            postId: void 0
+                        }
+                    ],
+                    [
+                        '/news//',
+                        {}
                     ]
                 ]
             ],
