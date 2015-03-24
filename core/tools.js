@@ -39,8 +39,8 @@ Tools.prototype.constructor = Tools;
  *
  * @returns {Tools}
  * */
-Tools.prototype.inspectRule = function (func) {
-    Tools._inspectRule(this._pathRule, func, this);
+Tools.prototype.inspect = function (func) {
+    Tools.inspectRule(this._pathRule, func, this);
     return this;
 };
 
@@ -50,17 +50,16 @@ Tools.prototype.inspectRule = function (func) {
  * @method
  *
  * @param {Function} func
+ * @param {*} accum
  *
  * @returns {String}
  * */
-Tools.prototype.reduceRule = function (func) {
-    var result = '';
-
-    this.inspectRule(function (rule, stackPop, depth) {
-        result += func.call(this, rule, stackPop, depth);
+Tools.prototype.reduce = function (func, accum) {
+    this.inspect(function (rule, stackPop, depth) {
+        accum = func.call(this, accum, rule, stackPop, depth);
     });
 
-    return result;
+    return accum;
 };
 
 /**
@@ -86,7 +85,7 @@ Tools.prototype._compilePathRule = function () {
 };
 
 /**
- * @protected
+ * @public
  * @static
  * @memberOf {Tools}
  * @method
@@ -95,7 +94,7 @@ Tools.prototype._compilePathRule = function () {
  * @param {Function} func
  * @param {*} [thisp]
  * */
-Tools._inspectRule = function (rule, func, thisp) {
+Tools.inspectRule = function (rule, func, thisp) {
     var index = 0;
     var parts = [rule];
     var stack = [];

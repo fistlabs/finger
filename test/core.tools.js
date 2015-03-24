@@ -31,11 +31,11 @@ describe('core/tools', function () {
         });
     });
 
-    describe('{Tools}.inspectRule', function () {
+    describe('{Tools}.inspect()', function () {
 
-        it('Should have own method "inspectRule"', function () {
+        it('Should have own method "inspect"', function () {
             var tools = new Tools('/');
-            assert.strictEqual(typeof tools.inspectRule, 'function');
+            assert.strictEqual(typeof tools.inspect, 'function');
         });
 
         it('Should inspect the rule 1', function () {
@@ -53,7 +53,7 @@ describe('core/tools', function () {
                 [RuleSeq.TYPE, true, 0]
             ];
 
-            tools.inspectRule(function (rule, stackPop, n) {
+            tools.inspect(function (rule, stackPop, n) {
                 assert.strictEqual(tools, this);
                 actual.push([rule.type, stackPop, n]);
             });
@@ -67,22 +67,22 @@ describe('core/tools', function () {
 
         it('Should return {Tools} (self)', function () {
             var tools = new Tools('/');
-            assert.strictEqual(tools.inspectRule(function () {}), tools);
+            assert.strictEqual(tools.inspect(function () {}), tools);
         });
     });
 
-    describe('{Tools}.reduceRule', function () {
+    describe('{Tools}.reduce()', function () {
 
-        it('Should have own method "reduceRule"', function () {
+        it('Should have own method "reduce"', function () {
             var tools = new Tools('/');
-            assert.ok(typeof tools.reduceRule, 'function');
+            assert.ok(typeof tools.reduce, 'function');
         });
 
         it('Should reduce the rule', function () {
             var tools = new Tools('/foo/(<bar>/)');
-            var actual = tools.reduceRule(function (rule, stackPop, n) {
-                return rule.type + '|' + String(Number(stackPop)) + '|' + String(n) + ',';
-            });
+            var actual = tools.reduce(function (result, rule, stackPop, n) {
+                return result + rule.type + '|' + String(Number(stackPop)) + '|' + String(n) + ',';
+            }, '');
 
             var expected = [
                 [RuleSeq.TYPE, false, 0],

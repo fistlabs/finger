@@ -10,8 +10,7 @@
     "methods": "1.1.1",
     "lodash-node": "3.5.0",
     "unique-id": "0.0.1",
-    "regesc": "0.0.1",
-    "escodegen": "1.6.1"
+    "regesc": "0.0.1"
   },
   "description": "Urls matching&building like a boss",
   "devDependencies": {

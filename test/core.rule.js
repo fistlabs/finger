@@ -568,6 +568,204 @@ describe('core/rule', function () {
                             postId: ['42'],
                             foo: 'xxx'
                         }
+                    ],
+                    [
+                        '/news//',
+                        {
+                            postId: null
+                        }
+                    ],
+                    [
+                        '/news//',
+                        {
+                            postId: void 0
+                        }
+                    ],
+                    [
+                        '/news//',
+                        {}
+                    ]
+                ]
+            ],
+            [
+                '/news(/<postId>(/<tagId>))',
+                [
+                    [
+                        '/news/42/auto',
+                        {
+                            postId: 42,
+                            tagId: 'auto'
+                        }
+                    ],
+                    [
+                        '/news/42',
+                        {
+                            postId: 42
+                        }
+                    ],
+                    [
+                        '/news',
+                        {}
+                    ],
+                    [
+                        '/news',
+                        {
+                            tagId: 'auto'
+                        }
+                    ]
+                ]
+            ],
+            [
+                '/news(/post-<postId>(/tag-<tagId>))',
+                [
+                    [
+                        '/news/post-42/tag-auto',
+                        {
+                            postId: 42,
+                            tagId: 'auto'
+                        }
+                    ],
+                    [
+                        '/news/post-42',
+                        {
+                            postId: 42
+                        }
+                    ],
+                    [
+                        '/news',
+                        {}
+                    ],
+                    [
+                        '/news',
+                        {
+                            tagId: 'auto'
+                        }
+                    ]
+                ]
+            ],
+            [
+                '/news(/p-<postId>-foo(/t-<tagId>-bar))',
+                [
+                    [
+                        '/news/p-42-foo/t-auto-bar',
+                        {
+                            postId: 42,
+                            tagId: 'auto'
+                        }
+                    ],
+                    [
+                        '/news/p-42-foo',
+                        {
+                            postId: 42
+                        }
+                    ],
+                    [
+                        '/news',
+                        {}
+                    ],
+                    [
+                        '/news',
+                        {
+                            tagId: 'auto'
+                        }
+                    ]
+                ]
+            ],
+            [
+                '/news(/<foo>(/<bar>(/<baz>)))',
+                [
+                    [
+                        '/news/foo/bar/baz',
+                        {
+                            foo: 'foo',
+                            bar: 'bar',
+                            baz: 'baz'
+                        }
+                    ],
+                    [
+                        '/news/foo/bar',
+                        {
+                            foo: 'foo',
+                            bar: 'bar'
+                        }
+                    ],
+                    [
+                        '/news/foo',
+                        {
+                            foo: 'foo'
+                        }
+                    ],
+                    [
+                        '/news',
+                        {
+                            baz: 'baz'
+                        }
+                    ],
+                    [
+                        '/news',
+                        {
+                            bar: 'bar',
+                            baz: 'baz'
+                        }
+                    ],
+                    [
+                        '/news',
+                        {
+                            bar: 'bar'
+                        }
+                    ],
+                    [
+                        '/news',
+                        {}
+                    ]
+                ]
+            ],
+            [
+                '/news(/f-<foo>-o(/b-<bar>-r(/b-<baz>-z)))',
+                [
+                    [
+                        '/news/f-foo-o/b-bar-r/b-baz-z',
+                        {
+                            foo: 'foo',
+                            bar: 'bar',
+                            baz: 'baz'
+                        }
+                    ],
+                    [
+                        '/news/f-foo-o/b-bar-r',
+                        {
+                            foo: 'foo',
+                            bar: 'bar'
+                        }
+                    ],
+                    [
+                        '/news/f-foo-o',
+                        {
+                            foo: 'foo'
+                        }
+                    ],
+                    [
+                        '/news',
+                        {
+                            baz: 'baz'
+                        }
+                    ],
+                    [
+                        '/news',
+                        {
+                            bar: 'bar',
+                            baz: 'baz'
+                        }
+                    ],
+                    [
+                        '/news',
+                        {
+                            bar: 'bar'
+                        }
+                    ],
+                    [
+                        '/news',
+                        {}
                     ]
                 ]
             ],

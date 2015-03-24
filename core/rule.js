@@ -4,14 +4,11 @@
 var RuleAny = /** @type RuleAny */ require('./parser/rule-any');
 var RuleArg = /** @type RuleArg */ require('./parser/rule-arg');
 var RuleSep = /** @type RuleSep */ require('./parser/rule-sep');
-var RuleSeq = /** @type RuleSeq */ require('./parser/rule-seq');
 
 var Tools = /** @type Tools */ require('./tools');
 var Kind = /** @type Kind */ require('./kind');
 
 var _ = require('lodash-node');
-var au = require('./ast-utils');
-var escodegen = require('escodegen');
 var hasProperty = Object.prototype.hasOwnProperty;
 var matchValues = require('./match-values');
 var regesc = require('regesc');
@@ -126,14 +123,6 @@ function Rule(ruleString, params, data) {
      * @type {RegExp}
      * */
     this._matchRegExp = this._compileMatchRegExp();
-
-    /**
-    * @protected
-    * @memberOf {Rule}
-    * @property
-    * @type {Function}
-    * */
-    this._builderFunc = this._compileBuilderFunc();
 }
 
 Rule.prototype = Object.create(Tools.prototype);
@@ -156,18 +145,23 @@ Rule.prototype.constructor = Rule;
 * @returns {String}
 * */
 Rule.prototype.build = function (args) {
-    var keys;
+    var argName;
     var i;
+    var keys;
     var l;
     var queryArgs = [];
     var url;
-    var argName;
 
     args = Object(args);
-    url = this.params.basePath + this._builderFunc(args);
 
-    for (i = 0, l = this._queryParamsNames.length; i < l; i += 1) {
-        argName = this._queryParamsNames[i];
+    // build pathname
+    url = this._buildPathname(this.params.basePath, args);
+
+    // prepare args to build query string
+    keys = this._queryParamsNames;
+
+    for (i = 0, l = keys.length; i < l; i += 1) {
+        argName = keys[i];
         args[argName] = this._matchQueryArg(args, argName);
     }
 
@@ -175,7 +169,13 @@ Rule.prototype.build = function (args) {
 
     for (i = 0, l = keys.length; i < l; i += 1) {
         argName = keys[i];
-        queryArgs = this._reduceQArg(queryArgs, args[argName], argName);
+
+        if (hasProperty.call(this._paramsCount, argName)) {
+            // the parameter with such name is used in pathname rule, skip
+            continue;
+        }
+
+        queryArgs = this._reduceQueryArgs(queryArgs, args[argName], argName);
     }
 
     if (queryArgs.length) {
@@ -190,30 +190,25 @@ Rule.prototype.build = function (args) {
  * @memberOf {Rule}
  * @method
  *
- * @param {Array} allQArgs
+ * @param {Array} queryArgs
  * @param {*} value
- * @param {String} name
+ * @param {String} argName
  *
  * @returns {Array}
  * */
-Rule.prototype._reduceQArg = function (allQArgs, value, name) {
+Rule.prototype._reduceQueryArgs = function (queryArgs, value, argName) {
     var i;
     var l;
 
-    if (hasProperty.call(this._paramsCount, name)) {
-        // the parameter are used in pathname. skip.
-        return allQArgs;
+    if (_.isArray(value)) {
+        for (i = 0, l = value.length; i < l; i += 1) {
+            queryArgs[queryArgs.length] = this._createQueryArg(argName, value[i]);
+        }
+    } else {
+        queryArgs[queryArgs.length] = this._createQueryArg(argName, value);
     }
 
-    if (!_.isArray(value)) {
-        value = [value];
-    }
-
-    for (i = 0, l = value.length; i < l; i += 1) {
-        allQArgs[allQArgs.length] = this._createQueryArg(name, value[i]);
-    }
-
-    return allQArgs;
+    return queryArgs;
 };
 
 /**
@@ -281,7 +276,7 @@ Rule.prototype.match = function (url) {
 
         if (!hasProperty.call(args, name)) {
             args[name] = value;
-        } else if (Array.isArray(args[name])) {
+        } else if (_.isArray(args[name])) {
             args[name].push(value);
         } else {
             args[name] = [args[name], value];
@@ -317,16 +312,16 @@ Rule.prototype.match = function (url) {
  * */
 Rule.prototype.matchQueryString = function (queryString) {
     var queryObject = queryString ? this._parseQs(queryString) : {};
-    var paramNames = this._queryParamsNames;
+    var queryParamsNames = this._queryParamsNames;
     var queryParams = this._queryParams;
-    var l = paramNames.length;
+    var l = queryParamsNames.length;
     var rules;
     var paramName;
     var values;
 
     while (l) {
         l -= 1;
-        paramName = paramNames[l];
+        paramName = queryParamsNames[l];
         values = this._matchQueryArg(queryObject, paramName);
 
         if (!values) {
@@ -394,147 +389,105 @@ Rule.prototype._compileQueryParams = function () {
  * @memberOf {Rule}
  * @method
  *
- * @returns {Function}
+ * @param {String} accum
+ * @param {Object} args
+ *
+ * @returns {String}
  * */
-Rule.prototype._compileBuilderFunc = function () {
-    var body = [];
-    //  function _builderFunc(args) {
-    var func = au.functionDeclaration('_builderFunc', body, [
-        au.identifier('args')
-    ]);
+Rule.prototype._buildPathname = function (accum, args) {
+    var count = 1; // parts.length
+    var depth = 0; // stack.length
+    var index = 0; // current rule index
+    var parts = [this._pathRule];
     var stack = [];
 
-    body.push(
-        //  var part = '';'
-        au.varDeclaration('part',
-            au.literal('')),
-        //  var stack = [];
-        au.varDeclaration('stack',
-            au.arrayExpression([])),
-        //  var value;
-        au.varDeclaration('value'));
+    var $rule = void 0;
+    var state = void 0;
+    var value = void 0;
 
-    this.inspectRule(function (part, stackPop, n) {
+    do {
+        if (count === index) {
+            depth -= 1;
+            state = stack[depth];
+            accum = state.accum + accum;
+            parts = state.parts;
+            index = state.index + 1;
+            count = parts.length;
 
-        if (part.type === RuleSep.TYPE) {
-            //  part += '/';
-            body.push(
-                this._astCasePartSelfPlus(
-                    au.literal('/')));
-
-            return;
-        }
-//
-        if (part.type === RuleAny.TYPE) {
-            body.push(
-                //  part += `this._valEscape(part.text)`;
-                this._astCasePartSelfPlus(
-                    au.literal(this._valEscape(part.text))));
-
-            return;
+            continue;
         }
 
-        if (part.type === RuleSeq.TYPE) {
-//            //  optional
-            if (stackPop) {
-                body = stack.pop();
-                body.push(
-                    //  part = stack[`n`] + part;
-                    this._astCaseAssignPart(
-                        au.binaryExpression('+',
-                            au.memberExpression(
-                                au.identifier('stack'),
-                                au.literal(n),
-                                true),
-                            au.identifier('part'))));
+        $rule = parts[index];
+        index += 1;
 
-                return;
+        if ($rule.type === RuleSep.TYPE) {
+            accum += '/';
+
+            continue;
+        }
+
+        if ($rule.type === RuleAny.TYPE) {
+            accum += this._valEscape($rule.text);
+
+            continue;
+        }
+
+        if ($rule.parts) {
+            // RuleSeq
+            stack[depth] = new State(accum, parts, index - 1);
+            depth += 1;
+            accum = '';
+            parts = $rule.parts;
+            index = 0;
+            count = parts.length;
+
+            continue;
+        }
+
+        // RuleArg
+        value = null;
+
+        if (hasProperty.call(args, $rule.name)) {
+            value = args[$rule.name];
+            if (!_.isArray(value)) {
+                value = [value];
             }
 
-            body.push(
-                //  stack[`n`] = part;
-                au.assignmentStatement('=',
-                    au.memberExpression(
-                        au.identifier('stack'),
-                        au.literal(n),
-                        true),
-                    au.identifier('part')),
-                //  part = '';
-                this._astCaseResetPart());
-
-            stack.push(body);
-            //  RULE_SEQ_`n`: {
-            body.push(
-                au.labeledStatement('RULE_SEQ_' + n, body = []));
-
-            return;
+            value = value[$rule.used];
         }
 
-        body.push(
-            this._astCaseResetValue(),
-            au.ifStatement(
-                this._astCaseHasPropertyCall(
-                    [
-                        au.identifier('args'),
-                        au.literal(part.name)]),
-                [
-                    au.assignmentStatement('=',
-                        au.identifier('value'),
-                        au.memberExpression(
-                            au.identifier('args'),
-                            au.literal(part.name),
-                            true)),
-                    au.ifStatement(
-                        au.unaryExpression('!',
-                            this._astCaseIsValueArray(),
-                            true),
-                        [
-                            au.assignmentStatement('=',
-                                au.identifier('value'),
-                                au.arrayExpression([
-                                    au.identifier('value')]))]),
-                    this._astCaseGetNthValue(part.used)]));
-
-        body.push(
-            au.ifStatement(
-                this._astCaseValueCheckExpression('||', '==='),
-                [
-                    au.assignmentStatement('=',
-                        au.identifier('value'),
-                        au.literal(part.value === void 0 ? null : part.value))]));
-
-        if (n > 1) {
-            body.push(
-                au.ifStatement(
-                    //  if (value === undefined || value === null || value === ') {
-                    this._astCaseValueCheckExpression('||', '==='),
-                    [
-                        //  part = '';
-                        this._astCaseResetPart(),
-                        //  break RULE_SEQ_`n - 1`;
-                        au.breakStatement('RULE_SEQ_' + (n - 1))]),
-                //  part += this._qStringify(value);
-                this._astCasePartSelfPlus(
-                    this._astCaseQueryEscapeValue4Pathname()));
-        } else {
-            body.push(
-                au.ifStatement(
-                    //  if (value !== undefined && value !== null && value !== '') {
-                    this._astCaseValueCheckExpression('&&', '!=='),
-                    [
-                        //  part += this._qStringify(value);
-                        this._astCasePartSelfPlus(
-                            this._astCaseQueryEscapeValue4Pathname())]));
+        if (value === null || value === void 0 || value === '') {
+            value = $rule.value;
         }
-    });
 
-    body.push(au.returnStatement(au.identifier('part')));
+        if (value === null || value === void 0 || value === '') {
+            if (depth < 2) {
 
-    func = escodegen.generate(func);
+                continue;
+            }
 
-    return new Function('hasProperty', 'undefined',
-        'return ' + func)(hasProperty, void 0);
+            depth -= 1;
+            state = stack[depth];
+            accum = state.accum;
+            parts = state.parts;
+            count = index = parts.length;
+
+            continue;
+        }
+
+        // value ok
+        accum += this._pStringify(value);
+
+    } while (depth);
+
+    return accum;
 };
+
+function State(accum, parts, index) {
+    this.accum = accum;
+    this.parts = parts;
+    this.index = index;
+}
 
 /**
  * @private
@@ -544,7 +497,7 @@ Rule.prototype._compileBuilderFunc = function () {
  * @returns {RegExp}
  * */
 Rule.prototype._compileMatchRegExp = function () {
-    var source = this.reduceRule(this._compileMatchRegExpPart);
+    var source = this.reduce(this._compileMatchRegExpPart, '');
 
     source = '^' + source + '(?:\\?([\\s\\S]*))?$';
 
@@ -556,41 +509,39 @@ Rule.prototype._compileMatchRegExp = function () {
  * @memberOf {Rule}
  * @method
  *
- * @param {Object} part
+ * @param {String} accum
+ * @param {Object} rule
  * @param {Boolean} stackPop
- * @param {Number} n
+ * @param {Number} depth
  *
  * @returns {Object}
  * */
-Rule.prototype._compileMatchRegExpPart = function (part, stackPop, n) {
-    var type = part.type;
+Rule.prototype._compileMatchRegExpPart = function (accum, rule, stackPop, depth) {
+    var type = rule.type;
 
     if (type === RuleSep.TYPE) {
-
-        return regesc('/');
+        return accum + regesc('/');
     }
 
     if (type === RuleAny.TYPE) {
-
-        return this._compileMatchRegExpPartStatic(part);
+        return accum + this._compileMatchRegExpPartStatic(rule);
     }
 
     if (type === RuleArg.TYPE) {
-        type = this._kinds[part.kind];
+        type = this._kinds[rule.kind];
 
-        return '(' + type.regex + ')';
+        return accum + '(' + type.regex + ')';
     }
 
-    if (n === 0) {
-        return '';
+    if (depth === 0) {
+        return accum;
     }
 
     if (stackPop) {
-
-        return ')?';
+        return accum + ')?';
     }
 
-    return '(?:';
+    return accum + '(?:';
 };
 
 /**
@@ -598,16 +549,16 @@ Rule.prototype._compileMatchRegExpPart = function (part, stackPop, n) {
  * @memberOf {Rule}
  * @method
  *
- * @param {Object} part
+ * @param {Object} rule
  *
  * @returns {String}
  * */
-Rule.prototype._compileMatchRegExpPartStatic = function (part) {
+Rule.prototype._compileMatchRegExpPartStatic = function (rule) {
     var char;
     var i;
     var l;
     var result = '';
-    var text = part.text;
+    var text = rule.text;
 
     for (i = 0, l = text.length; i < l; i += 1) {
         char = text.charAt(i);
@@ -620,8 +571,7 @@ Rule.prototype._compileMatchRegExpPartStatic = function (part) {
 
         if (this.params.ignoreCase) {
             result += '(?:' + regesc(char) + '|' +
-            this._valEscape(char.toLowerCase()) + '|' +
-            this._valEscape(char.toUpperCase()) + ')';
+                this._valEscape(char.toLowerCase()) + '|' + this._valEscape(char.toUpperCase()) + ')';
 
             continue;
         }
@@ -642,8 +592,8 @@ Rule.prototype._compileMatchRegExpPartStatic = function (part) {
 Rule.prototype._compileParamsCount = function () {
     var count = {};
 
-    _.forEach(this._pathParams, function (part) {
-        var name = part.name;
+    _.forEach(this._pathParams, function (rule) {
+        var name = rule.name;
         if (_.has(count, name)) {
             count[name] += 1;
         } else {
@@ -664,9 +614,9 @@ Rule.prototype._compileParamsCount = function () {
 Rule.prototype._findPathParams = function () {
     var order = [];
 
-    this.inspectRule(function (part) {
-        if (part.type === RuleArg.TYPE) {
-            order[order.length] = part;
+    this.inspect(function (rule) {
+        if (rule.type === RuleArg.TYPE) {
+            order[order.length] = rule;
         }
     });
 
@@ -681,13 +631,13 @@ Rule.prototype._findPathParams = function () {
  * @returns {RulePath}
  * */
 Rule.prototype._compilePathRule = function () {
-    var rule = Tools.prototype._compilePathRule.call(this);
+    var pathRule = Tools.prototype._compilePathRule.call(this);
     var used = Object.create(null);
 
-    Tools._inspectRule(rule, function (part) {
-        var name = part.name;
+    Tools.inspectRule(pathRule, function (rule) {
+        var name = rule.name;
 
-        if (part.type !== RuleArg.TYPE) {
+        if (rule.type !== RuleArg.TYPE) {
             return;
         }
 
@@ -697,169 +647,10 @@ Rule.prototype._compilePathRule = function () {
             used[name] += 1;
         }
 
-        part.used = used[name];
+        rule.used = used[name];
     });
 
-    return rule;
-};
-
-//  Ast cases
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {String} logicalOp
- * @param {String} binaryOp
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseValueCheckExpression = function (logicalOp, binaryOp) {
-    return au.logicalExpression(logicalOp,
-        au.logicalExpression(logicalOp,
-            au.binaryExpression(binaryOp,
-                au.identifier('value'),
-                this._astCaseUndef()),
-            au.binaryExpression(binaryOp,
-                au.identifier('value'),
-                au.literal(null))),
-        au.binaryExpression(binaryOp,
-            au.identifier('value'),
-            au.literal('')));
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseUndef = function () {
-    return au.identifier('undefined');
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {Array} args
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseHasPropertyCall = function (args) {
-    return au.callExpression(
-        au.memberExpression(
-            au.identifier('hasProperty'),
-            au.identifier('call')),
-        args);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseQueryEscapeValue4Pathname = function () {
-    return au.callExpression(
-        au.memberExpression(
-            au.identifier('this'),
-            au.identifier('_pStringify')),
-        [
-            au.identifier('value')]);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseIsValueArray = function () {
-    return au.callExpression(
-        au.memberExpression(
-            au.identifier('Array'),
-            au.identifier('isArray')),
-        [
-            au.identifier('value')]);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {Number} nth
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseGetNthValue = function (nth) {
-    return au.assignmentStatement('=',
-        au.identifier('value'),
-        au.memberExpression(
-            au.identifier('value'),
-            au.literal(nth),
-            true));
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {*} plus
- *
- * @returns {Object}
- * */
-Rule.prototype._astCasePartSelfPlus = function (plus) {
-    return au.assignmentStatement('+=',
-        au.identifier('part'),
-        plus);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @param {*} assign
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseAssignPart = function (assign) {
-    return au.assignmentStatement('=',
-        au.identifier('part'),
-        assign);
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseResetValue = function () {
-    return au.assignmentStatement('=',
-        au.identifier('value'),
-        this._astCaseUndef());
-};
-
-/**
- * @private
- * @memberOf {Rule}
- * @method
- *
- * @returns {Object}
- * */
-Rule.prototype._astCaseResetPart = function () {
-    return this._astCaseAssignPart(
-        au.literal(''));
+    return pathRule;
 };
 
 /**
@@ -895,7 +686,7 @@ Rule.prototype._parseQs = function (queryString) {
 
         if (!hasProperty.call(queryObject, key)) {
             queryObject[key] = val;
-        } else if (Array.isArray(queryObject[key])) {
+        } else if (_.isArray(queryObject[key])) {
             queryObject[key].push(val);
         } else {
             queryObject[key] = [queryObject[key], val];
@@ -935,7 +726,6 @@ Rule.prototype._qStringify = function (v) {
     }
 
     if (t === 'boolean' || t === 'number' && isFinite(v)) {
-
         return String(v);
     }
 
@@ -961,16 +751,19 @@ Rule.prototype._valEscape = encodeURIComponent;
  * @returns {String}
  * */
 Rule.prototype._valUnescape = function (subj) {
-
     if (subj.indexOf('%') === -1) {
         return subj;
     }
 
+    return decode(subj);
+};
+
+function decode(subj) {
     try {
         return decodeURIComponent(subj);
     } catch (err) {
         return subj;
     }
-};
+}
 
 module.exports = Rule;
