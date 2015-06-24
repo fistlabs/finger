@@ -21,6 +21,13 @@ describe('base-path-support', function () {
         });
         assert.ok(!rule.match('/bar'));
     });
+    it('Should match on basePath', function () {
+        var rule = new Rule('/', {
+            basePath: '/foo',
+            appendSlash: true
+        });
+        assert.ok(rule.match('/foo'));
+    });
     it('Should match the urls starting with base path, but base path is not directly described in rule', function () {
         var rule = new Rule('/bar', {
             basePath: '/foo'

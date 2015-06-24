@@ -250,7 +250,7 @@ Rule.prototype.match = function (url) {
         return null;
     }
 
-    url = url.substr(this.params.basePath.length);
+    url = url.substr(this.params.basePath.length) || '/';
 
     if (this.params.appendSlash) {
         url = url.replace(/^(\/[^.?\/]+[^\/?])(\?[^?]*)?$/, '$1/$2');
